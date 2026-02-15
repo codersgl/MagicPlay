@@ -6,5 +6,11 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "dashscope>=1.25.12",
+    "dotenv>=0.9.9",
+    "moviepy>=2.2.1",
     "openai>=2.21.0",
 ]
+
+[[tool.uv.index]]
+url = "https://pypi.tuna.tsinghua.edu.cn/simple"
+default = true
