@@ -4,11 +4,7 @@ MagicPlay is an automated content generation tool that creates short play script
 
 ## Showcase
 
-<<<<<<< HEAD
-<video src="https://github.com/codersgl/MagicPlay/blob/master/assets/show_case.mp4" controls title="MagicPlay Showcase" width="100%"></video>
-=======
 <video src="https://github.com/codersgl/MagicPlay/releases/download/v0.1.0/show_case.mp4" controls title="MagicPlay Showcase" width="100%"></video>
->>>>>>> 239d7ab (docs: update README to include showcase video and clarify usage instructions)
 
 ## Features
 
