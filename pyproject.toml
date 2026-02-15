@@ -1,0 +1,10 @@
+[project]
+name = "magicplay"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "dashscope>=1.25.12",
+    "openai>=2.21.0",
+]
