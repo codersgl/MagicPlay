@@ -16,20 +16,32 @@ class VideoGenerator:
         self.size = size
         self.duration = duration
 
-    def generate_video(self, visual_prompt: str, output_path: Union[str, Path]) -> Path:
+    def generate_video(
+        self,
+        visual_prompt: str,
+        output_path: Union[str, Path],
+        ref_img_path: Union[str, Path] = None,
+    ) -> Path:
         """
-        Generate a video from a visual prompt string.
+        Generate a video from a visual prompt string, optionally using a reference image (last frame).
         """
         output_path = Path(output_path)
+        if ref_img_path:
+            ref_img_path = Path(ref_img_path)
 
         # Ensure output directory exists
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
         print(f"Generating video to {output_path}...")
+        if ref_img_path:
+            print(f"Using reference image: {ref_img_path}")
 
         try:
             video_url = self.service.generate_video_url(
-                prompt=visual_prompt, size=self.size, duration=self.duration
+                prompt=visual_prompt,
+                size=self.size,
+                duration=self.duration,
+                ref_img_path=str(ref_img_path) if ref_img_path else None,
             )
 
             if MediaUtils.download_video(video_url, output_path):

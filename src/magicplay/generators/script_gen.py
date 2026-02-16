@@ -1,7 +1,6 @@
 from pathlib import Path
 from typing import Optional, Union
 
-from magicplay.utils.paths import DataManager
 from magicplay.services.llm import LLMService
 
 
@@ -122,14 +121,16 @@ class ScriptGenerator:
 
         script_content = script_path.read_text(encoding="utf-8")
 
-        system_prompt = "你是专业的视觉导演。你的任务是将剧本转化为视频生成模型（Text-to-Video）可理解的提示词。"
+        system_prompt = "你是专业的AI动漫视觉导演，擅长编写Stable Diffusion/Midjourney/Wan2.6 风格的提示词。"
         user_prompt = (
-            f"请阅读以下剧本，并提炼成一段英文的视觉描述提示词（Visual Prompt）。\n"
+            f"请阅读以下网文漫改剧本，并提炼成一段**中文**的视觉描述提示词（Visual Prompt）。\n"
+            f"最重要的任务是**保持角色和画风的一致性**。\n\n"
             f"要求：\n"
-            f"1. 包含具体的场景描述、光影氛围、镜头语言。\n"
-            f"2. 描述主要角色的外观和动作。\n"
-            f"3. 纯英文输出，不要包含解释性文字。\n"
-            f"4. 长度控制在 300-500 words。\n\n"
+            f"1. **画风锁定**：开头必须包含明确的风格词（如：'精致国漫风'、'Unreal Engine 5渲染'、'二次元厚涂'、'水墨特效'）。\n"
+            f"2. **角色一致性**：必须严格保留剧本中定义的角色外貌特征（Visual Tags），如发色、瞳色、服装细节。不要随意发挥。\n"
+            f"3. **场景与光影**：描述环境氛围，注重镜头语言（如：特写、大广角、运动镜头）。\n"
+            f"4. **格式**：采用逗号分隔的关键词风格，或者一段描述性很强的自然语言。\n"
+            f"5. 字数控制在 300字左右。\n\n"
             f"剧本内容：\n{script_content}"
         )
 

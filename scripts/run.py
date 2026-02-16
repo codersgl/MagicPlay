@@ -1,5 +1,4 @@
 import argparse
-import sys
 from magicplay.core.orchestrator import Orchestrator, StoryOrchestrator
 
 

@@ -97,6 +97,9 @@ class Orchestrator:
                 (f"scene_{i}", None) for i in range(1, self.max_scenes + 1)
             ]
 
+        # Track previous video for continuity
+        previous_video_path = None
+
         # 1. Loop through scenes
         for scene_name, prompt_file in scenes_to_process:
             print(f"\n--- Processing {scene_name} ---")
@@ -143,13 +146,26 @@ class Orchestrator:
                         script_path
                     )
 
+                    # Prepare reference image (last frame of previous video)
+                    ref_img_path = None
+                    if previous_video_path and Path(previous_video_path).exists():
+                        last_frame_path = (
+                            self.videos_dir
+                            / f"last_frame_{Path(previous_video_path).stem}.jpg"
+                        )
+                        if MediaUtils.extract_last_frame(
+                            previous_video_path, last_frame_path
+                        ):
+                            ref_img_path = last_frame_path
+
                     print(f"Generating video...")
                     video_path = self.video_gen.generate_video(
-                        visual_prompt_text, video_path
+                        visual_prompt_text, video_path, ref_img_path=ref_img_path
                     )
 
                     if video_path and video_path.exists():
                         video_files.append(str(video_path))
+                        previous_video_path = video_path
 
                 except Exception as e:
                     print(f"Failed to generate video for {scene_name}: {e}")
@@ -157,6 +173,7 @@ class Orchestrator:
             else:
                 print(f"Video already exists: {video_path}")
                 video_files.append(str(video_path))
+                previous_video_path = video_path
 
         # 2. Stitch Videos
         if video_files:

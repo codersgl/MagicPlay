@@ -49,6 +49,33 @@ class MediaUtils:
             raise
 
     @staticmethod
+    def extract_last_frame(
+        video_path: str | Path, output_image_path: str | Path
+    ) -> bool:
+        """
+        Extract the last frame from a video file and save it as an image.
+        """
+        if not MOVIEPY_AVAILABLE:
+            print("MoviePy not available, cannot extract last frame.")
+            return False
+
+        try:
+            video_path = str(video_path)
+            output_image_path = str(output_image_path)
+
+            with VideoFileClip(video_path) as clip:
+                # Extract the last frame (minus a small buffer to ensure valid frame)
+                duration = clip.duration
+                last_frame_time = max(0, duration - 0.1)
+                clip.save_frame(output_image_path, t=last_frame_time)
+
+            print(f"Last frame extracted to: {output_image_path}")
+            return True
+        except Exception as e:
+            print(f"Failed to extract last frame: {e}")
+            return False
+
+    @staticmethod
     def stitch_videos(video_files: List[str], output_path: Union[str, Path]):
         output_path = Path(output_path)
         if not MOVIEPY_AVAILABLE:
@@ -57,20 +84,48 @@ class MediaUtils:
 
         print("Stitching videos...")
         try:
+            # Load all clips
             clips = [VideoFileClip(f) for f in video_files]
             if not clips:
                 return
 
-            final_clip = concatenate_videoclips(clips)
+            # Determine target resolution from the first clip (or default to 1280x720)
+            target_w, target_h = clips[0].size
+            # Normalize all clips to the target resolution to avoid stitching errors
+            resized_clips = []
+            for clip in clips:
+                if clip.size != (target_w, target_h):
+                    print(
+                        f"Resizing clip {clip.filename} from {clip.size} to {(target_w, target_h)}"
+                    )
+                    # Use method='compose' for high quality resizing
+                    resized_clips.append(clip.resized(new_size=(target_w, target_h)))
+                else:
+                    resized_clips.append(clip)
+
+            # Use method="compose" to handle different formats/resolutions safer
+            # Set fps explicitly to avoid mismatch issues
+            target_fps = clips[0].fps if clips[0].fps else 24
+
+            final_clip = concatenate_videoclips(resized_clips, method="compose")
 
             output_path.parent.mkdir(parents=True, exist_ok=True)
 
             final_clip.write_videofile(
-                str(output_path), codec="libx264", audio_codec="aac", logger=None
+                str(output_path),
+                fps=target_fps,
+                codec="libx264",
+                audio_codec="aac",
+                logger=None,
+                # audio_bitrate="192k",
+                # preset="medium"
             )
             print(f"Full episode video saved: {output_path}")
 
             # Close clips
+            final_clip.close()
+            for clip in clips:
+                clip.close()
             for clip in clips:
                 clip.close()
             final_clip.close()
