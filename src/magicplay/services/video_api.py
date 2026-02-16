@@ -15,29 +15,57 @@ class VideoService:
         api_provider: str = "qwen",
     ) -> None:
         self.api_provider = api_provider
-        self.api_key = os.getenv("DASHSCOPE_API_KEY")
+        self.api_key = os.getenv("DASHSCOPE_API_KEY", "")
         if not self.api_key:
             raise ValueError("DASHSCOPE_API_KEY environment variable is not set")
 
         dashscope.base_http_api_url = "https://dashscope.aliyuncs.com/api/v1"
 
     def generate_video_url(
-        self, prompt: str, size: Tuple[int, int] = (1280, 720), duration: int = 15
+        self,
+        prompt: str,
+        size: Tuple[int, int] = (1280, 720),
+        duration: int = 5,
+        ref_img_path: str = None,
     ) -> str:
         """
         Call the video generation API and return the video URL.
         """
         if self.api_provider == "qwen":
-            rsp = VideoSynthesis.call(
-                api_key=self.api_key,
-                model="wan2.6-t2v",
-                prompt=prompt,
-                size=f"{size[0]}*{size[1]}",
-                duration=duration,
-                shot_type="multi",
-                prompt_extend=True,
-                watermark=False,
-            )
+            # Determine model based on input
+            if ref_img_path and os.path.exists(ref_img_path):
+                # Use Image-to-Video model
+                model_name = "wan2.6-i2v"
+                print(f"Using Image-to-Video model: {model_name} with reference image")
+
+                img_url = f"file://{os.path.abspath(ref_img_path)}"
+
+                rsp = VideoSynthesis.call(
+                    api_key=self.api_key,
+                    model=model_name,
+                    duration=duration,
+                    size=f"{size[0]}*{size[1]}",
+                    prompt=prompt,
+                    shot_type="multi",
+                    img_url=img_url,
+                    prompt_extend=True,
+                    watermark=False,
+                )
+            else:
+                # Use Text-to-Video model
+                # Keeping user's original preference if possible, but user code said wan2.6-t2v
+                model_name = "wan2.6-t2v"
+
+                rsp = VideoSynthesis.call(
+                    api_key=self.api_key,
+                    model=model_name,
+                    prompt=prompt,
+                    size=f"{size[0]}*{size[1]}",
+                    duration=duration,
+                    shot_type="multi",
+                    prompt_extend=True,
+                    watermark=False,
+                )
 
             if rsp.status_code == HTTPStatus.OK:
                 return rsp.output.video_url
