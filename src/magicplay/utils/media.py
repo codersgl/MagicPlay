@@ -83,6 +83,10 @@ class MediaUtils:
             return
 
         print("Stitching videos...")
+        clips = []
+        resized_clips = []
+        final_clip = None
+
         try:
             # Load all clips
             clips = [VideoFileClip(f) for f in video_files]
@@ -92,14 +96,19 @@ class MediaUtils:
             # Determine target resolution from the first clip (or default to 1280x720)
             target_w, target_h = clips[0].size
             # Normalize all clips to the target resolution to avoid stitching errors
-            resized_clips = []
             for clip in clips:
                 if clip.size != (target_w, target_h):
                     print(
                         f"Resizing clip {clip.filename} from {clip.size} to {(target_w, target_h)}"
                     )
                     # Use method='compose' for high quality resizing
-                    resized_clips.append(clip.resized(new_size=(target_w, target_h)))
+                    # Check for resized method (MoviePy v2) vs resize (MoviePy v1)
+                    if hasattr(clip, "resized"):
+                        resized_clips.append(
+                            clip.resized(new_size=(target_w, target_h))
+                        )
+                    else:
+                        resized_clips.append(clip.resize(newsize=(target_w, target_h)))
                 else:
                     resized_clips.append(clip)
 
@@ -122,14 +131,29 @@ class MediaUtils:
             )
             print(f"Full episode video saved: {output_path}")
 
-            # Close clips
-            final_clip.close()
-            for clip in clips:
-                clip.close()
-            for clip in clips:
-                clip.close()
-            final_clip.close()
-
         except Exception as e:
             print(f"Error during stitching: {e}")
             raise
+
+        finally:
+            # Proper resource cleanup
+            if final_clip:
+                try:
+                    final_clip.close()
+                except Exception:
+                    pass
+
+            # Close resized clips unique from source clips
+            for clip in resized_clips:
+                if clip not in clips:
+                    try:
+                        clip.close()
+                    except Exception:
+                        pass
+
+            # Close original source clips
+            for clip in clips:
+                try:
+                    clip.close()
+                except Exception:
+                    pass

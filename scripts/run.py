@@ -22,6 +22,18 @@ def main():
         action="store_true",
         help="Run all episodes in the story sequentially",
     )
+    parser.add_argument(
+        "--genre",
+        type=str,
+        default="",
+        help="Genre of the story (e.g., Xuanhuan, Xiuxian)",
+    )
+    parser.add_argument(
+        "--reference-story",
+        type=str,
+        default="",
+        help="Reference story or style to imitate (e.g., Sword of Coming)",
+    )
 
     args = parser.parse_args()
 
@@ -29,13 +41,21 @@ def main():
 
     if args.run_all:
         print(f"Starting FULL STORY generation for: {args.story}")
-        orchestrator = StoryOrchestrator(args.story)
+        orchestrator = StoryOrchestrator(
+            args.story, genre=args.genre, reference_story=args.reference_story
+        )
         orchestrator.run()
     else:
         print(
             f"Starting SINGLE EPISODE generation for Story: {args.story}, Episode: {episode_name}"
         )
-        orchestrator = Orchestrator(args.story, episode_name, max_scenes=args.scenes)
+        orchestrator = Orchestrator(
+            args.story,
+            episode_name,
+            max_scenes=args.scenes,
+            genre=args.genre,
+            reference_story=args.reference_story,
+        )
         orchestrator.run()
 
     print("Generation complete!")

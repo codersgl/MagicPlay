@@ -8,10 +8,19 @@ from magicplay.utils.media import MediaUtils
 
 
 class Orchestrator:
-    def __init__(self, story_name: str, episode_name: str, max_scenes: int = 5):
+    def __init__(
+        self,
+        story_name: str,
+        episode_name: str,
+        max_scenes: int = 5,
+        genre: str = "",
+        reference_story: str = "",
+    ):
         self.story_name = story_name
         self.episode_name = episode_name
         self.max_scenes = max_scenes
+        self.genre = genre
+        self.reference_story = reference_story
 
         DataManager.ensure_structure(story_name, episode_name)
 
@@ -23,7 +32,11 @@ class Orchestrator:
 
         # Initialize Generators
         # Prompts are loaded from default location src/magicplay/prompts unless specified
-        self.script_gen = ScriptGenerator(output_dir=self.scripts_dir)
+        self.script_gen = ScriptGenerator(
+            output_dir=self.scripts_dir,
+            genre=self.genre,
+            reference_story=self.reference_story,
+        )
         self.video_gen = VideoGenerator()
 
     def load_context(self) -> Tuple[str, str]:
@@ -65,9 +78,13 @@ class Orchestrator:
                 except Exception as e:
                     print(f"Warning: Failed to auto-generate episode outline: {e}")
 
+        # If no story context exists, we might need to generate one if this is a fresh run
+        # But usually run.py expects existing story or creates structure.
+        # If we have genre/reference, we can inject it into the story generation if it happens here.
+
         return story_ctx, episode_ctx
 
-    def run(self, initial_memory: str = "") -> Tuple[Path | None, str]:
+    def run(self, initial_memory: str = "") -> Tuple[List[Path], str]:
         story_ctx, episode_ctx = self.load_context()
         video_files = []
         memory = initial_memory

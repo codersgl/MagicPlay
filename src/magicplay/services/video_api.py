@@ -43,7 +43,9 @@ class VideoService:
                 rsp = VideoSynthesis.call(
                     api_key=self.api_key,
                     model=model_name,
+                    # Duration: Wan2.6 favors 5s but supports extension. 5s is default/safe.
                     duration=duration,
+                    # Resolution: 720P (1280x720) or 1080P/480P.
                     size=f"{size[0]}*{size[1]}",
                     prompt=prompt,
                     shot_type="multi",
@@ -62,14 +64,20 @@ class VideoService:
                     prompt=prompt,
                     size=f"{size[0]}*{size[1]}",
                     duration=duration,
-                    shot_type="multi",
                     prompt_extend=True,
                     watermark=False,
+                    negative_prompt="blurry, low quality, watermark, text, distorted faces, extra limbs, jittery, flickering",
                 )
 
             if rsp.status_code == HTTPStatus.OK:
                 return rsp.output.video_url
             else:
+                if rsp.code == "AllocationQuota.FreeTierOnly":
+                    raise RuntimeError(
+                        "Aliyun Dashscope Quota Error: Your free tier quota for this model is exhausted. "
+                        "Please go to the Aliyun Dashscope Console -> Model Plaza or API Keys management, "
+                        "and disable the 'Use free tier only' option to switch to pay-as-you-go billing."
+                    )
                 raise RuntimeError(
                     "Video generation failed, status_code: %s, code: %s, message: %s"
                     % (rsp.status_code, rsp.code, rsp.message)
