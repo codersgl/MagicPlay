@@ -32,6 +32,16 @@ class DataManager:
         return cls.get_episode_path(story_name, episode_name) / "generated_scripts"
 
     @classmethod
+    def get_character_anchors_path(cls, story_name: str) -> Path:
+        """Returns the directory where character anchor images should be saved."""
+        return cls.get_story_path(story_name) / "character_anchors"
+
+    @classmethod
+    def get_scene_concepts_path(cls, story_name: str, episode_name: str) -> Path:
+        """Returns the directory where scene concept images should be saved."""
+        return cls.get_episode_path(story_name, episode_name) / "scene_concepts"
+
+    @classmethod
     def ensure_structure(cls, story_name: str, episode_name: str):
         """Creates necessary directories for scenes and output videos."""
         cls.get_scenes_path(story_name, episode_name).mkdir(parents=True, exist_ok=True)
@@ -39,6 +49,10 @@ class DataManager:
             parents=True, exist_ok=True
         )
         cls.get_video_output_path(story_name, episode_name).mkdir(
+            parents=True, exist_ok=True
+        )
+        cls.get_character_anchors_path(story_name).mkdir(parents=True, exist_ok=True)
+        cls.get_scene_concepts_path(story_name, episode_name).mkdir(
             parents=True, exist_ok=True
         )
 
@@ -79,7 +93,7 @@ class DataManager:
     @staticmethod
     def read_prompt_file(source: str | Path) -> str:
         path = Path(source)
-        file_to_read = None
+        file_to_read: Path | None = None
 
         if path.exists() and path.is_file():
             file_to_read = path

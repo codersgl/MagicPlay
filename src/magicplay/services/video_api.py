@@ -1,6 +1,7 @@
 import os
+import time
 from http import HTTPStatus
-from typing import Tuple, Dict, Any
+from typing import Any, Dict, Optional, Tuple
 
 import dashscope
 from dashscope import VideoSynthesis
@@ -13,8 +14,13 @@ class VideoService:
     def __init__(
         self,
         api_provider: str = "qwen",
+        max_retries: int = 3,
+        retry_delay: float = 2.0,
     ) -> None:
         self.api_provider = api_provider
+        self.max_retries = max_retries
+        self.retry_delay = retry_delay
+        
         self.api_key = os.getenv("DASHSCOPE_API_KEY", "")
         if not self.api_key:
             raise ValueError("DASHSCOPE_API_KEY environment variable is not set")
@@ -24,12 +30,17 @@ class VideoService:
     def generate_video_url(
         self,
         prompt: str,
-        size: Tuple[int, int] = (1280, 720),
+        size: Tuple[int, int] = (1920, 1080),  # Updated default to 1080p for higher quality
         duration: int = 5,
-        ref_img_path: str = None,
+        ref_img_path: Optional[str] = None,
     ) -> str:
         """
         Call the video generation API and return the video URL.
+
+        Enhanced for sci-fi/suspense genre optimization:
+        - Higher resolution default (1920x1080)
+        - Extended negative prompts for quality control
+        - Optimized shot_type for dramatic scenes
         """
         if self.api_provider == "qwen":
             # Determine model based on input
@@ -40,47 +51,155 @@ class VideoService:
 
                 img_url = f"file://{os.path.abspath(ref_img_path)}"
 
-                rsp = VideoSynthesis.call(
-                    api_key=self.api_key,
-                    model=model_name,
-                    # Duration: Wan2.6 favors 5s but supports extension. 5s is default/safe.
-                    duration=duration,
-                    # Resolution: 720P (1280x720) or 1080P/480P.
-                    size=f"{size[0]}*{size[1]}",
+                # Enhanced negative prompt for sci-fi/suspense quality
+                enhanced_negative_prompt = (
+                    "blurry, low quality, watermark, text, distorted faces, extra limbs, "
+                    "jittery, flickering, anime style, 3d render, cartoon, illustration, "
+                    "deformed hands, extra fingers, missing limbs, floating objects, "
+                    "inconsistent lighting, color shifting, morphing artifacts, "
+                    "unrealistic physics, defying gravity, impossible movements, "
+                    "plastic skin, wax figure, uncanny valley, oversaturated, "
+                    "poor anatomy, unnatural pose, awkward framing"
+                )
+
+                # 添加重试机制
+                return self._call_video_api_with_retry(
+                    model_name=model_name,
                     prompt=prompt,
-                    shot_type="multi",
+                    size=size,
+                    duration=duration,
                     img_url=img_url,
-                    prompt_extend=True,
-                    watermark=False,
+                    negative_prompt=enhanced_negative_prompt,
                 )
             else:
                 # Use Text-to-Video model
-                # Keeping user's original preference if possible, but user code said wan2.6-t2v
                 model_name = "wan2.6-t2v"
 
-                rsp = VideoSynthesis.call(
-                    api_key=self.api_key,
-                    model=model_name,
-                    prompt=prompt,
-                    size=f"{size[0]}*{size[1]}",
-                    duration=duration,
-                    prompt_extend=True,
-                    watermark=False,
-                    negative_prompt="blurry, low quality, watermark, text, distorted faces, extra limbs, jittery, flickering",
+                # Enhanced negative prompt for sci-fi/suspense quality
+                enhanced_negative_prompt = (
+                    "blurry, low quality, watermark, text, distorted faces, extra limbs, "
+                    "jittery, flickering, anime style, 3d render, cartoon, illustration, "
+                    "deformed hands, extra fingers, missing limbs, floating objects, "
+                    "inconsistent lighting, color shifting, morphing artifacts, "
+                    "unrealistic physics, defying gravity, impossible movements, "
+                    "plastic skin, wax figure, uncanny valley, oversaturated, "
+                    "poor anatomy, unnatural pose, awkward framing"
                 )
 
-            if rsp.status_code == HTTPStatus.OK:
-                return rsp.output.video_url
-            else:
-                if rsp.code == "AllocationQuota.FreeTierOnly":
-                    raise RuntimeError(
-                        "Aliyun Dashscope Quota Error: Your free tier quota for this model is exhausted. "
-                        "Please go to the Aliyun Dashscope Console -> Model Plaza or API Keys management, "
-                        "and disable the 'Use free tier only' option to switch to pay-as-you-go billing."
-                    )
-                raise RuntimeError(
-                    "Video generation failed, status_code: %s, code: %s, message: %s"
-                    % (rsp.status_code, rsp.code, rsp.message)
+                return self._call_video_api_with_retry(
+                    model_name=model_name,
+                    prompt=prompt,
+                    size=size,
+                    duration=duration,
+                    img_url=None,
+                    negative_prompt=enhanced_negative_prompt,
                 )
         else:
             raise ValueError(f"Unsupported provider: {self.api_provider}")
+
+    def _call_video_api_with_retry(
+        self,
+        model_name: str,
+        prompt: str,
+        size: Tuple[int, int],
+        duration: int,
+        img_url: Optional[str] = None,
+        negative_prompt: Optional[str] = None,
+    ) -> str:
+        """
+        Call video API with retry logic for network errors.
+
+        Args:
+            model_name: Model to use (wan2.6-i2v or wan2.6-t2v)
+            prompt: Visual prompt for generation
+            size: Output video resolution (width, height)
+            duration: Video duration in seconds
+            img_url: Reference image URL for i2v mode
+            negative_prompt: Negative prompt for quality control
+        """
+        last_exception = None
+
+        # Use provided negative prompt or default
+        if negative_prompt is None:
+            negative_prompt = (
+                "blurry, low quality, watermark, text, distorted faces, extra limbs, "
+                "jittery, flickering, anime style, 3d render, cartoon, illustration, "
+                "deformed hands, extra fingers, missing limbs, floating objects, "
+                "inconsistent lighting, color shifting, morphing artifacts"
+            )
+        
+        for attempt in range(1, self.max_retries + 1):
+            try:
+                if img_url:
+                    # Image-to-Video API call
+                    rsp = VideoSynthesis.call(
+                        api_key=self.api_key,
+                        model=model_name,
+                        duration=duration,
+                        size=f"{size[0]}*{size[1]}",
+                        prompt=prompt,
+                        shot_type="multi",
+                        img_url=img_url,
+                        prompt_extend=True,
+                        watermark=False,
+                        negative_prompt=negative_prompt,
+                    )
+                else:
+                    # Text-to-Video API call
+                    rsp = VideoSynthesis.call(
+                        api_key=self.api_key,
+                        model=model_name,
+                        prompt=prompt,
+                        size=f"{size[0]}*{size[1]}",
+                        duration=duration,
+                        prompt_extend=True,
+                        watermark=False,
+                        negative_prompt=negative_prompt,
+                    )
+
+                if rsp.status_code == HTTPStatus.OK:
+                    return rsp.output.video_url
+                else:
+                    if rsp.code == "AllocationQuota.FreeTierOnly":
+                        raise RuntimeError(
+                            "Aliyun Dashscope Quota Error: Your free tier quota for this model is exhausted. "
+                            "Please go to the Aliyun Dashscope Console -> Model Plaza or API Keys management, "
+                            "and disable the 'Use free tier only' option to switch to pay-as-you-go billing."
+                        )
+                    raise RuntimeError(
+                        "Video generation failed, status_code: %s, code: %s, message: %s"
+                        % (rsp.status_code, rsp.code, rsp.message)
+                    )
+                    
+            except Exception as e:
+                last_exception = e
+                error_msg = str(e)
+                
+                # 检查是否是网络相关错误
+                is_network_error = any(
+                    keyword in error_msg for keyword in [
+                        "HTTPSConnectionPool", "NameResolutionError", "timeout", 
+                        "connection", "network", "resolve", "dashscope.aliyuncs.com"
+                    ]
+                )
+                
+                if attempt < self.max_retries and is_network_error:
+                    print(f"Attempt {attempt}/{self.max_retries} failed with network error: {error_msg}")
+                    print(f"Retrying in {self.retry_delay} seconds...")
+                    time.sleep(self.retry_delay)
+                    self.retry_delay *= 1.5  # 指数退避
+                else:
+                    # 不是网络错误或者已经达到最大重试次数
+                    if is_network_error and attempt == self.max_retries:
+                        raise RuntimeError(
+                            f"Video generation failed after {self.max_retries} retries due to network error: {error_msg}\n"
+                            f"Please check your internet connection and DNS settings."
+                        ) from e
+                    else:
+                        # 其他错误或非网络错误
+                        raise RuntimeError(
+                            f"Video generation failed: {error_msg}"
+                        ) from e
+        
+        # 理论上不会到达这里，但为了完整性
+        raise RuntimeError(f"Video generation failed after {self.max_retries} attempts") from last_exception

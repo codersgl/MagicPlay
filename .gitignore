@@ -5,10 +5,15 @@ build/
 dist/
 wheels/
 *.egg-info
+.pytest_cache
+.mypy_cache
 
 # Virtual environments
 .venv
 /videos/
-.github
+.github/skills
+.github/copilot-instructions.md
 scenes/
 data/
+.vscode
+htmlcov

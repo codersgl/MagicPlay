@@ -1,5 +1,6 @@
-from typing import List, Union
 from pathlib import Path
+from typing import List, Union
+
 import requests
 from tqdm import tqdm
 
