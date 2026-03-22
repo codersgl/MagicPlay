@@ -158,3 +158,168 @@ class MediaUtils:
                     clip.close()
                 except Exception:
                     pass
+
+    @staticmethod
+    def add_subtitles(
+        video_path: Union[str, Path],
+        subtitle_path: Union[str, Path],
+        output_path: Union[str, Path],
+    ) -> bool:
+        """
+        Add subtitles (SRT) to a video file using ffmpeg.
+
+        Args:
+            video_path: Path to input video
+            subtitle_path: Path to SRT subtitle file
+            output_path: Path for output video with subtitles
+
+        Returns:
+            True on success, False on failure
+        """
+        import subprocess
+
+        video_path = Path(video_path)
+        subtitle_path = Path(subtitle_path)
+        output_path = Path(output_path)
+
+        if not video_path.exists():
+            print(f"Video file not found: {video_path}")
+            return False
+
+        if not subtitle_path.exists():
+            print(f"Subtitle file not found: {subtitle_path}")
+            return False
+
+        try:
+            # Use ffmpeg to burn subtitles into video
+            cmd = [
+                "ffmpeg",
+                "-y",  # Overwrite output
+                "-i", str(video_path),
+                "-vf", f"subtitles='{subtitle_path}':force_style='FontSize=24,FontName=Arial,PrimaryColour=&HFFFFFF&,OutlineColour=&H000000&,Outline=2'",
+                "-c:a", "copy",  # Copy audio stream
+                str(output_path),
+            ]
+
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=300,
+            )
+
+            if result.returncode == 0:
+                print(f"Subtitles added: {output_path}")
+                return True
+            else:
+                print(f"FFmpeg error: {result.stderr}")
+                return False
+
+        except FileNotFoundError:
+            print("FFmpeg not found. Please install ffmpeg to add subtitles.")
+            return False
+        except Exception as e:
+            print(f"Failed to add subtitles: {e}")
+            return False
+
+    @staticmethod
+    def add_background_music(
+        video_path: Union[str, Path],
+        music_path: Union[str, Path],
+        output_path: Union[str, Path],
+        volume: float = 0.3,
+    ) -> bool:
+        """
+        Add background music to a video file.
+
+        Args:
+            video_path: Path to input video
+            music_path: Path to music file
+            output_path: Path for output video with music
+            volume: Music volume (0.0 to 1.0)
+
+        Returns:
+            True on success, False on failure
+        """
+        import subprocess
+
+        video_path = Path(video_path)
+        music_path = Path(music_path)
+        output_path = Path(output_path)
+
+        if not video_path.exists():
+            print(f"Video file not found: {video_path}")
+            return False
+
+        if not music_path.exists():
+            print(f"Music file not found: {music_path}")
+            return False
+
+        try:
+            # Check if video has audio
+            has_audio_cmd = [
+                "ffprobe",
+                "-v", "error",
+                "-select_streams", "a",
+                "-show_entries", "stream=codec_type",
+                "-of", "csv=p=0",
+                str(video_path),
+            ]
+
+            has_audio = subprocess.run(
+                has_audio_cmd,
+                capture_output=True,
+                text=True,
+            ).stdout.strip() == "audio"
+
+            if has_audio:
+                # Mix original audio with background music
+                cmd = [
+                    "ffmpeg",
+                    "-y",
+                    "-i", str(video_path),
+                    "-stream_loop", "-1",  # Loop music
+                    "-i", str(music_path),
+                    "-filter_complex",
+                    f"[1:a]volume={volume}[music];[0:a][music]amix=inputs=2:duration=first[a]",
+                    "-map", "0:v",
+                    "-map", "[a]",
+                    "-c:v", "copy",
+                    "-shortest",
+                    str(output_path),
+                ]
+            else:
+                # No original audio, just add music
+                cmd = [
+                    "ffmpeg",
+                    "-y",
+                    "-i", str(video_path),
+                    "-stream_loop", "-1",
+                    "-i", str(music_path),
+                    "-map", "0:v",
+                    "-map", "1:a",
+                    "-c:v", "copy",
+                    "-shortest",
+                    str(output_path),
+                ]
+
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=600,
+            )
+
+            if result.returncode == 0:
+                print(f"Background music added: {output_path}")
+                return True
+            else:
+                print(f"FFmpeg error: {result.stderr}")
+                return False
+
+        except FileNotFoundError:
+            print("FFmpeg not found. Please install ffmpeg to add background music.")
+            return False
+        except Exception as e:
+            print(f"Failed to add background music: {e}")
+            return False

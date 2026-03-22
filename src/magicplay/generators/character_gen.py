@@ -7,10 +7,11 @@ Phase 1 of the three-phase optimization architecture.
 
 from loguru import logger
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
 from magicplay.config import get_settings
 from magicplay.consistency.story_consistency import StoryConsistencyManager
+from magicplay.schema.professional_workflow import CharacterInfo, CharacterReference
 from magicplay.services.image_api import ImageService
 from magicplay.utils.paths import DataManager
 
@@ -166,3 +167,87 @@ class CharacterImageGenerator:
             f"masterpiece, best quality, highly detailed"
         )
         return prompt
+
+    def generate_character_batch(
+        self,
+        characters: List[CharacterInfo],
+        consistency_manager: Optional[StoryConsistencyManager] = None,
+    ) -> Dict[str, CharacterReference]:
+        """
+        Generate anchor images for multiple characters in batch.
+
+        Args:
+            characters: List of CharacterInfo objects
+            consistency_manager: Optional StoryConsistencyManager for updates
+
+        Returns:
+            Dictionary mapping character name to CharacterReference objects
+        """
+        references = {}
+
+        for char_info in characters:
+            logger.info(f"Generating anchor image for character: {char_info.name}")
+
+            # Build description from visual tags
+            if char_info.visual_tags:
+                description = ", ".join(char_info.visual_tags)
+            elif char_info.appearance_description:
+                description = char_info.appearance_description
+            else:
+                description = char_info.name
+
+            # Use AI prompt if available, otherwise generate from description
+            prompt = char_info.ai_prompt if char_info.ai_prompt else self._create_character_prompt(
+                char_info.name, description
+            )
+
+            # Output path
+            safe_name = self._sanitize_filename(char_info.name)
+            output_path = self.output_dir / f"{safe_name}.jpg"
+
+            # Check if already exists
+            if output_path.exists():
+                logger.info(f"Using existing anchor image for: {char_info.name}")
+            else:
+                try:
+                    result_path = self.image_service.generate_image_and_download(
+                        prompt=prompt,
+                        output_path=str(output_path),
+                        size=self.size,
+                        negative_prompt="low quality, blurry, distorted, deformed, text, watermark",
+                        n=1,
+                    )
+
+                    if result_path:
+                        output_path = Path(result_path)
+                    else:
+                        logger.error(f"Failed to generate image for: {char_info.name}")
+                        continue
+
+                except Exception as e:
+                    logger.error(f"Error generating image for {char_info.name}: {e}")
+                    continue
+
+            # Create reference object
+            references[char_info.name] = CharacterReference(
+                name=char_info.name,
+                anchor_image_path=output_path,
+                character_info=char_info,
+            )
+
+            # Update consistency manager if provided
+            if consistency_manager and output_path.exists():
+                consistency_manager.set_character_image_path(
+                    char_info.name, str(output_path)
+                )
+
+        logger.info(f"Generated {len(references)} character anchor images")
+        return references
+
+    @staticmethod
+    def _sanitize_filename(name: str) -> str:
+        """Sanitize character name for use as filename."""
+        import re
+        safe = re.sub(r"[^\w\s\-]", "_", name)
+        safe = re.sub(r"[\s]+", "_", safe)
+        return safe[:80]

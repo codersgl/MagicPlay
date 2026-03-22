@@ -25,6 +25,8 @@ class TimelineSegment:
     end_second: int
     visual_prompt: str
     description: str
+    first_frame_prompt: str = ""  # NEW: Prompt for I2I first frame generation
+    motion_prompt: str = ""  # NEW: Prompt for video generation motion
 
     def __post_init__(self):
         """Validate segment data."""
@@ -38,6 +40,11 @@ class TimelineSegment:
                 f"Segment duration ({self.end_second - self.start_second}s) "
                 f"must be at least {self.MIN_SEGMENT_DURATION} seconds"
             )
+
+    @property
+    def duration(self) -> int:
+        """Get segment duration in seconds."""
+        return self.end_second - self.start_second
 
 
 @dataclass
@@ -182,7 +189,9 @@ class TimelineAnalyzer:
                         start_second=int(seg_data["start_second"]),
                         end_second=int(seg_data["end_second"]),
                         visual_prompt=str(seg_data["visual_prompt"]),
-                        description=str(seg_data["description"])
+                        description=str(seg_data["description"]),
+                        first_frame_prompt=str(seg_data.get("first_frame_prompt", "")),
+                        motion_prompt=str(seg_data.get("motion_prompt", "")),
                     )
                     segments.append(segment)
                 except (ValueError, KeyError) as e:

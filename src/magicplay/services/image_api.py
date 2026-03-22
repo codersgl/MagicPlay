@@ -3,11 +3,12 @@ import ssl
 import time
 from http import HTTPStatus
 from pathlib import Path
-from typing import Any, Optional, Tuple
+from typing import Any, List, Optional, Tuple
 
 import dashscope
 import requests
 import tenacity
+from loguru import logger
 from dashscope.aigc.image_generation import ImageGeneration
 from dashscope.api_entities.dashscope_response import Message
 from dotenv import load_dotenv
@@ -237,3 +238,112 @@ class ImageService:
             return str(output_path_obj)
         except Exception as e:
             raise RuntimeError(f"Failed to download image: {e}")
+
+    def generate_image_i2i(
+        self,
+        prompt: str,
+        input_images: List[str],
+        output_path: str,
+        size: Tuple[int, int] = (1280, 720),
+    ) -> str:
+        """
+        Generate an image using image-to-image mode with reference images.
+
+        For DashScope wan2.6, this uses the video API's i2v mode with a very short
+        duration (1 second) to effectively generate just the first frame image
+        while respecting the reference images' style and content.
+
+        Args:
+            prompt: Text prompt describing the desired image
+            input_images: List of reference image paths (character + scene references)
+            output_path: Where to save the generated image
+            size: Output image resolution (width, height)
+
+        Returns:
+            Path to the generated image
+
+        Note:
+            This method uses the VideoService internally with a 1-second duration
+            to leverage the wan2.6-i2v model's image-to-image capabilities.
+        """
+        if not input_images:
+            # Fall back to regular text-to-image if no references
+            return self.generate_image_and_download(
+                prompt=prompt,
+                output_path=output_path,
+                size=size,
+            )
+
+        # Use the first valid reference image
+        ref_img_path = None
+        for img_path in input_images:
+            if Path(img_path).exists():
+                ref_img_path = img_path
+                break
+
+        if not ref_img_path:
+            logger.warning("No valid reference images found, falling back to T2I")
+            return self.generate_image_and_download(
+                prompt=prompt,
+                output_path=output_path,
+                size=size,
+            )
+
+        # Use VideoService for I2V with short duration to get first frame
+        try:
+            from magicplay.services.video_api import VideoService
+
+            video_service = VideoService(
+                api_provider=self.api_provider,
+                max_retries=2,
+                retry_delay=1.0,
+            )
+
+            # Generate video URL using I2V mode with very short duration
+            video_url = video_service.generate_video_url(
+                prompt=prompt,
+                size=size,
+                duration=1,  # Very short to get essentially a static frame
+                ref_img_path=ref_img_path,
+            )
+
+            # Download the video
+            video_path = Path(output_path).with_suffix(".mp4")
+            video_path.parent.mkdir(parents=True, exist_ok=True)
+
+            response = requests.get(video_url, stream=True, timeout=60)
+            response.raise_for_status()
+
+            with open(video_path, "wb") as f:
+                for chunk in response.iter_content(chunk_size=8192):
+                    if chunk:
+                        f.write(chunk)
+
+            # Extract first frame from video
+            try:
+                from moviepy import VideoFileClip
+
+                with VideoFileClip(str(video_path)) as clip:
+                    clip.save_frame(output_path, t=0)
+
+                # Clean up video file
+                video_path.unlink(missing_ok=True)
+
+                logger.info(f"I2I image generated via video API: {output_path}")
+                return output_path
+
+            except ImportError:
+                logger.warning("moviepy not available, saving video instead")
+                # Rename video to output path
+                import shutil
+                shutil.move(str(video_path), output_path)
+                return output_path
+
+        except Exception as e:
+            logger.error(f"I2I generation failed: {e}")
+            # Fall back to regular T2I
+            return self.generate_image_and_download(
+                prompt=prompt,
+                output_path=output_path,
+                size=size,
+            )
