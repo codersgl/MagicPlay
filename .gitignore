@@ -21,3 +21,4 @@ scenes/
 data/
 .vscode
 htmlcov
+.worktrees/
