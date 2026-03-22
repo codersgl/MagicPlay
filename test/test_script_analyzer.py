@@ -1,8 +1,10 @@
 """
 Pytest tests for ScriptAnalyzer.
 """
+
 import pytest
-from magicplay.analyzer.script_analyzer import ScriptAnalyzer, SceneType, AnalysisResult
+
+from magicplay.analyzer.script_analyzer import AnalysisResult, SceneType, ScriptAnalyzer
 
 
 class TestScriptAnalyzer:
@@ -150,7 +152,7 @@ The first light of dawn breaks over the horizon. A single bird chirps in the dis
     def test_analyze_empty_script(self, analyzer):
         """Test analyzing empty script returns default result."""
         result = analyzer.analyze("")
-        
+
         assert isinstance(result, AnalysisResult)
         assert result.total_words == 0
         assert result.scene_type == SceneType.TRANSITION
@@ -160,20 +162,22 @@ The first light of dawn breaks over the horizon. A single bird chirps in the dis
     def test_analyze_dialogue_script(self, analyzer, dialogue_script):
         """Test analyzing dialogue-heavy script."""
         result = analyzer.analyze(dialogue_script)
-        
+
         assert isinstance(result, AnalysisResult)
         assert result.total_words > 0
         # Dialogue scene should have dialogue lines
         assert result.dialogue_lines > 0
         assert result.action_density < 0.5
         # Duration should be within configured range
-        assert analyzer.min_duration <= result.estimated_duration <= analyzer.max_duration
+        assert (
+            analyzer.min_duration <= result.estimated_duration <= analyzer.max_duration
+        )
         assert 0.0 <= result.complexity_score <= 1.0
 
     def test_analyze_action_script(self, analyzer, action_script):
         """Test analyzing action-heavy script."""
         result = analyzer.analyze(action_script)
-        
+
         assert isinstance(result, AnalysisResult)
         assert result.total_words > 0
         # Action density might be lower than expected due to how it's calculated
@@ -181,22 +185,26 @@ The first light of dawn breaks over the horizon. A single bird chirps in the dis
         assert result.action_density > 0.1  # Should have some action density
         # The dialogue counting algorithm may count some lines as dialogue
         # This is acceptable for the test
-        assert analyzer.min_duration <= result.estimated_duration <= analyzer.max_duration
+        assert (
+            analyzer.min_duration <= result.estimated_duration <= analyzer.max_duration
+        )
 
     def test_analyze_mixed_script(self, analyzer, mixed_script):
         """Test analyzing mixed script."""
         result = analyzer.analyze(mixed_script)
-        
+
         assert isinstance(result, AnalysisResult)
         assert result.total_words > 0
         assert result.dialogue_lines > 0
         assert result.action_density > 0.1
-        assert analyzer.min_duration <= result.estimated_duration <= analyzer.max_duration
+        assert (
+            analyzer.min_duration <= result.estimated_duration <= analyzer.max_duration
+        )
 
     def test_analyze_transition_script(self, analyzer, transition_script):
         """Test analyzing transition script."""
         result = analyzer.analyze(transition_script)
-        
+
         assert isinstance(result, AnalysisResult)
         assert result.total_words > 0
         # Transition scenes should have few words
@@ -207,7 +215,7 @@ The first light of dawn breaks over the horizon. A single bird chirps in the dis
         """Test word counting with Chinese/English mixed content."""
         chinese_text = "你好，世界！Hello world! 这是测试。This is a test."
         result = analyzer.analyze(chinese_text)
-        
+
         # Should count both Chinese characters and English words
         assert result.total_words > 0
 
@@ -215,15 +223,19 @@ The first light of dawn breaks over the horizon. A single bird chirps in the dis
         """Test scene type classification logic."""
         # Test each scene type classification
         test_cases = [
-            (5, 0.1, 100, SceneType.TRANSITION),   # Few words, low action
-            (20, 0.2, 500, SceneType.DIALOGUE),    # High dialogue ratio, low action
-            (5, 0.5, 500, SceneType.ACTION),       # High action density
-            (15, 0.3, 500, SceneType.MIXED),       # Balanced
+            (5, 0.1, 100, SceneType.TRANSITION),  # Few words, low action
+            (20, 0.2, 500, SceneType.DIALOGUE),  # High dialogue ratio, low action
+            (5, 0.5, 500, SceneType.ACTION),  # High action density
+            (15, 0.3, 500, SceneType.MIXED),  # Balanced
         ]
-        
+
         for dialogue_lines, action_density, total_words, expected_type in test_cases:
-            scene_type = analyzer._classify_scene_type(dialogue_lines, action_density, total_words)
-            assert scene_type == expected_type, f"Failed for {dialogue_lines}, {action_density}, {total_words}"
+            scene_type = analyzer._classify_scene_type(
+                dialogue_lines, action_density, total_words
+            )
+            assert (
+                scene_type == expected_type
+            ), f"Failed for {dialogue_lines}, {action_density}, {total_words}"
 
     def test_duration_estimation_within_range(self, analyzer):
         """Test that estimated duration stays within configured range."""
@@ -235,11 +247,14 @@ The first light of dawn breaks over the horizon. A single bird chirps in the dis
             ("Action scene with intense sequences.", SceneType.ACTION),
             ("Mixed scene with both dialogue and action.", SceneType.MIXED),
         ]
-        
+
         for script_content, expected_type in test_scripts:
             result = analyzer.analyze(script_content)
-            assert analyzer.min_duration <= result.estimated_duration <= analyzer.max_duration, \
-                f"Duration {result.estimated_duration} out of range for {expected_type.value}"
+            assert (
+                analyzer.min_duration
+                <= result.estimated_duration
+                <= analyzer.max_duration
+            ), f"Duration {result.estimated_duration} out of range for {expected_type.value}"
 
     def test_complexity_score_range(self, analyzer, dialogue_script):
         """Test complexity score is always between 0 and 1."""
@@ -251,7 +266,7 @@ The first light of dawn breaks over the horizon. A single bird chirps in the dis
         script_content = "Test script content with some words."
         script_file = tmp_path / "test_script.md"
         script_file.write_text(script_content, encoding="utf-8")
-        
+
         result = analyzer.analyze_file(str(script_file))
         assert isinstance(result, AnalysisResult)
         assert result.total_words > 0
@@ -276,7 +291,7 @@ A third character enters.
 **CAROL**
 What's going on here?
         """
-        
+
         result = analyzer.analyze(script)
         assert result.character_count >= 2  # Should find at least JOHN and MARY
 
@@ -292,6 +307,6 @@ More dialogue.
 INT. RESTAURANT - NIGHT
 Final dialogue.
         """
-        
+
         result = analyzer.analyze(script)
         assert result.location_changes == 3

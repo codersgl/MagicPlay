@@ -4,8 +4,8 @@ MagicPlay Utility Modules
 Common utilities used across the application.
 """
 
-from .paths import DataManager
 from .media import MediaUtils
+from .paths import DataManager
 
 __all__ = [
     "DataManager",

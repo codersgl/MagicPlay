@@ -454,10 +454,10 @@ class ScriptGenerator(BaseGenerator[str]):
         return visual_prompt
 
 
+import re as _re
+
 # Import here to avoid circular dependency
 from magicplay.services.llm import LLMService
-
-import re as _re
 
 
 def _extract_visual_key_from_script(script_content: str) -> Optional[str]:

@@ -7,10 +7,11 @@ individual visual prompts for each segment.
 
 import json
 import re
-from loguru import logger
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Optional
+
+from loguru import logger
 
 from magicplay.services.llm import LLMService
 
@@ -97,7 +98,7 @@ class TimelineAnalyzer:
             return TimelineResult(
                 segments=[],
                 total_duration=duration,
-                reasoning="Empty scene script provided"
+                reasoning="Empty scene script provided",
             )
 
         # Read prompt template
@@ -105,12 +106,13 @@ class TimelineAnalyzer:
 
         # Construct user prompt with scene script and duration
         user_prompt = prompt_template.format(
-            scene_script=scene_script,
-            duration=duration
+            scene_script=scene_script, duration=duration
         )
 
         # System prompt for the LLM
-        system_prompt = "你是一个专业的视频分镜专家，擅长将场景脚本分割成精确的时间片段。"
+        system_prompt = (
+            "你是一个专业的视频分镜专家，擅长将场景脚本分割成精确的时间片段。"
+        )
 
         # Call LLM
         try:
@@ -118,14 +120,14 @@ class TimelineAnalyzer:
                 system_prompt=system_prompt,
                 user_prompt=user_prompt,
                 temperature=0.3,  # Lower temperature for structured output
-                max_tokens=2000
+                max_tokens=2000,
             )
         except Exception as e:
             logger.error(f"LLM call failed: {e}")
             return TimelineResult(
                 segments=[],
                 total_duration=duration,
-                reasoning=f"LLM call failed: {str(e)}"
+                reasoning=f"LLM call failed: {str(e)}",
             )
 
         # Parse JSON response
@@ -201,7 +203,7 @@ class TimelineAnalyzer:
             return TimelineResult(
                 segments=segments,
                 total_duration=duration,
-                reasoning=data.get("reasoning", "")
+                reasoning=data.get("reasoning", ""),
             )
 
         except json.JSONDecodeError as e:
@@ -209,14 +211,12 @@ class TimelineAnalyzer:
             return TimelineResult(
                 segments=[],
                 total_duration=duration,
-                reasoning=f"JSON parse error: {str(e)}"
+                reasoning=f"JSON parse error: {str(e)}",
             )
         except Exception as e:
             logger.error(f"Unexpected error parsing response: {e}")
             return TimelineResult(
-                segments=[],
-                total_duration=duration,
-                reasoning=f"Parse error: {str(e)}"
+                segments=[], total_duration=duration, reasoning=f"Parse error: {str(e)}"
             )
 
     def _extract_json(self, text: str) -> str:

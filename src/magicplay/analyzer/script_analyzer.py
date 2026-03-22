@@ -7,8 +7,8 @@ from magicplay.schema.professional_workflow import (
     CharacterInfo,
     CharacterRole,
     SceneInfo,
-    SceneType as ProfessionalSceneType,
 )
+from magicplay.schema.professional_workflow import SceneType as ProfessionalSceneType
 
 
 class SceneType(Enum):
@@ -356,7 +356,9 @@ class ScriptAnalyzer:
                         name=name,
                         visual_tags=self._generate_visual_tags(name, description),
                         first_appearance=self._find_first_scene(lines, i),
-                        role=self._infer_character_role(name, description, len(characters)),
+                        role=self._infer_character_role(
+                            name, description, len(characters)
+                        ),
                         appearance_description=description,
                         ai_prompt=self._generate_character_ai_prompt(name, description),
                     )
@@ -439,7 +441,9 @@ class ScriptAnalyzer:
             tags.append(f"{hair_match.group(1)} hair")
 
         age_match = re.search(
-            r"\b(young|middle-aged|old|teen|youth|adult|child)\b", description, re.IGNORECASE
+            r"\b(young|middle-aged|old|teen|youth|adult|child)\b",
+            description,
+            re.IGNORECASE,
         )
         if age_match:
             tags.append(age_match.group(1))
@@ -468,8 +472,12 @@ class ScriptAnalyzer:
         prompt_parts = []
 
         # Gender/age
-        age_match = re.search(r"\b(young|middle-aged|old|teen)\b", description, re.IGNORECASE)
-        gender_match = re.search(r"\b(woman|man|girl|boy)\b", description, re.IGNORECASE)
+        age_match = re.search(
+            r"\b(young|middle-aged|old|teen)\b", description, re.IGNORECASE
+        )
+        gender_match = re.search(
+            r"\b(woman|man|girl|boy)\b", description, re.IGNORECASE
+        )
 
         if age_match and gender_match:
             prompt_parts.append(f"A {age_match.group(1)} {gender_match.group(1)}")
@@ -525,7 +533,9 @@ class ScriptAnalyzer:
 
             # Detect scene header
             scene_header_match = re.match(
-                r"^(?:INT\.|EXT\.|INT/EXT\.)\s+(.+?)\s*-\s*(.+)$", stripped, re.IGNORECASE
+                r"^(?:INT\.|EXT\.|INT/EXT\.)\s+(.+?)\s*-\s*(.+)$",
+                stripped,
+                re.IGNORECASE,
             )
             if scene_header_match:
                 # Save previous scene if exists
@@ -570,7 +580,9 @@ class ScriptAnalyzer:
         # Determine scene type
         is_interior = scene_name.upper().startswith("INT")
         scene_type = (
-            ProfessionalSceneType.INTERIOR if is_interior else ProfessionalSceneType.EXTERIOR
+            ProfessionalSceneType.INTERIOR
+            if is_interior
+            else ProfessionalSceneType.EXTERIOR
         )
 
         # Extract mood/requirements

@@ -30,7 +30,7 @@ class ILLMService(ABC):
         user_prompt: str,
         temperature: Optional[float] = None,
         max_tokens: Optional[int] = None,
-        **kwargs
+        **kwargs,
     ) -> str:
         """
         Generate text content using LLM.
@@ -80,7 +80,7 @@ class IImageService(ABC):
         height: int = 1024,
         steps: int = 25,
         guidance_scale: float = 7.5,
-        **kwargs
+        **kwargs,
     ) -> Optional[Path]:
         """
         Generate an image from text prompt.
@@ -126,7 +126,7 @@ class IVideoService(ABC):
         reference_image: Optional[Union[str, Path]] = None,
         duration: int = 5,
         negative_prompt: Optional[str] = None,
-        **kwargs
+        **kwargs,
     ) -> Optional[Path]:
         """
         Generate a video from prompt and optional reference image.
@@ -146,9 +146,7 @@ class IVideoService(ABC):
 
     @abstractmethod
     def extract_last_frame(
-        self,
-        video_path: Union[str, Path],
-        output_path: Union[str, Path]
+        self, video_path: Union[str, Path], output_path: Union[str, Path]
     ) -> Optional[Path]:
         """
         Extract the last frame from a video.

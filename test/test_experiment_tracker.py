@@ -1,24 +1,32 @@
 """
 Tests for Experiment Tracker module.
 """
-import pytest
+
 import json
 import tempfile
-from pathlib import Path
 from datetime import datetime, timedelta
-from unittest.mock import Mock, patch, MagicMock
+from pathlib import Path
+from unittest.mock import MagicMock, Mock, patch
 
+import pytest
+
+from magicplay.evaluator.base import EvaluationResult, QualityLevel
 from magicplay.experiment.tracker import (
-    ExperimentTracker,
     ExperimentConfig,
     ExperimentResult,
     ExperimentStatus,
+    ExperimentTracker,
 )
-from magicplay.resource_registry.registry import ResourceRecord, ResourceType, ResourceState
-from magicplay.evaluator.base import EvaluationResult, QualityLevel
+from magicplay.resource_registry.registry import (
+    ResourceRecord,
+    ResourceState,
+    ResourceType,
+)
 
 
-def create_test_evaluation_result(score: float, quality_level: QualityLevel = None) -> EvaluationResult:
+def create_test_evaluation_result(
+    score: float, quality_level: QualityLevel = None
+) -> EvaluationResult:
     """Helper to create test EvaluationResult with required fields."""
     if quality_level is None:
         # Determine quality level based on score
@@ -32,7 +40,7 @@ def create_test_evaluation_result(score: float, quality_level: QualityLevel = No
             quality_level = QualityLevel.POOR
         else:
             quality_level = QualityLevel.UNUSABLE
-    
+
     return EvaluationResult(
         score=score,
         quality_level=quality_level,
@@ -48,7 +56,7 @@ def create_test_evaluation_result(score: float, quality_level: QualityLevel = No
 
 class TestExperimentConfig:
     """Test ExperimentConfig class."""
-    
+
     def test_config_creation(self):
         """Test basic config creation."""
         config = ExperimentConfig(
@@ -67,7 +75,7 @@ class TestExperimentConfig:
             prompt_variants=["prompt-1", "prompt-2"],
             generation_strategy="balanced",
         )
-        
+
         assert config.name == "Test Experiment"
         assert config.description == "Testing experiment configuration"
         assert config.parameters["model"] == "model-v1"
@@ -82,11 +90,11 @@ class TestExperimentConfig:
         assert config.generation_strategy == "balanced"
         assert config.config_id is not None
         assert isinstance(config.created_at, datetime)
-    
+
     def test_config_with_defaults(self):
         """Test config creation with defaults."""
         config = ExperimentConfig(name="Simple Test")
-        
+
         assert config.name == "Simple Test"
         assert config.description == ""
         assert config.parameters == {}
@@ -98,19 +106,19 @@ class TestExperimentConfig:
         assert config.prompt_variants == ["default"]
         assert config.generation_strategy == "balanced"
         assert config.config_id is not None
-    
+
     def test_config_id_uniqueness(self):
         """Test that config IDs are unique."""
         config1 = ExperimentConfig(name="Test 1", parameters={"param": "value1"})
         config2 = ExperimentConfig(name="Test 2", parameters={"param": "value2"})
         config3 = ExperimentConfig(name="Test 1", parameters={"param": "value1"})
-        
+
         # Different configs should have different IDs
         assert config1.config_id != config2.config_id
-        
+
         # Same name and parameters but different timestamp should have different IDs
         assert config1.config_id != config3.config_id
-    
+
     def test_config_to_from_dict(self):
         """Test serialization and deserialization."""
         original = ExperimentConfig(
@@ -128,10 +136,10 @@ class TestExperimentConfig:
             prompt_variants=["prompt-v1", "prompt-v2"],
             generation_strategy="quality_first",
         )
-        
+
         # Convert to dict
         data = original.to_dict()
-        
+
         # Check serialized data
         assert data["name"] == "Serialization Test"
         assert data["description"] == "Test config serialization"
@@ -146,10 +154,10 @@ class TestExperimentConfig:
         assert data["generation_strategy"] == "quality_first"
         assert "config_id" in data
         assert "created_at" in data
-        
+
         # Convert back to config
         restored = ExperimentConfig.from_dict(data)
-        
+
         # Check equality of important fields
         assert restored.name == original.name
         assert restored.description == original.description
@@ -162,7 +170,7 @@ class TestExperimentConfig:
         assert restored.prompt_variants == original.prompt_variants
         assert restored.generation_strategy == original.generation_strategy
         assert restored.config_id == original.config_id
-    
+
     def test_create_variations(self):
         """Test creating A/B test variations."""
         config = ExperimentConfig(
@@ -174,12 +182,12 @@ class TestExperimentConfig:
             model_variants=["model-x", "model-y"],
             prompt_variants=["prompt-a", "prompt-b"],
         )
-        
+
         variations = config.create_variations()
-        
+
         # Should create 2 models × 2 prompts = 4 variations
         assert len(variations) == 4
-        
+
         # Check variation names and parameters
         for variation in variations:
             assert "Base Experiment_model_" in variation.name
@@ -189,14 +197,14 @@ class TestExperimentConfig:
             assert len(variation.model_variants) == 1
             assert len(variation.prompt_variants) == 1
             assert len(variation.tags) == 2  # model:xxx and prompt:xxx
-        
+
         # Check all combinations are present
         model_prompt_combos = set()
         for variation in variations:
             model = variation.parameters["model_variant"]
             prompt = variation.parameters["prompt_variant"]
             model_prompt_combos.add((model, prompt))
-        
+
         assert ("model-x", "prompt-a") in model_prompt_combos
         assert ("model-x", "prompt-b") in model_prompt_combos
         assert ("model-y", "prompt-a") in model_prompt_combos
@@ -205,7 +213,7 @@ class TestExperimentConfig:
 
 class TestExperimentResult:
     """Test ExperimentResult class."""
-    
+
     @pytest.fixture
     def sample_config(self):
         """Create a sample experiment config."""
@@ -213,7 +221,7 @@ class TestExperimentResult:
             name="Test Config",
             parameters={"test": "value"},
         )
-    
+
     @pytest.fixture
     def sample_resource_record(self):
         """Create a sample resource record."""
@@ -225,7 +233,7 @@ class TestExperimentResult:
             generation_cost=0.5,
             state=ResourceState.VALIDATED,
         )
-    
+
     @pytest.fixture
     def sample_evaluation_result(self):
         """Create a sample evaluation result."""
@@ -239,8 +247,10 @@ class TestExperimentResult:
             issues=[],
             recommendations=["Increase contrast"],
         )
-    
-    def test_result_creation(self, sample_config, sample_resource_record, sample_evaluation_result):
+
+    def test_result_creation(
+        self, sample_config, sample_resource_record, sample_evaluation_result
+    ):
         """Test basic result creation."""
         result = ExperimentResult(
             experiment_id="exp-123",
@@ -254,7 +264,7 @@ class TestExperimentResult:
             error_message=None,
             metadata={"additional": "data"},
         )
-        
+
         assert result.experiment_id == "exp-123"
         assert result.config.name == "Test Config"
         assert result.resource_record.resource_id == "test-resource-123"
@@ -266,7 +276,7 @@ class TestExperimentResult:
         assert result.error_message is None
         assert result.metadata["additional"] == "data"
         assert isinstance(result.created_at, datetime)
-    
+
     def test_result_without_optional_fields(self, sample_config):
         """Test result creation without optional fields."""
         result = ExperimentResult(
@@ -280,7 +290,7 @@ class TestExperimentResult:
             success=False,
             error_message="Test error",
         )
-        
+
         assert result.experiment_id == "exp-456"
         assert result.config.name == "Test Config"
         assert result.resource_record is None
@@ -290,7 +300,7 @@ class TestExperimentResult:
         assert result.success is False
         assert result.error_message == "Test error"
         assert result.metadata == {}
-    
+
     def test_result_properties(self, sample_config, sample_evaluation_result):
         """Test result computed properties."""
         # Successful result with quality score
@@ -304,11 +314,11 @@ class TestExperimentResult:
             attempts=1,
             success=True,
         )
-        
+
         assert successful_result.quality_score == 85.0
         # cost_per_quality = 3.0 / 85.0 ≈ 0.03529
         assert abs(successful_result.cost_per_quality - 0.03529) < 0.0001
-        
+
         # Failed result (no evaluation)
         failed_result = ExperimentResult(
             experiment_id="exp-failed",
@@ -321,12 +331,14 @@ class TestExperimentResult:
             success=False,
             error_message="Generation failed",
         )
-        
+
         assert failed_result.quality_score == 0.0
         # cost_per_quality with 0 quality should be infinite
-        assert failed_result.cost_per_quality == float('inf')
-    
-    def test_result_to_from_dict(self, sample_config, sample_resource_record, sample_evaluation_result):
+        assert failed_result.cost_per_quality == float("inf")
+
+    def test_result_to_from_dict(
+        self, sample_config, sample_resource_record, sample_evaluation_result
+    ):
         """Test serialization and deserialization."""
         original = ExperimentResult(
             experiment_id="exp-serialization",
@@ -339,10 +351,10 @@ class TestExperimentResult:
             success=True,
             metadata={"test": "metadata"},
         )
-        
+
         # Convert to dict
         data = original.to_dict()
-        
+
         # Check serialized data
         assert data["experiment_id"] == "exp-serialization"
         assert data["config"]["name"] == "Test Config"
@@ -356,21 +368,23 @@ class TestExperimentResult:
         assert data["quality_score"] == 85.0
         assert "cost_per_quality" in data
         assert "created_at" in data
-        
+
         # Convert back to result
         restored = ExperimentResult.from_dict(data)
-        
+
         # Check equality of important fields
         assert restored.experiment_id == original.experiment_id
         assert restored.config.name == original.config.name
-        assert restored.resource_record.resource_id == original.resource_record.resource_id
+        assert (
+            restored.resource_record.resource_id == original.resource_record.resource_id
+        )
         assert restored.evaluation_result.score == original.evaluation_result.score
         assert restored.total_cost == original.total_cost
         assert restored.total_time == original.total_time
         assert restored.attempts == original.attempts
         assert restored.success == original.success
         assert restored.metadata == original.metadata
-    
+
     def test_result_str_representation(self, sample_config):
         """Test string representation."""
         # Successful result
@@ -382,14 +396,16 @@ class TestExperimentResult:
             attempts=1,
             success=True,
         )
-        success_result.evaluation_result = create_test_evaluation_result(score=90.0, quality_level=QualityLevel.EXCELLENT)
-        
+        success_result.evaluation_result = create_test_evaluation_result(
+            score=90.0, quality_level=QualityLevel.EXCELLENT
+        )
+
         assert "✓" in str(success_result)
         assert "Test Config" in str(success_result)
         assert "90.0" in str(success_result)
         assert "3.5" in str(success_result)
         assert "25.0s" in str(success_result)
-        
+
         # Failed result
         failed_result = ExperimentResult(
             experiment_id="exp-2",
@@ -399,19 +415,19 @@ class TestExperimentResult:
             attempts=3,
             success=False,
         )
-        
+
         assert "✗" in str(failed_result)
 
 
 class TestExperimentTracker:
     """Test ExperimentTracker class."""
-    
+
     @pytest.fixture
     def temp_tracker(self, tmp_path):
         """Create a temporary tracker for testing."""
         db_path = tmp_path / "test_tracker.db"
         return ExperimentTracker(db_path=db_path)
-    
+
     @pytest.fixture
     def sample_config(self):
         """Create a sample experiment config."""
@@ -428,21 +444,21 @@ class TestExperimentTracker:
             max_cost_limit=10.0,
             max_attempts=3,
         )
-    
+
     def test_tracker_initialization(self, tmp_path):
         """Test tracker initialization."""
         db_path = tmp_path / "test.db"
         tracker = ExperimentTracker(db_path=db_path)
-        
+
         assert tracker.db_path == db_path
         assert db_path.exists()
-        
+
         # Check database structure by trying to create an experiment
         config = ExperimentConfig(name="Test Experiment")
         experiment_id = tracker.create_experiment(config)
-        
+
         assert experiment_id is not None
-    
+
     def test_create_experiment(self, temp_tracker, sample_config):
         """Test creating a new experiment."""
         experiment_id = temp_tracker.create_experiment(
@@ -450,10 +466,10 @@ class TestExperimentTracker:
             status=ExperimentStatus.PLANNED,
             tags=["test-run", "initial"],
         )
-        
+
         assert experiment_id is not None
         assert len(experiment_id) > 0
-        
+
         # Verify experiment was created
         experiment = temp_tracker.get_experiment(experiment_id)
         assert experiment is not None
@@ -462,43 +478,43 @@ class TestExperimentTracker:
         assert "test-run" in experiment["tags"]
         assert "initial" in experiment["tags"]
         assert experiment["config_id"] == sample_config.config_id
-    
+
     def test_update_experiment_status(self, temp_tracker, sample_config):
         """Test updating experiment status."""
         # Create experiment
         experiment_id = temp_tracker.create_experiment(sample_config)
-        
+
         # Update status to RUNNING
         success = temp_tracker.update_experiment_status(
             experiment_id=experiment_id,
             status=ExperimentStatus.RUNNING,
         )
-        
+
         assert success is True
-        
+
         # Verify status was updated
         experiment = temp_tracker.get_experiment(experiment_id)
         assert experiment["status"] == "running"
         assert experiment["started_at"] is not None
-        
+
         # Update status to COMPLETED
         success = temp_tracker.update_experiment_status(
             experiment_id=experiment_id,
             status=ExperimentStatus.COMPLETED,
         )
-        
+
         assert success is True
-        
+
         # Verify status was updated
         experiment = temp_tracker.get_experiment(experiment_id)
         assert experiment["status"] == "completed"
         assert experiment["completed_at"] is not None
-    
+
     def test_record_result(self, temp_tracker, sample_config):
         """Test recording experiment results."""
         # Create experiment
         experiment_id = temp_tracker.create_experiment(sample_config)
-        
+
         # Create a result
         result = ExperimentResult(
             experiment_id=experiment_id,
@@ -509,16 +525,16 @@ class TestExperimentTracker:
             success=True,
             metadata={"run_id": "run-123"},
         )
-        
+
         # Record the result
         success = temp_tracker.record_result(
             experiment_id=experiment_id,
             result=result,
             run_number=1,
         )
-        
+
         assert success is True
-        
+
         # Verify result was recorded
         results = temp_tracker.get_experiment_results(experiment_id)
         assert len(results) == 1
@@ -527,11 +543,11 @@ class TestExperimentTracker:
         assert results[0].total_cost == 5.5
         assert results[0].success is True
         assert results[0].metadata["run_id"] == "run-123"
-    
+
     def test_record_multiple_results(self, temp_tracker, sample_config):
         """Test recording multiple results for an experiment."""
         experiment_id = temp_tracker.create_experiment(sample_config)
-        
+
         # Record multiple results
         for i in range(3):
             result = ExperimentResult(
@@ -543,30 +559,30 @@ class TestExperimentTracker:
                 success=(i < 2),  # First two succeed, third fails
                 error_message="Failed" if i == 2 else None,
             )
-            
+
             temp_tracker.record_result(
                 experiment_id=experiment_id,
                 result=result,
                 run_number=i + 1,
             )
-        
+
         # Verify all results were recorded
         results = temp_tracker.get_experiment_results(experiment_id)
         assert len(results) == 3
-        
+
         # Results should be returned in reverse order (newest first)
         # Check success status
         assert results[0].success is False  # Latest run (3rd) failed
-        assert results[1].success is True   # Second run succeeded
-        assert results[2].success is True   # First run succeeded
-        
+        assert results[1].success is True  # Second run succeeded
+        assert results[2].success is True  # First run succeeded
+
         # Verify costs and times
         # Since we don't have run_number attribute, check costs instead
         costs = [r.total_cost for r in results]
         assert 2.0 in costs  # First run
         assert 4.0 in costs  # Second run
         assert 6.0 in costs  # Third run
-    
+
     def test_search_experiments(self, temp_tracker, sample_config):
         """Test searching for experiments."""
         # Create experiments with different statuses and tags
@@ -575,55 +591,55 @@ class TestExperimentTracker:
             status=ExperimentStatus.PLANNED,
             tags=["planned", "test"],
         )
-        
+
         running_exp = temp_tracker.create_experiment(
             config=ExperimentConfig(name="Running Experiment"),
             status=ExperimentStatus.RUNNING,
             tags=["running", "test"],
         )
-        
+
         completed_exp = temp_tracker.create_experiment(
             config=ExperimentConfig(name="Completed Experiment"),
             status=ExperimentStatus.COMPLETED,
             tags=["completed", "test", "optimized"],
         )
-        
+
         # Search by status
         planned_exps = temp_tracker.search_experiments(
             status=ExperimentStatus.PLANNED,
         )
         assert len(planned_exps) == 1
         assert planned_exps[0]["experiment_id"] == planned_exp
-        
+
         # Search by name
         running_exps = temp_tracker.search_experiments(
             config_name="Running",
         )
         assert len(running_exps) == 1
         assert running_exps[0]["config_name"] == "Running Experiment"
-        
+
         # Search by tags
         test_exps = temp_tracker.search_experiments(
             tags=["test"],
         )
         assert len(test_exps) == 3  # All experiments have "test" tag
-        
+
         optimized_exps = temp_tracker.search_experiments(
             tags=["optimized"],
         )
         assert len(optimized_exps) == 1
         assert optimized_exps[0]["experiment_id"] == completed_exp
-    
+
     def test_analyze_experiments_simple(self, temp_tracker):
         """Test simple experiment analysis."""
         # Create configs with known results
         config1 = ExperimentConfig(name="High Quality", parameters={"quality": "high"})
         config2 = ExperimentConfig(name="Low Cost", parameters={"cost": "low"})
-        
+
         # Create experiments and record results
         exp1 = temp_tracker.create_experiment(config1)
         exp2 = temp_tracker.create_experiment(config2)
-        
+
         # Record successful results for config1
         for i in range(3):
             result = ExperimentResult(
@@ -634,16 +650,18 @@ class TestExperimentTracker:
                 attempts=1,
                 success=True,
             )
-            result.evaluation_result = create_test_evaluation_result(score=90.0 - i * 5.0)
+            result.evaluation_result = create_test_evaluation_result(
+                score=90.0 - i * 5.0
+            )
             temp_tracker.record_result(exp1, result, i + 1)
-        
+
         # Record mixed results for config2
         results_data = [
             (True, 70.0, 2.0, 20.0),
             (True, 65.0, 1.5, 18.0),
             (False, 0.0, 3.0, 25.0),  # Failed
         ]
-        
+
         for i, (success, score, cost, time) in enumerate(results_data):
             result = ExperimentResult(
                 experiment_id=exp2,
@@ -656,14 +674,14 @@ class TestExperimentTracker:
             if success:
                 result.evaluation_result = create_test_evaluation_result(score=score)
             temp_tracker.record_result(exp2, result, i + 1)
-        
+
         # Analyze experiments
         analysis = temp_tracker.analyze_experiments()
-        
+
         # Check basic statistics
         assert analysis["total_experiments"] == 2
         assert len(analysis["configurations"]) == 2
-        
+
         # Check config1 statistics (3 successful runs)
         config1_data = analysis["configurations"][config1.config_id]
         assert config1_data["name"] == "High Quality"
@@ -672,7 +690,7 @@ class TestExperimentTracker:
         # Average quality: (90 + 85 + 80) / 3 = 85.0, but test helper adds some variation
         # Just check it's positive
         assert config1_data["avg_quality"] > 70.0
-        
+
         # Check config2 statistics (2 successful, 1 failed)
         config2_data = analysis["configurations"][config2.config_id]
         assert config2_data["name"] == "Low Cost"
@@ -681,16 +699,18 @@ class TestExperimentTracker:
         # Average quality: (70 + 65) / 2 = 67.5
         assert config2_data["avg_quality"] > 60.0
         assert config2_data["avg_quality"] < 75.0
-        
+
         # Check best configurations
         assert analysis["best_by_quality"] is not None
         assert analysis["best_by_quality"]["config_name"] == "High Quality"
-        assert analysis["best_by_quality"]["quality_score"] > 80.0  # Should be around 90
-        
+        assert (
+            analysis["best_by_quality"]["quality_score"] > 80.0
+        )  # Should be around 90
+
         assert analysis["best_by_cost"] is not None
         # config2 has lower cost (1.5 vs 5.0 average)
         assert analysis["best_by_cost"]["config_name"] == "Low Cost"
-    
+
     def test_recommend_configuration(self, temp_tracker):
         """Test configuration recommendation."""
         # Create multiple configs with different characteristics
@@ -714,11 +734,11 @@ class TestExperimentTracker:
                 generation_strategy="balanced",
             ),
         ]
-        
+
         # Create experiments and record results
         for config in configs:
             exp_id = temp_tracker.create_experiment(config)
-            
+
             # Record 3 successful runs for each
             for i in range(3):
                 # Simulate different results for each config type
@@ -731,7 +751,7 @@ class TestExperimentTracker:
                 else:  # Balanced
                     quality = 80.0 + i * 3
                     cost = 5.0 + i * 0.5
-                
+
                 result = ExperimentResult(
                     experiment_id=exp_id,
                     config=config,
@@ -742,7 +762,7 @@ class TestExperimentTracker:
                 )
                 result.evaluation_result = create_test_evaluation_result(score=quality)
                 temp_tracker.record_result(exp_id, result, i + 1)
-        
+
         # Test different recommendation strategies
         # Quality first strategy
         quality_config = temp_tracker.recommend_configuration(
@@ -751,7 +771,7 @@ class TestExperimentTracker:
         )
         assert quality_config is not None
         assert quality_config.name == "High Quality Config"
-        
+
         # Cost optimized strategy
         cost_config = temp_tracker.recommend_configuration(
             target_quality=60.0,
@@ -760,7 +780,7 @@ class TestExperimentTracker:
         )
         assert cost_config is not None
         assert cost_config.name == "Low Cost Config"
-        
+
         # Balanced strategy
         balanced_config = temp_tracker.recommend_configuration(
             target_quality=75.0,
@@ -768,12 +788,12 @@ class TestExperimentTracker:
         )
         assert balanced_config is not None
         # Should recommend balanced or low cost based on cost-quality ratio
-    
+
     def test_export_results(self, temp_tracker, sample_config, tmp_path):
         """Test exporting experiment results."""
         # Create an experiment with results
         experiment_id = temp_tracker.create_experiment(sample_config)
-        
+
         # Record some results
         for i in range(2):
             result = ExperimentResult(
@@ -784,54 +804,56 @@ class TestExperimentTracker:
                 attempts=1,
                 success=True,
             )
-            result.evaluation_result = create_test_evaluation_result(score=80.0 + i * 5.0)
+            result.evaluation_result = create_test_evaluation_result(
+                score=80.0 + i * 5.0
+            )
             temp_tracker.record_result(experiment_id, result, i + 1)
-        
+
         # Export to JSON
         output_path = tmp_path / "export.json"
         success = temp_tracker.export_results(output_path, format="json")
-        
+
         assert success is True
         assert output_path.exists()
-        
+
         # Verify JSON content
-        with open(output_path, 'r', encoding='utf-8') as f:
+        with open(output_path, "r", encoding="utf-8") as f:
             data = json.load(f)
-        
+
         assert "export_date" in data
         assert "database_path" in data
         assert data["experiment_count"] == 1
         assert len(data["experiments"]) == 1
-        
+
         exp_data = data["experiments"][0]
         assert exp_data["config_name"] == "Quality Optimization Test"
         assert exp_data["status"] == "planned"
         assert len(exp_data["results"]) == 2
-    
+
     def test_cleanup(self, temp_tracker):
         """Test cleanup of old experiments."""
         # Create some experiments
         for i in range(5):
             config = ExperimentConfig(name=f"Test Config {i}")
             exp_id = temp_tracker.create_experiment(config)
-            
+
             # Mark some as completed
             if i % 2 == 0:
                 temp_tracker.update_experiment_status(
                     experiment_id=exp_id,
                     status=ExperimentStatus.COMPLETED,
                 )
-        
+
         # Get initial count
         all_exps = temp_tracker.search_experiments(limit=100)
         initial_count = len(all_exps)
-        
+
         # Run cleanup (should not delete anything since all are recent)
         deleted = temp_tracker.cleanup(max_age_days=90)
-        
+
         # Nothing should be deleted
         assert deleted == 0
-        
+
         # Count should remain the same
         all_exps = temp_tracker.search_experiments(limit=100)
         assert len(all_exps) == initial_count
@@ -839,13 +861,13 @@ class TestExperimentTracker:
 
 class TestExperimentTrackerIntegration:
     """Integration tests for ExperimentTracker."""
-    
+
     @pytest.fixture
     def tracker_with_data(self, tmp_path):
         """Create a tracker with comprehensive test data."""
         db_path = tmp_path / "integration.db"
         tracker = ExperimentTracker(db_path=db_path)
-        
+
         # Create diverse experiments
         test_configs = [
             (
@@ -870,7 +892,7 @@ class TestExperimentTrackerIntegration:
                 10.0,
             ),
         ]
-        
+
         experiment_ids = []
         for name, params, tags, quality, cost in test_configs:
             config = ExperimentConfig(
@@ -880,14 +902,14 @@ class TestExperimentTrackerIntegration:
                 min_quality_threshold=quality - 10.0,
                 max_cost_limit=cost * 2,
             )
-            
+
             exp_id = tracker.create_experiment(
                 config=config,
                 status=ExperimentStatus.COMPLETED,
                 tags=tags,
             )
             experiment_ids.append((exp_id, config, quality, cost))
-            
+
             # Add results
             for run_num in range(3):
                 result = ExperimentResult(
@@ -900,27 +922,28 @@ class TestExperimentTrackerIntegration:
                 )
                 # Determine quality level based on score
                 score = quality - run_num * 2.0
-                quality_level = QualityLevel.GOOD if quality >= 70.0 else QualityLevel.ACCEPTABLE
-                
+                quality_level = (
+                    QualityLevel.GOOD if quality >= 70.0 else QualityLevel.ACCEPTABLE
+                )
+
                 # Use the helper function to create evaluation result
                 result.evaluation_result = create_test_evaluation_result(
-                    score=score,
-                    quality_level=quality_level
+                    score=score, quality_level=quality_level
                 )
                 tracker.record_result(exp_id, result, run_num + 1)
-        
+
         return tracker, experiment_ids
-    
+
     def test_comprehensive_analysis(self, tracker_with_data):
         """Test comprehensive experiment analysis."""
         tracker, experiment_ids = tracker_with_data
-        
+
         analysis = tracker.analyze_experiments()
-        
+
         # Basic checks
         assert analysis["total_experiments"] == 3
         assert len(analysis["configurations"]) == 3
-        
+
         # Check each configuration has proper statistics
         for exp_id, config, quality, cost in experiment_ids:
             config_data = analysis["configurations"][config.config_id]
@@ -930,44 +953,46 @@ class TestExperimentTrackerIntegration:
             # due to the run_num * 2.0 reduction
             assert config_data["avg_quality"] < quality
             assert config_data["avg_quality"] > quality - 3.0
-        
+
         # Verify best_by_quality
         assert analysis["best_by_quality"] is not None
         # Should be "Image Quality Optimization" (85.0 base quality)
-        assert "Image Quality Optimization" in analysis["best_by_quality"]["config_name"]
+        assert (
+            "Image Quality Optimization" in analysis["best_by_quality"]["config_name"]
+        )
         assert analysis["best_by_quality"]["quality_score"] >= 83.0  # 85 - 2*1
-        
+
         # Verify best_by_cost
         assert analysis["best_by_cost"] is not None
         # Should be "Cost Efficient Generation" (5.0 base cost)
         assert "Cost Efficient Generation" in analysis["best_by_cost"]["config_name"]
         assert analysis["best_by_cost"]["cost"] <= 6.0  # 5.0 + 0.5*2
-    
+
     def test_search_and_filter_complex(self, tracker_with_data):
         """Test complex search and filtering."""
         tracker, _ = tracker_with_data
-        
+
         # Search by multiple tags
         quality_exps = tracker.search_experiments(tags=["quality"])
         assert len(quality_exps) == 1
         assert quality_exps[0]["config_name"] == "Image Quality Optimization"
-        
+
         cost_exps = tracker.search_experiments(tags=["cost"])
         assert len(cost_exps) == 1
         assert cost_exps[0]["config_name"] == "Cost Efficient Generation"
-        
+
         # Search completed experiments
         completed_exps = tracker.search_experiments(status=ExperimentStatus.COMPLETED)
         assert len(completed_exps) == 3
-        
+
         # Search with name pattern
         opt_exps = tracker.search_experiments(config_name="Optimization")
         assert len(opt_exps) == 1
-    
+
     def test_recommendation_with_real_data(self, tracker_with_data):
         """Test recommendation with realistic data."""
         tracker, _ = tracker_with_data
-        
+
         # Test quality-first recommendation
         quality_config = tracker.recommend_configuration(
             target_quality=80.0,
@@ -975,7 +1000,7 @@ class TestExperimentTrackerIntegration:
         )
         assert quality_config is not None
         assert "Image Quality Optimization" in quality_config.name
-        
+
         # Test cost-optimized recommendation with budget
         cost_config = tracker.recommend_configuration(
             target_quality=65.0,
@@ -984,7 +1009,7 @@ class TestExperimentTrackerIntegration:
         )
         assert cost_config is not None
         assert "Cost Efficient Generation" in cost_config.name
-        
+
         # Test balanced recommendation
         balanced_config = tracker.recommend_configuration(
             target_quality=70.0,

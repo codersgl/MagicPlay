@@ -16,7 +16,9 @@ from magicplay.schema.professional_workflow import (
     CharacterInfo,
     CharacterRole,
     SceneInfo,
-    SceneType as ProfessionalSceneType,
+)
+from magicplay.schema.professional_workflow import SceneType as ProfessionalSceneType
+from magicplay.schema.professional_workflow import (
     ScriptAnalysisResult,
 )
 from magicplay.services.llm import LLMService
@@ -71,7 +73,9 @@ class ScriptAnalysisGenerator:
 
         # Phase 2: LLM-enhanced analysis for visual prompts
         logger.info("Enhancing analysis with LLM...")
-        enhanced_result = self._llm_enhanced_analysis(script_content, characters, scenes)
+        enhanced_result = self._llm_enhanced_analysis(
+            script_content, characters, scenes
+        )
 
         # Merge results
         if enhanced_result:
@@ -79,7 +83,9 @@ class ScriptAnalysisGenerator:
             scenes = enhanced_result.get("scenes", scenes)
 
         # Generate visual prompts
-        visual_prompts = self._script_analyzer.generate_visual_prompts(characters, scenes)
+        visual_prompts = self._script_analyzer.generate_visual_prompts(
+            characters, scenes
+        )
 
         # Calculate total duration
         total_duration = sum(s.duration for s in scenes)
@@ -126,7 +132,9 @@ class ScriptAnalysisGenerator:
                 max_tokens=4000,
             )
 
-            return self._parse_llm_response(response, rule_based_characters, rule_based_scenes)
+            return self._parse_llm_response(
+                response, rule_based_characters, rule_based_scenes
+            )
 
         except Exception as e:
             logger.warning(f"LLM-enhanced analysis failed: {e}")

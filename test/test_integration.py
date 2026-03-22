@@ -2,14 +2,15 @@
 Integration tests for MagicPlay components.
 """
 
-import pytest
 import os
 import tempfile
 from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import MagicMock, Mock, patch
 
-from magicplay.core.orchestrator import Orchestrator
+import pytest
+
 from magicplay.analyzer.script_analyzer import ScriptAnalyzer
+from magicplay.core.orchestrator import Orchestrator
 from magicplay.services.image_api import ImageService
 from magicplay.services.video_api import VideoService
 

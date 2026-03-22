@@ -5,9 +5,10 @@ Generates multi-frame video segments for Phase 3 of the optimization pipeline.
 Handles longer scenes by splitting them into segments and stitching them together.
 """
 
-from loguru import logger
 from pathlib import Path
 from typing import List, Optional
+
+from loguru import logger
 
 from magicplay.analyzer.timeline_analyzer import TimelineAnalyzer, TimelineResult
 from magicplay.config import get_settings
@@ -60,8 +61,7 @@ class SceneSegmentGenerator:
         self._timeline_analyzer = timeline_analyzer or TimelineAnalyzer()
 
         logger.info(
-            f"SceneSegmentGenerator initialized for "
-            f"{story_name}/{episode_name}"
+            f"SceneSegmentGenerator initialized for " f"{story_name}/{episode_name}"
         )
 
     def generate_scene_segments(
@@ -102,7 +102,9 @@ class SceneSegmentGenerator:
             return segments
 
         # Multi-frame generation: split into multiple segments
-        num_segments = (segment_duration + self.MAX_SEGMENT_DURATION - 1) // self.MAX_SEGMENT_DURATION
+        num_segments = (
+            segment_duration + self.MAX_SEGMENT_DURATION - 1
+        ) // self.MAX_SEGMENT_DURATION
         actual_segment_duration = segment_duration // num_segments
 
         logger.info(
@@ -159,8 +161,7 @@ class SceneSegmentGenerator:
 
         # Use TimelineAnalyzer to get precise segment prompts
         timeline_result = self._timeline_analyzer.analyze(
-            scene_script=scene_script,
-            duration=segment_duration
+            scene_script=scene_script, duration=segment_duration
         )
 
         # Fallback to old behavior if timeline analysis returns empty segments
@@ -192,7 +193,9 @@ class SceneSegmentGenerator:
             if segment:
                 segments.append(segment)
             else:
-                logger.warning(f"Failed to generate segment {idx} for scene {scene_name}")
+                logger.warning(
+                    f"Failed to generate segment {idx} for scene {scene_name}"
+                )
 
         return segments
 

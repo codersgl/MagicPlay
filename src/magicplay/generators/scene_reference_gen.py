@@ -5,9 +5,10 @@ Generates dedicated scene reference images with 16:9 landscape aspect ratio
 for the professional 6-stage workflow.
 """
 
-from loguru import logger
 from pathlib import Path
 from typing import Dict, List, Optional
+
+from loguru import logger
 
 from magicplay.schema.professional_workflow import SceneInfo, SceneReference
 from magicplay.services.image_api import ImageService
@@ -135,14 +136,10 @@ class SceneReferenceGenerator:
                     scene_info=scene,
                 )
 
-        logger.info(
-            f"Generated {len(references)}/{len(scenes)} scene references"
-        )
+        logger.info(f"Generated {len(references)}/{len(scenes)} scene references")
         return references
 
-    def get_scene_reference(
-        self, scene_name: str
-    ) -> Optional[Path]:
+    def get_scene_reference(self, scene_name: str) -> Optional[Path]:
         """
         Get path to existing scene reference image.
 

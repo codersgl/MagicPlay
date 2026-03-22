@@ -5,9 +5,10 @@ Generates character anchor images for story consistency.
 Phase 1 of the three-phase optimization architecture.
 """
 
-from loguru import logger
 from pathlib import Path
 from typing import Dict, List, Optional
+
+from loguru import logger
 
 from magicplay.config import get_settings
 from magicplay.consistency.story_consistency import StoryConsistencyManager
@@ -197,8 +198,10 @@ class CharacterImageGenerator:
                 description = char_info.name
 
             # Use AI prompt if available, otherwise generate from description
-            prompt = char_info.ai_prompt if char_info.ai_prompt else self._create_character_prompt(
-                char_info.name, description
+            prompt = (
+                char_info.ai_prompt
+                if char_info.ai_prompt
+                else self._create_character_prompt(char_info.name, description)
             )
 
             # Output path
@@ -248,6 +251,7 @@ class CharacterImageGenerator:
     def _sanitize_filename(name: str) -> str:
         """Sanitize character name for use as filename."""
         import re
+
         safe = re.sub(r"[^\w\s\-]", "_", name)
         safe = re.sub(r"[\s]+", "_", safe)
         return safe[:80]

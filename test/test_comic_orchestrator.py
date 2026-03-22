@@ -1,5 +1,7 @@
 import pytest
+
 from magicplay.core.comic_orchestrator import ComicOrchestrator
+
 
 def test_comic_orchestrator_init():
     orchestrator = ComicOrchestrator(
@@ -12,6 +14,7 @@ def test_comic_orchestrator_init():
     assert orchestrator.max_scenes == 3
     assert orchestrator.comic_style == "anime"
 
+
 def test_comic_orchestrator_custom_style():
     orchestrator = ComicOrchestrator(
         story_name="TestStory",
@@ -19,6 +22,7 @@ def test_comic_orchestrator_custom_style():
         comic_style="comic",
     )
     assert orchestrator.comic_style == "comic"
+
 
 def test_comic_orchestrator_has_generators():
     orchestrator = ComicOrchestrator(

@@ -9,8 +9,8 @@ from magicplay.generators.scene_concept_gen import SceneConceptGenerator
 from magicplay.generators.scene_segment_gen import SceneSegmentGenerator
 from magicplay.generators.script_gen import (
     ScriptGenerator,
-    extract_scene_exit_state,
     _extract_visual_key_from_script,
+    extract_scene_exit_state,
 )
 from magicplay.generators.video_gen import VideoGenerator
 from magicplay.utils.media import MediaUtils
@@ -60,10 +60,12 @@ class Orchestrator:
     def _init_professional_generators(self):
         """Initialize generators for professional workflow."""
         try:
-            from magicplay.generators.script_analysis_generator import ScriptAnalysisGenerator
-            from magicplay.generators.scene_reference_gen import SceneReferenceGenerator
-            from magicplay.generators.storyboard_generator import StoryboardGenerator
             from magicplay.generators.first_frame_generator import FirstFrameGenerator
+            from magicplay.generators.scene_reference_gen import SceneReferenceGenerator
+            from magicplay.generators.script_analysis_generator import (
+                ScriptAnalysisGenerator,
+            )
+            from magicplay.generators.storyboard_generator import StoryboardGenerator
             from magicplay.generators.subtitle_generator import SubtitleGenerator
             from magicplay.generators.synthesis_generator import VideoSynthesisGenerator
 
@@ -474,9 +476,9 @@ class Orchestrator:
                     # R1: Extract/generate visual prompt using character profiles
                     visual_prompt_text = self.script_gen.generate_visual_prompt(
                         script_path,
-                        character_profiles=character_profiles
-                        if character_profiles
-                        else None,
+                        character_profiles=(
+                            character_profiles if character_profiles else None
+                        ),
                         visual_style=visual_style_prompt,
                         previous_visual_key=previous_visual_key,
                     )
@@ -498,9 +500,9 @@ class Orchestrator:
                                 ),
                                 story_context=story_ctx,
                                 character_images=character_images,
-                                character_profiles=character_profiles
-                                if character_profiles
-                                else None,
+                                character_profiles=(
+                                    character_profiles if character_profiles else None
+                                ),
                                 visual_style=visual_style_prompt,
                             )
                         )
@@ -732,7 +734,9 @@ class Orchestrator:
 
         # Generate scene references
         scene_ref_gen = generators["scene_reference"]
-        scene_refs = scene_ref_gen.generate_scene_references_batch(analysis_result.scenes)
+        scene_refs = scene_ref_gen.generate_scene_references_batch(
+            analysis_result.scenes
+        )
         print(f"  Generated {len(scene_refs)} scene references")
 
         # Stage 3: Storyboard Design
@@ -748,9 +752,7 @@ class Orchestrator:
                 scene_name=scene_info.scene_name,
                 scene_script=episode_ctx,  # TODO: Get per-scene script
                 scene_reference_path=scene_ref.reference_image_path,
-                character_images={
-                    k: v for k, v in character_images.items()
-                },
+                character_images={k: v for k, v in character_images.items()},
             )
             storyboards[scene_info.scene_name] = storyboard
             print(f"  Created storyboard for: {scene_info.scene_name}")
@@ -766,9 +768,7 @@ class Orchestrator:
             frames = first_frame_gen.generate_storyboard_first_frames(
                 storyboard=storyboard,
                 scene_reference=scene_ref,
-                character_images={
-                    k: v for k, v in character_images.items()
-                },
+                character_images={k: v for k, v in character_images.items()},
             )
             print(f"  Generated {len(frames)} first frames for: {scene_name}")
 
@@ -790,7 +790,9 @@ class Orchestrator:
         This allows partial use of professional workflow while
         falling back to proven video generation.
         """
-        print("\n[Professional Fallback] Using original workflow for video generation...")
+        print(
+            "\n[Professional Fallback] Using original workflow for video generation..."
+        )
         # TODO: Full integration would use storyboard data for video generation
         # For now, return None to indicate professional workflow not fully implemented
         print("  Note: Professional video generation stage requires integration work")

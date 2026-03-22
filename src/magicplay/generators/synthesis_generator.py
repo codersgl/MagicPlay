@@ -59,7 +59,9 @@ class VideoSynthesisGenerator:
         logger.info(f"Starting video synthesis: {len(video_clips)} clips")
 
         # Step 1: Stitch video clips
-        video_files = [str(clip.video_path) for clip in video_clips if clip.video_path.exists()]
+        video_files = [
+            str(clip.video_path) for clip in video_clips if clip.video_path.exists()
+        ]
         if not video_files:
             raise ValueError("No valid video files to stitch")
 
@@ -100,6 +102,7 @@ class VideoSynthesisGenerator:
 
         # Step 4: Move to final output
         import shutil
+
         shutil.move(str(stitched_path), str(output_path))
 
         logger.info(f"Final video synthesized: {output_path}")
@@ -194,9 +197,9 @@ class VideoSynthesisGenerator:
                     "end_time": clip.end_time,
                     "duration": clip.duration,
                     "transition": clip.transition,
-                    "subtitle_path": str(clip.subtitle_path)
-                    if clip.subtitle_path
-                    else None,
+                    "subtitle_path": (
+                        str(clip.subtitle_path) if clip.subtitle_path else None
+                    ),
                 }
             )
 

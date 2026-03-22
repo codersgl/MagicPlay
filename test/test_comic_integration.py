@@ -1,5 +1,7 @@
-import pytest
 from pathlib import Path
+
+import pytest
+
 from magicplay.core.comic_orchestrator import ComicOrchestrator
 
 
@@ -11,6 +13,7 @@ def test_comic_pipeline_end_to_end(tmp_path, monkeypatch):
 
     # Setup temp data directory
     from magicplay.utils import paths
+
     monkeypatch.setattr(paths.DataManager, "DATA_DIR", tmp_path / "data")
 
     orchestrator = ComicOrchestrator(

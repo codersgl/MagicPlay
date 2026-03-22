@@ -15,7 +15,7 @@ from magicplay.analyzer.script_analyzer import ScriptAnalyzer
 def test_analyzer():
     """Test the ScriptAnalyzer with sample scripts."""
     analyzer = ScriptAnalyzer(min_duration=5, max_duration=30)
-    
+
     # Test with a dialogue-heavy script
     dialogue_script = """
 ### SCENE HEADER
@@ -47,7 +47,7 @@ MARY
 (shaking head)
 Or lose everything. Remember what happened with the last venture?
     """
-    
+
     print("Testing dialogue-heavy script:")
     result = analyzer.analyze(dialogue_script)
     print(f"  Scene Type: {result.scene_type.value}")
@@ -57,7 +57,7 @@ Or lose everything. Remember what happened with the last venture?
     print(f"  Estimated Duration: {result.estimated_duration}s")
     print(f"  Complexity Score: {result.complexity_score:.2f}")
     print()
-    
+
     # Test with an action-heavy script
     action_script = """
 ### SCENE HEADER
@@ -92,7 +92,7 @@ BANG! BANG! Two shots ring out. Sparks fly as bullets ricochet off the pavement.
 **ACTION**
 The car lurches violently, hitting a fire hydrant. Water geysers into the air, creating a temporary curtain.
     """
-    
+
     print("Testing action-heavy script:")
     result = analyzer.analyze(action_script)
     print(f"  Scene Type: {result.scene_type.value}")
@@ -102,7 +102,7 @@ The car lurches violently, hitting a fire hydrant. Water geysers into the air, c
     print(f"  Estimated Duration: {result.estimated_duration}s")
     print(f"  Complexity Score: {result.complexity_score:.2f}")
     print()
-    
+
     # Test with a mixed script
     mixed_script = """
 ### SCENE HEADER
@@ -147,7 +147,7 @@ DR. ELARA
 (through gritted teeth)
 It has to work! I won't lose another one!
     """
-    
+
     print("Testing mixed script:")
     result = analyzer.analyze(mixed_script)
     print(f"  Scene Type: {result.scene_type.value}")
@@ -157,9 +157,11 @@ It has to work! I won't lose another one!
     print(f"  Estimated Duration: {result.estimated_duration}s")
     print(f"  Complexity Score: {result.complexity_score:.2f}")
     print()
-    
+
     # Test with an existing script file
-    existing_scripts = list(Path("data/story/MyStory/01_EpisodeOne/generated_scripts").glob("*.md"))
+    existing_scripts = list(
+        Path("data/story/MyStory/01_EpisodeOne/generated_scripts").glob("*.md")
+    )
     if existing_scripts:
         print("Testing with existing script file:")
         script_path = existing_scripts[0]
@@ -174,7 +176,7 @@ It has to work! I won't lose another one!
             print(f"  Complexity Score: {result.complexity_score:.2f}")
             print(f"  Character Count: {result.character_count}")
             print(f"  Location Changes: {result.location_changes}")
-    
+
     print("\n✅ ScriptAnalyzer test completed successfully!")
 
 

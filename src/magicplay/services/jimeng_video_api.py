@@ -9,12 +9,11 @@ Uses the official volcengine Python SDK for authentication.
 import base64
 import json
 import time
-from loguru import logger
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import requests
-
+from loguru import logger
 from volcengine.visual.VisualService import VisualService
 
 from ..config import Settings

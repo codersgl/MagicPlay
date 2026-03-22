@@ -5,6 +5,7 @@ Large Language Model service using DeepSeek API.
 """
 
 from typing import Any, Dict, Optional
+
 from loguru import logger
 from openai import OpenAI
 
@@ -40,6 +41,7 @@ class LLMService(BaseService, ILLMService):
         """
         if config is None:
             from magicplay.config import get_settings
+
             config = get_settings()
 
         super().__init__(config)
@@ -47,8 +49,7 @@ class LLMService(BaseService, ILLMService):
         # Validate configuration
         if not config.deepseek_api_key:
             raise ConfigurationError(
-                "DeepSeek API key is required",
-                setting_name="deepseek_api_key"
+                "DeepSeek API key is required", setting_name="deepseek_api_key"
             )
 
         # Initialize OpenAI-compatible client
@@ -73,7 +74,7 @@ class LLMService(BaseService, ILLMService):
         user_prompt: str,
         temperature: Optional[float] = None,
         max_tokens: Optional[int] = None,
-        **kwargs
+        **kwargs,
     ) -> str:
         """
         Generate content using DeepSeek API.
@@ -117,11 +118,14 @@ class LLMService(BaseService, ILLMService):
         api_params.update(kwargs)
 
         try:
-            self._log_request("chat/completions", {
-                "model": self.model,
-                "temperature": temp,
-                "message_count": len(messages)
-            })
+            self._log_request(
+                "chat/completions",
+                {
+                    "model": self.model,
+                    "temperature": temp,
+                    "message_count": len(messages),
+                },
+            )
 
             response = self.client.chat.completions.create(**api_params)
 
@@ -130,10 +134,14 @@ class LLMService(BaseService, ILLMService):
 
             content = response.choices[0].message.content
 
-            self._log_response("chat/completions", 200, {
-                "content_length": len(content) if content else 0,
-                "usage": dict(response.usage) if response.usage else {}
-            })
+            self._log_response(
+                "chat/completions",
+                200,
+                {
+                    "content_length": len(content) if content else 0,
+                    "usage": dict(response.usage) if response.usage else {},
+                },
+            )
 
             return content or ""
 
@@ -143,8 +151,7 @@ class LLMService(BaseService, ILLMService):
         except Exception as e:
             self.logger.error(f"DeepSeek API call failed: {e}")
             self._raise_api_error(
-                message=f"DeepSeek API call failed: {e}",
-                response_body=str(e)
+                message=f"DeepSeek API call failed: {e}", response_body=str(e)
             )
 
     def health_check(self) -> bool:
@@ -160,7 +167,7 @@ class LLMService(BaseService, ILLMService):
                 system_prompt="You are a test assistant.",
                 user_prompt="Respond with just 'OK'",
                 temperature=0,
-                max_tokens=5
+                max_tokens=5,
             )
             self._healthy = True
             self.logger.info("DeepSeek health check passed")

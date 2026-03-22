@@ -17,10 +17,10 @@ from magicplay.config import Settings
 from magicplay.generators.base import BaseGenerator, GenerationContext, GenerationResult
 from magicplay.ports.services import IImageService, ILLMService, IVideoService
 
-
 # =============================================================================
 # Mock LLM Service
 # =============================================================================
+
 
 class MockLLMService(ILLMService):
     """
@@ -33,8 +33,7 @@ class MockLLMService(ILLMService):
 
     def __init__(self, config: Optional[Settings] = None):
         self.config = config or Settings(
-            deepseek_api_key="test-key",
-            dashscope_api_key="test-key"
+            deepseek_api_key="test-key", dashscope_api_key="test-key"
         )
         self._healthy = True
         self.call_count = 0
@@ -46,17 +45,14 @@ class MockLLMService(ILLMService):
         user_prompt: str,
         temperature: Optional[float] = None,
         max_tokens: Optional[int] = None,
-        **kwargs
+        **kwargs,
     ) -> str:
         """Generate mock response."""
         self.call_count += 1
-        self.last_prompts.append({
-            "system": system_prompt,
-            "user": user_prompt
-        })
+        self.last_prompts.append({"system": system_prompt, "user": user_prompt})
 
         # Return predefined response if set
-        if hasattr(self, '_mock_response'):
+        if hasattr(self, "_mock_response"):
             return self._mock_response
 
         # Default: echo back user prompt with prefix
@@ -78,6 +74,7 @@ class MockLLMService(ILLMService):
 # Mock Image Service
 # =============================================================================
 
+
 class MockImageService(IImageService):
     """
     Mock image service for testing.
@@ -89,8 +86,7 @@ class MockImageService(IImageService):
 
     def __init__(self, config: Optional[Settings] = None):
         self.config = config or Settings(
-            deepseek_api_key="test-key",
-            dashscope_api_key="test-key"
+            deepseek_api_key="test-key", dashscope_api_key="test-key"
         )
         self._healthy = True
         self.call_count = 0
@@ -105,7 +101,7 @@ class MockImageService(IImageService):
         height: int = 1024,
         steps: int = 25,
         guidance_scale: float = 7.5,
-        **kwargs
+        **kwargs,
     ) -> Optional[Path]:
         """Create placeholder image file."""
         self.call_count += 1
@@ -115,7 +111,8 @@ class MockImageService(IImageService):
         # Create placeholder image
         try:
             from PIL import Image
-            img = Image.new('RGB', (min(width, 100), min(height, 100)), color='blue')
+
+            img = Image.new("RGB", (min(width, 100), min(height, 100)), color="blue")
             img.save(output_path)
             self.generated_images.append(output_path)
             return output_path
@@ -136,6 +133,7 @@ class MockImageService(IImageService):
 # Mock Video Service
 # =============================================================================
 
+
 class MockVideoService(IVideoService):
     """
     Mock video service for testing.
@@ -147,8 +145,7 @@ class MockVideoService(IVideoService):
 
     def __init__(self, config: Optional[Settings] = None):
         self.config = config or Settings(
-            deepseek_api_key="test-key",
-            dashscope_api_key="test-key"
+            deepseek_api_key="test-key", dashscope_api_key="test-key"
         )
         self._healthy = True
         self.call_count = 0
@@ -161,7 +158,7 @@ class MockVideoService(IVideoService):
         reference_image: Optional[Union[str, Path]] = None,
         duration: int = 5,
         negative_prompt: Optional[str] = None,
-        **kwargs
+        **kwargs,
     ) -> Optional[Path]:
         """Create placeholder video file."""
         self.call_count += 1
@@ -172,9 +169,7 @@ class MockVideoService(IVideoService):
         return output_path
 
     def extract_last_frame(
-        self,
-        video_path: Union[str, Path],
-        output_path: Union[str, Path]
+        self, video_path: Union[str, Path], output_path: Union[str, Path]
     ) -> Optional[Path]:
         """Create placeholder frame file."""
         output_path = Path(output_path)
@@ -193,6 +188,7 @@ class MockVideoService(IVideoService):
 # Mock Generators
 # =============================================================================
 
+
 class MockScriptGenerator(BaseGenerator[str]):
     """
     Mock script generator for testing.
@@ -201,11 +197,7 @@ class MockScriptGenerator(BaseGenerator[str]):
     name = "mock_script_generator"
     description = "Mock script generator for tests"
 
-    def __init__(
-        self,
-        config: Settings,
-        llm_service: Optional[ILLMService] = None
-    ):
+    def __init__(self, config: Settings, llm_service: Optional[ILLMService] = None):
         super().__init__(config)
         self.llm = llm_service or MockLLMService(config)
         self.call_count = 0
@@ -216,7 +208,9 @@ class MockScriptGenerator(BaseGenerator[str]):
         self.call_count += 1
 
         # Create mock script file
-        output_path = self.config.project_root / "data" / "test" / f"{context.scene_name}.md"
+        output_path = (
+            self.config.project_root / "data" / "test" / f"{context.scene_name}.md"
+        )
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
         content = f"# Mock Script: {context.scene_name}\n\nThis is a test script."
@@ -228,18 +222,10 @@ class MockScriptGenerator(BaseGenerator[str]):
     def generate_story_outline(self, idea: str) -> str:
         return f"[MOCK] Story outline for: {idea}"
 
-    def generate_episode_outline(
-        self,
-        story_context: str,
-        episode_idea: str
-    ) -> str:
+    def generate_episode_outline(self, story_context: str, episode_idea: str) -> str:
         return f"[MOCK] Episode outline for: {episode_idea}"
 
-    def generate_scene_script(
-        self,
-        scene_name: str,
-        **kwargs
-    ) -> Path:
+    def generate_scene_script(self, scene_name: str, **kwargs) -> Path:
         """Generate mock scene script."""
         self.call_count += 1
         output_path = self.config.project_root / "data" / "test" / f"{scene_name}.md"
@@ -262,11 +248,7 @@ class MockCharacterGenerator(BaseGenerator[Path]):
     name = "mock_character_generator"
     description = "Mock character generator for tests"
 
-    def __init__(
-        self,
-        config: Settings,
-        image_service: Optional[IImageService] = None
-    ):
+    def __init__(self, config: Settings, image_service: Optional[IImageService] = None):
         super().__init__(config)
         self.image_service = image_service or MockImageService(config)
         self.call_count = 0
@@ -290,11 +272,7 @@ class MockVideoGenerator(BaseGenerator[Path]):
     name = "mock_video_generator"
     description = "Mock video generator for tests"
 
-    def __init__(
-        self,
-        config: Settings,
-        video_service: Optional[IVideoService] = None
-    ):
+    def __init__(self, config: Settings, video_service: Optional[IVideoService] = None):
         super().__init__(config)
         self.video_service = video_service or MockVideoService(config)
         self.call_count = 0

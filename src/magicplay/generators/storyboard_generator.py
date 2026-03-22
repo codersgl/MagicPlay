@@ -85,14 +85,19 @@ class StoryboardGenerator:
         frames = []
         for i, segment in enumerate(segments):
             # Generate first frame prompt if not provided
-            first_frame_prompt = segment.first_frame_prompt or self._generate_first_frame_prompt(
-                segment=segment,
-                scene_reference_path=scene_reference_path,
-                character_images=character_images,
+            first_frame_prompt = (
+                segment.first_frame_prompt
+                or self._generate_first_frame_prompt(
+                    segment=segment,
+                    scene_reference_path=scene_reference_path,
+                    character_images=character_images,
+                )
             )
 
             # Generate motion prompt if not provided
-            motion_prompt = segment.motion_prompt or self._generate_motion_prompt(segment)
+            motion_prompt = segment.motion_prompt or self._generate_motion_prompt(
+                segment
+            )
 
             frame = StoryboardFrame(
                 frame_index=i,
@@ -255,8 +260,12 @@ class StoryboardGenerator:
                     "end_second": f.end_second,
                     "first_frame_prompt": f.first_frame_prompt,
                     "motion_prompt": f.motion_prompt,
-                    "first_frame_path": str(f.first_frame_path) if f.first_frame_path else None,
-                    "video_segment_path": str(f.video_segment_path) if f.video_segment_path else None,
+                    "first_frame_path": (
+                        str(f.first_frame_path) if f.first_frame_path else None
+                    ),
+                    "video_segment_path": (
+                        str(f.video_segment_path) if f.video_segment_path else None
+                    ),
                     "characters": f.characters,
                 }
                 for f in storyboard.frames
@@ -276,6 +285,7 @@ class StoryboardGenerator:
     def _sanitize_filename(name: str) -> str:
         """Sanitize scene name for use as filename."""
         import re
+
         safe = re.sub(r"[^\w\s\-]", "_", name)
         safe = re.sub(r"[\s]+", "_", safe)
         return safe[:100]
@@ -302,8 +312,16 @@ class StoryboardGenerator:
                     end_second=f_data["end_second"],
                     first_frame_prompt=f_data.get("first_frame_prompt", ""),
                     motion_prompt=f_data.get("motion_prompt", ""),
-                    first_frame_path=Path(f_data["first_frame_path"]) if f_data.get("first_frame_path") else None,
-                    video_segment_path=Path(f_data["video_segment_path"]) if f_data.get("video_segment_path") else None,
+                    first_frame_path=(
+                        Path(f_data["first_frame_path"])
+                        if f_data.get("first_frame_path")
+                        else None
+                    ),
+                    video_segment_path=(
+                        Path(f_data["video_segment_path"])
+                        if f_data.get("video_segment_path")
+                        else None
+                    ),
                     characters=f_data.get("characters", []),
                 )
                 frames.append(frame)

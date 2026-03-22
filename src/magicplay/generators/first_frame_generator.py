@@ -74,9 +74,13 @@ class FirstFrameGenerator:
         """
         # Build output path if not provided
         if output_path is None:
-            scene_dir = self.output_dir / self._sanitize_filename(storyboard_frame.frame_index)
+            scene_dir = self.output_dir / self._sanitize_filename(
+                storyboard_frame.frame_index
+            )
             scene_dir.mkdir(parents=True, exist_ok=True)
-            output_path = scene_dir / f"first_frame_{storyboard_frame.frame_index:02d}.jpg"
+            output_path = (
+                scene_dir / f"first_frame_{storyboard_frame.frame_index:02d}.jpg"
+            )
 
         # Collect reference images
         ref_images = []
@@ -193,7 +197,8 @@ class FirstFrameGenerator:
         frame_chars = storyboard_frame.characters
         if frame_chars:
             char_refs = [
-                character_images.get(name) for name in frame_chars
+                character_images.get(name)
+                for name in frame_chars
                 if name in character_images
             ]
             if char_refs:
@@ -212,6 +217,7 @@ class FirstFrameGenerator:
     def _sanitize_filename(name: str) -> str:
         """Sanitize name for use as directory name."""
         import re
+
         safe = re.sub(r"[^\w\s\-]", "_", str(name))
         safe = re.sub(r"[\s]+", "_", safe)
         return safe[:100]

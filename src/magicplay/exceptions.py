@@ -13,7 +13,7 @@ class MagicPlayError(Exception):
     def __init__(
         self,
         message: str = "An error occurred",
-        details: Optional[Dict[str, Any]] = None
+        details: Optional[Dict[str, Any]] = None,
     ):
         self.message = message
         self.details = details or {}
@@ -43,7 +43,7 @@ class GenerationError(MagicPlayError):
         self,
         message: str,
         generator_type: Optional[str] = None,
-        attempt: Optional[int] = None
+        attempt: Optional[int] = None,
     ):
         details = {}
         if generator_type:
@@ -61,7 +61,7 @@ class APIError(MagicPlayError):
         message: str,
         service_name: Optional[str] = None,
         status_code: Optional[int] = None,
-        response_body: Optional[str] = None
+        response_body: Optional[str] = None,
     ):
         details = {}
         if service_name:
@@ -80,7 +80,7 @@ class ValidationError(MagicPlayError):
         self,
         message: str,
         field_name: Optional[str] = None,
-        invalid_value: Optional[Any] = None
+        invalid_value: Optional[Any] = None,
     ):
         details = {}
         if field_name:
@@ -97,7 +97,7 @@ class ResourceNotFoundError(MagicPlayError):
         self,
         message: str,
         resource_type: Optional[str] = None,
-        resource_path: Optional[str] = None
+        resource_path: Optional[str] = None,
     ):
         details = {}
         if resource_type:
@@ -114,7 +114,7 @@ class FileOperationError(MagicPlayError):
         self,
         message: str,
         file_path: Optional[str] = None,
-        operation: Optional[str] = None
+        operation: Optional[str] = None,
     ):
         details = {}
         if file_path:
@@ -131,7 +131,7 @@ class QualityCheckError(MagicPlayError):
         self,
         message: str,
         quality_score: Optional[float] = None,
-        threshold: Optional[float] = None
+        threshold: Optional[float] = None,
     ):
         details = {}
         if quality_score is not None:
@@ -148,7 +148,7 @@ class WorkflowError(MagicPlayError):
         self,
         message: str,
         workflow_id: Optional[str] = None,
-        step: Optional[str] = None
+        step: Optional[str] = None,
     ):
         details = {}
         if workflow_id:

@@ -1,10 +1,12 @@
 """
 Pytest tests for JimengVideoService.
 """
-import pytest
-from unittest.mock import Mock, patch, MagicMock
-from pathlib import Path
+
 import json
+from pathlib import Path
+from unittest.mock import MagicMock, Mock, patch
+
+import pytest
 
 from magicplay.services.jimeng_video_api import JimengVideoService
 
@@ -25,14 +27,14 @@ class TestJimengVideoService:
     @pytest.fixture
     def service(self, mock_settings):
         """Create a JimengVideoService instance with mocked SDK."""
-        with patch('magicplay.services.jimeng_video_api.VisualService'):
+        with patch("magicplay.services.jimeng_video_api.VisualService"):
             svc = JimengVideoService(config=mock_settings)
             svc.service = Mock()  # Mock the SDK service
             return svc
 
     def test_service_initialization(self, mock_settings):
         """Test JimengVideoService initialization."""
-        with patch('magicplay.services.jimeng_video_api.VisualService'):
+        with patch("magicplay.services.jimeng_video_api.VisualService"):
             service = JimengVideoService(config=mock_settings)
 
             assert service.name == "jimeng_video"
@@ -50,8 +52,10 @@ class TestJimengVideoService:
         mock_settings_no_keys.jimeng_api_base_url = "https://visual.volcengineapi.com"
         mock_settings_no_keys.jimeng_default_aspect_ratio = "16:9"
 
-        with pytest.raises(ValueError, match="JIMENG_ACCESS_KEY and JIMENG_SECRET_KEY are required"):
-            with patch('magicplay.services.jimeng_video_api.VisualService'):
+        with pytest.raises(
+            ValueError, match="JIMENG_ACCESS_KEY and JIMENG_SECRET_KEY are required"
+        ):
+            with patch("magicplay.services.jimeng_video_api.VisualService"):
                 JimengVideoService(config=mock_settings_no_keys)
 
     def test_convert_duration_to_frames(self, service):
@@ -69,7 +73,7 @@ class TestJimengVideoService:
         mock_response = Mock()
         mock_response.json.return_value = {
             "code": 10000,
-            "data": {"task_id": "test_task_123"}
+            "data": {"task_id": "test_task_123"},
         }
         service.service.cv_sync2async_submit_task.return_value = mock_response
 
@@ -78,7 +82,7 @@ class TestJimengVideoService:
             prompt="A cat walking",
             seed=-1,
             frames=121,
-            aspect_ratio="16:9"
+            aspect_ratio="16:9",
         )
 
         assert task_id == "test_task_123"
@@ -90,10 +94,7 @@ class TestJimengVideoService:
         mock_response = Mock()
         mock_response.json.return_value = {
             "code": 10000,
-            "data": {
-                "status": "done",
-                "video_url": "https://example.com/video.mp4"
-            }
+            "data": {"status": "done", "video_url": "https://example.com/video.mp4"},
         }
         service.service.cv_sync2async_get_result.return_value = mock_response
 
@@ -108,7 +109,7 @@ class TestJimengVideoService:
         mock_response = Mock()
         mock_response.json.return_value = {
             "code": 50413,
-            "message": "Post Text Risk Not Pass"
+            "message": "Post Text Risk Not Pass",
         }
         service.service.cv_sync2async_submit_task.return_value = mock_response
 
@@ -118,7 +119,7 @@ class TestJimengVideoService:
                 prompt="A cat walking",
                 seed=-1,
                 frames=121,
-                aspect_ratio="16:9"
+                aspect_ratio="16:9",
             )
 
     def test_wait_for_task_success(self, service):
@@ -129,10 +130,7 @@ class TestJimengVideoService:
         mock_response = Mock()
         mock_response.json.return_value = {
             "code": 10000,
-            "data": {
-                "status": "done",
-                "video_url": "https://example.com/video.mp4"
-            }
+            "data": {"status": "done", "video_url": "https://example.com/video.mp4"},
         }
         service.service.cv_sync2async_get_result.return_value = mock_response
 
@@ -149,9 +147,7 @@ class TestJimengVideoService:
         mock_response = Mock()
         mock_response.json.return_value = {
             "code": 10000,
-            "data": {
-                "status": "generating"
-            }
+            "data": {"status": "generating"},
         }
         service.service.cv_sync2async_get_result.return_value = mock_response
 

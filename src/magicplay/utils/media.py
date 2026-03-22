@@ -195,9 +195,12 @@ class MediaUtils:
             cmd = [
                 "ffmpeg",
                 "-y",  # Overwrite output
-                "-i", str(video_path),
-                "-vf", f"subtitles='{subtitle_path}':force_style='FontSize=24,FontName=Arial,PrimaryColour=&HFFFFFF&,OutlineColour=&H000000&,Outline=2'",
-                "-c:a", "copy",  # Copy audio stream
+                "-i",
+                str(video_path),
+                "-vf",
+                f"subtitles='{subtitle_path}':force_style='FontSize=24,FontName=Arial,PrimaryColour=&HFFFFFF&,OutlineColour=&H000000&,Outline=2'",
+                "-c:a",
+                "copy",  # Copy audio stream
                 str(output_path),
             ]
 
@@ -259,32 +262,45 @@ class MediaUtils:
             # Check if video has audio
             has_audio_cmd = [
                 "ffprobe",
-                "-v", "error",
-                "-select_streams", "a",
-                "-show_entries", "stream=codec_type",
-                "-of", "csv=p=0",
+                "-v",
+                "error",
+                "-select_streams",
+                "a",
+                "-show_entries",
+                "stream=codec_type",
+                "-of",
+                "csv=p=0",
                 str(video_path),
             ]
 
-            has_audio = subprocess.run(
-                has_audio_cmd,
-                capture_output=True,
-                text=True,
-            ).stdout.strip() == "audio"
+            has_audio = (
+                subprocess.run(
+                    has_audio_cmd,
+                    capture_output=True,
+                    text=True,
+                ).stdout.strip()
+                == "audio"
+            )
 
             if has_audio:
                 # Mix original audio with background music
                 cmd = [
                     "ffmpeg",
                     "-y",
-                    "-i", str(video_path),
-                    "-stream_loop", "-1",  # Loop music
-                    "-i", str(music_path),
+                    "-i",
+                    str(video_path),
+                    "-stream_loop",
+                    "-1",  # Loop music
+                    "-i",
+                    str(music_path),
                     "-filter_complex",
                     f"[1:a]volume={volume}[music];[0:a][music]amix=inputs=2:duration=first[a]",
-                    "-map", "0:v",
-                    "-map", "[a]",
-                    "-c:v", "copy",
+                    "-map",
+                    "0:v",
+                    "-map",
+                    "[a]",
+                    "-c:v",
+                    "copy",
                     "-shortest",
                     str(output_path),
                 ]
@@ -293,12 +309,18 @@ class MediaUtils:
                 cmd = [
                     "ffmpeg",
                     "-y",
-                    "-i", str(video_path),
-                    "-stream_loop", "-1",
-                    "-i", str(music_path),
-                    "-map", "0:v",
-                    "-map", "1:a",
-                    "-c:v", "copy",
+                    "-i",
+                    str(video_path),
+                    "-stream_loop",
+                    "-1",
+                    "-i",
+                    str(music_path),
+                    "-map",
+                    "0:v",
+                    "-map",
+                    "1:a",
+                    "-c:v",
+                    "copy",
                     "-shortest",
                     str(output_path),
                 ]

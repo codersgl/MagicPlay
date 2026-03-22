@@ -6,6 +6,7 @@ Abstract base class for all external service integrations.
 
 from abc import ABC
 from typing import Optional
+
 from loguru import logger
 
 from magicplay.config import Settings
@@ -77,7 +78,7 @@ class BaseService(ABC):
         self,
         message: str,
         status_code: Optional[int] = None,
-        response_body: Optional[str] = None
+        response_body: Optional[str] = None,
     ) -> None:
         """
         Raise a standardized API error.
@@ -91,7 +92,7 @@ class BaseService(ABC):
             message=message,
             service_name=self.name,
             status_code=status_code,
-            response_body=response_body
+            response_body=response_body,
         )
 
     def _log_request(self, endpoint: str, payload: dict) -> None:
@@ -113,7 +114,9 @@ class BaseService(ABC):
             status: Response status code
             data: Response data (sanitized)
         """
-        self.logger.debug(f"Response from {endpoint} [{status}]: {self._sanitize_payload(data)}")
+        self.logger.debug(
+            f"Response from {endpoint} [{status}]: {self._sanitize_payload(data)}"
+        )
 
     def _sanitize_payload(self, payload: dict) -> dict:
         """

@@ -2,10 +2,11 @@
 Tests for SceneConceptGenerator module.
 """
 
-import pytest
-from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
 import tempfile
+from pathlib import Path
+from unittest.mock import MagicMock, Mock, patch
+
+import pytest
 
 from magicplay.generators.scene_concept_gen import SceneConceptGenerator
 
@@ -82,7 +83,9 @@ class TestSceneConceptGenerator:
 
     def test_generate_scene_concept_image_failure(self, scene_concept_generator):
         """Test handling of failed image generation."""
-        scene_concept_generator.image_service.generate_image_and_download.return_value = None
+        scene_concept_generator.image_service.generate_image_and_download.return_value = (
+            None
+        )
 
         result = scene_concept_generator.generate_scene_concept_image(
             scene_name="failed_scene", visual_prompt="A visual description"

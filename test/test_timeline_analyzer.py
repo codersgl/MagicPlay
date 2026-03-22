@@ -1,9 +1,16 @@
 """
 Pytest tests for TimelineAnalyzer.
 """
-import pytest
+
 from unittest.mock import MagicMock, patch
-from magicplay.analyzer.timeline_analyzer import TimelineAnalyzer, TimelineSegment, TimelineResult
+
+import pytest
+
+from magicplay.analyzer.timeline_analyzer import (
+    TimelineAnalyzer,
+    TimelineResult,
+    TimelineSegment,
+)
 
 
 class TestTimelineAnalyzer:
@@ -37,13 +44,13 @@ VISUAL KEY:
         analyzer = TimelineAnalyzer(llm_service=mock_llm_service)
 
         # Set up mock response
-        mock_response = '''{
+        mock_response = """{
             "segments": [
                 {"start_second": 0, "end_second": 5, "visual_prompt": "角色行走在森林小径上", "description": "角色从左侧进入画面"},
                 {"start_second": 5, "end_second": 10, "visual_prompt": "角色突然停下，怪兽出现", "description": "怪兽从树后出现"}
             ],
             "reasoning": "将10秒视频分为两个5秒片段"
-        }'''
+        }"""
         mock_llm_service.generate_content.return_value = mock_response
 
         scene_script = "场景：角色在森林中行走，突然遇到一只怪兽。"
@@ -58,33 +65,33 @@ VISUAL KEY:
         """Test that each segment has all required fields."""
         # Create analyzer with mock that returns proper JSON
         mock_llm = MagicMock()
-        mock_response = '''{
+        mock_response = """{
             "segments": [
                 {"start_second": 0, "end_second": 5, "visual_prompt": "角色挥手", "description": "角色从左侧进入"}
             ],
             "reasoning": "简单的挥手动作"
-        }'''
+        }"""
         mock_llm.generate_content.return_value = mock_response
 
         analyzer = TimelineAnalyzer(llm_service=mock_llm)
         result = analyzer.analyze("场景：角色挥手。", duration=5)
 
         seg = result.segments[0]
-        assert hasattr(seg, 'start_second')
-        assert hasattr(seg, 'end_second')
-        assert hasattr(seg, 'visual_prompt')
-        assert hasattr(seg, 'description')
+        assert hasattr(seg, "start_second")
+        assert hasattr(seg, "end_second")
+        assert hasattr(seg, "visual_prompt")
+        assert hasattr(seg, "description")
 
     def test_segment_minimum_duration(self):
         """Test that segments have minimum 3 second duration."""
         mock_llm = MagicMock()
-        mock_response = '''{
+        mock_response = """{
             "segments": [
                 {"start_second": 0, "end_second": 4, "visual_prompt": "动作1", "description": "描述1"},
                 {"start_second": 4, "end_second": 8, "visual_prompt": "动作2", "description": "描述2"}
             ],
             "reasoning": "测试"
-        }'''
+        }"""
         mock_llm.generate_content.return_value = mock_response
 
         analyzer = TimelineAnalyzer(llm_service=mock_llm)
@@ -97,12 +104,12 @@ VISUAL KEY:
     def test_first_segment_starts_at_zero(self):
         """Test that the first segment starts at second 0."""
         mock_llm = MagicMock()
-        mock_response = '''{
+        mock_response = """{
             "segments": [
                 {"start_second": 0, "end_second": 5, "visual_prompt": "开始动作", "description": "开始"}
             ],
             "reasoning": "测试"
-        }'''
+        }"""
         mock_llm.generate_content.return_value = mock_response
 
         analyzer = TimelineAnalyzer(llm_service=mock_llm)
@@ -113,13 +120,13 @@ VISUAL KEY:
     def test_segments_cover_total_duration(self):
         """Test that segment end times cover the total duration."""
         mock_llm = MagicMock()
-        mock_response = '''{
+        mock_response = """{
             "segments": [
                 {"start_second": 0, "end_second": 5, "visual_prompt": "第一段", "description": "第一段"},
                 {"start_second": 5, "end_second": 10, "visual_prompt": "第二段", "description": "第二段"}
             ],
             "reasoning": "完整覆盖10秒"
-        }'''
+        }"""
         mock_llm.generate_content.return_value = mock_response
 
         analyzer = TimelineAnalyzer(llm_service=mock_llm)
@@ -145,12 +152,12 @@ VISUAL KEY:
     def test_analyze_empty_scene_script(self):
         """Test analyzing empty scene script."""
         mock_llm = MagicMock()
-        mock_response = '''{
+        mock_response = """{
             "segments": [
                 {"start_second": 0, "end_second": 5, "visual_prompt": "空场景", "description": "空"}
             ],
             "reasoning": "空场景"
-        }'''
+        }"""
         mock_llm.generate_content.return_value = mock_response
 
         analyzer = TimelineAnalyzer(llm_service=mock_llm)
@@ -162,13 +169,13 @@ VISUAL KEY:
     def test_visual_prompt_is_not_empty(self):
         """Test that visual prompts are not empty strings."""
         mock_llm = MagicMock()
-        mock_response = '''{
+        mock_response = """{
             "segments": [
                 {"start_second": 0, "end_second": 5, "visual_prompt": "角色行走在森林中", "description": "角色行走"},
                 {"start_second": 5, "end_second": 10, "visual_prompt": "角色突然停下", "description": "突然停下"}
             ],
             "reasoning": "两个清晰的动作"
-        }'''
+        }"""
         mock_llm.generate_content.return_value = mock_response
 
         analyzer = TimelineAnalyzer(llm_service=mock_llm)
@@ -182,12 +189,12 @@ VISUAL KEY:
         """Test that the reasoning from LLM is preserved in result."""
         mock_llm = MagicMock()
         test_reasoning = "这是详细的分镜推理过程"
-        mock_response = f'''{{
+        mock_response = f"""{{
             "segments": [
                 {{"start_second": 0, "end_second": 5, "visual_prompt": "动作", "description": "描述"}}
             ],
             "reasoning": "{test_reasoning}"
-        }}'''
+        }}"""
         mock_llm.generate_content.return_value = mock_response
 
         analyzer = TimelineAnalyzer(llm_service=mock_llm)

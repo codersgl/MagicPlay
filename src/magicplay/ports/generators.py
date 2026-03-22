@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Any, Dict, Generic, Optional, TypeVar
 
 # Type variable for generic result type
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 @dataclass
@@ -20,6 +20,7 @@ class GenerationContext:
 
     Contains all necessary information for generators to produce content.
     """
+
     # Identification
     story_name: str
     episode_name: str
@@ -54,9 +55,7 @@ class GenerationContext:
             "memory": self.memory,
             "scene_prompt": self.scene_prompt,
             "previous_frame": str(self.previous_frame) if self.previous_frame else None,
-            "character_images": {
-                k: str(v) for k, v in self.character_images.items()
-            },
+            "character_images": {k: str(v) for k, v in self.character_images.items()},
             "temperature": self.temperature,
             "max_tokens": self.max_tokens,
         }
@@ -69,6 +68,7 @@ class GenerationResult(Generic[T]):
 
     Generic over the data type T (e.g., str for scripts, Path for images).
     """
+
     success: bool
     data: Optional[T] = None
     error: Optional[str] = None
@@ -114,6 +114,7 @@ class GenerationResult(Generic[T]):
 @dataclass
 class ValidationResult:
     """Result of content validation."""
+
     is_valid: bool
     issues: list[str] = field(default_factory=list)
     suggestions: list[str] = field(default_factory=list)
@@ -163,15 +164,11 @@ class IGenerator(ABC, Generic[T]):
         """
         if not result.success:
             return ValidationResult(
-                is_valid=False,
-                issues=[f"Generation failed: {result.error}"]
+                is_valid=False, issues=[f"Generation failed: {result.error}"]
             )
 
         if result.data is None:
-            return ValidationResult(
-                is_valid=False,
-                issues=["Generated data is None"]
-            )
+            return ValidationResult(is_valid=False, issues=["Generated data is None"])
 
         return ValidationResult(is_valid=True)
 
@@ -187,9 +184,7 @@ class IGenerator(ABC, Generic[T]):
         pass
 
     def post_generate_hook(
-        self,
-        context: GenerationContext,
-        result: GenerationResult[T]
+        self, context: GenerationContext, result: GenerationResult[T]
     ) -> None:
         """
         Hook called after generation.

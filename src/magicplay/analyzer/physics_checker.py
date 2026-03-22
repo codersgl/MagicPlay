@@ -60,27 +60,53 @@ class PhysicsChecker:
     def __init__(self):
         # Gravity violation keywords
         self.gravity_keywords = [
-            "漂浮", "浮空", "悬浮", "飘浮", "float", "levitat", "hover",
-            "无故漂浮", "凭空漂浮", "违背重力",
+            "漂浮",
+            "浮空",
+            "悬浮",
+            "飘浮",
+            "float",
+            "levitat",
+            "hover",
+            "无故漂浮",
+            "凭空漂浮",
+            "违背重力",
         ]
 
         # Motion violation keywords
         self.motion_keywords = [
-            "瞬移", "瞬间移动", "凭空出现", "突然消失",
-            "teleport", "suddenly appear", "suddenly disappear",
-            "违背惯性", "违反惯性", "impossible turn",
+            "瞬移",
+            "瞬间移动",
+            "凭空出现",
+            "突然消失",
+            "teleport",
+            "suddenly appear",
+            "suddenly disappear",
+            "违背惯性",
+            "违反惯性",
+            "impossible turn",
         ]
 
         # Anatomy violation keywords
         self.anatomy_keywords = [
-            "扭曲", "变形", "twisted", "contorted", "impossible angle",
-            "关节反转", "身体扭曲", " unnatural bend",
+            "扭曲",
+            "变形",
+            "twisted",
+            "contorted",
+            "impossible angle",
+            "关节反转",
+            "身体扭曲",
+            " unnatural bend",
         ]
 
         # Lighting keywords
         self.lighting_keywords = [
-            "阴影方向", "光源", "shadow direction", "light source",
-            "无影", "multiple shadows", "inconsistent lighting",
+            "阴影方向",
+            "光源",
+            "shadow direction",
+            "light source",
+            "无影",
+            "multiple shadows",
+            "inconsistent lighting",
         ]
 
         # Sci-fi element patterns
@@ -314,7 +340,9 @@ class PhysicsChecker:
             for vtype, vlist in by_type.items():
                 report += f"\n## {vtype.value.upper()} ({len(vlist)} issues)\n\n"
                 for v in vlist:
-                    report += f"### 行 {v.line_number} (严重程度：{'⭐' * v.severity})\n"
+                    report += (
+                        f"### 行 {v.line_number} (严重程度：{'⭐' * v.severity})\n"
+                    )
                     report += f"> {v.line_content}\n\n"
                     report += f"**问题**: {v.description}\n\n"
                     if v.suggestion:
@@ -327,4 +355,6 @@ class PhysicsChecker:
             print(f"Physics check report saved to: {output_path}")
 
         return report
+
+
 from typing import Union

@@ -1,5 +1,7 @@
 import pytest
+
 from magicplay.generators.dynamic_panel_selector import DynamicPanelSelector, PanelInfo
+
 
 def test_dynamic_panel_selector_init():
     """Test DynamicPanelSelector can be initialized."""
@@ -7,10 +9,12 @@ def test_dynamic_panel_selector_init():
     assert selector.name == "dynamic_panel_selector"
     assert selector.max_panels == 4
 
+
 def test_dynamic_panel_selector_with_custom_max_panels():
     """Test DynamicPanelSelector with custom max_panels."""
     selector = DynamicPanelSelector(max_panels=6)
     assert selector.max_panels == 6
+
 
 def test_panel_info_structure():
     """Test PanelInfo dataclass structure."""
@@ -19,13 +23,14 @@ def test_panel_info_structure():
         description="Close-up of Character A's angry face",
         dialogue="You took it!",
         composition="close-up",
-        emotion="angry"
+        emotion="angry",
     )
     assert info.panel_number == 1
     assert info.description == "Close-up of Character A's angry face"
     assert info.dialogue == "You took it!"
     assert info.composition == "close-up"
     assert info.emotion == "angry"
+
 
 def test_panel_info_defaults():
     """Test PanelInfo default values."""

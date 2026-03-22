@@ -5,9 +5,10 @@ Generates videos using various video generation APIs.
 Supports multiple providers: DashScope (qwen) and Jimeng (即梦).
 """
 
-from loguru import logger
 from pathlib import Path
 from typing import Optional, Tuple, Union
+
+from loguru import logger
 
 from magicplay.config import get_settings
 from magicplay.services.jimeng_video_api import JimengVideoService
@@ -80,21 +81,21 @@ class VideoGenerator:
         width, height = size
         ratio = width / height
 
-        if abs(ratio - 16/9) < 0.1:
+        if abs(ratio - 16 / 9) < 0.1:
             return "16:9"
-        elif abs(ratio - 9/16) < 0.1:
+        elif abs(ratio - 9 / 16) < 0.1:
             return "9:16"
         elif abs(ratio - 1) < 0.1:
             return "1:1"
-        elif abs(ratio - 4/3) < 0.1:
+        elif abs(ratio - 4 / 3) < 0.1:
             return "4:3"
-        elif abs(ratio - 3/4) < 0.1:
+        elif abs(ratio - 3 / 4) < 0.1:
             return "3:4"
-        elif abs(ratio - 3/2) < 0.1:
+        elif abs(ratio - 3 / 2) < 0.1:
             return "3:2"
-        elif abs(ratio - 2/3) < 0.1:
+        elif abs(ratio - 2 / 3) < 0.1:
             return "2:3"
-        elif abs(ratio - 21/9) < 0.1:
+        elif abs(ratio - 21 / 9) < 0.1:
             return "21:9"
         else:
             # Default to 16:9

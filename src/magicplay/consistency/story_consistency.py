@@ -99,17 +99,17 @@ class StoryConsistencyManager:
         # 尝试多种模式以匹配不同的markdown格式
         patterns = [
             rf"###\s*{re.escape(section_name)}.*?\n(.*?)(?:###\s|\Z)",  # 模式1：### 后可能有空格
-            rf"###\s*{re.escape(section_name)}.*?\n(.*?)(?:###|\Z)",    # 模式2：没有空格
-            rf"###.*?{re.escape(section_name)}.*?\n(.*?)(?:###|\Z)",    # 模式3：模糊匹配
+            rf"###\s*{re.escape(section_name)}.*?\n(.*?)(?:###|\Z)",  # 模式2：没有空格
+            rf"###.*?{re.escape(section_name)}.*?\n(.*?)(?:###|\Z)",  # 模式3：模糊匹配
         ]
-        
+
         for pattern in patterns:
             match = re.search(pattern, content, re.DOTALL | re.IGNORECASE)
             if match:
                 extracted = match.group(1).strip()
                 if extracted:  # 确保不是空字符串
                     return extracted
-        
+
         return None
 
     def _parse_characters(self, character_section: str) -> None:
@@ -120,8 +120,16 @@ class StoryConsistencyManager:
 
         # Known property names that should NOT be treated as character names
         known_properties = {
-            "身份", "人设类型", "性格特征", "ai演员锚点", "appearance",
-            "身份", "人设类型", "性格特征", "ai演员锚点", "appearance"
+            "身份",
+            "人设类型",
+            "性格特征",
+            "ai演员锚点",
+            "appearance",
+            "身份",
+            "人设类型",
+            "性格特征",
+            "ai演员锚点",
+            "appearance",
         }
 
         for line in lines:
@@ -132,41 +140,51 @@ class StoryConsistencyManager:
             # Check if this is a character name line (not a property line)
             is_character = False
             character_name = None
-            
+
             # Check all patterns for character names
             patterns = [
-                (r"\*\s+\*\*([^(]+?)\s*(?:\([^)]+\))?\*\*\s*:", "Pattern 1: *   **角色名 (描述)**: or *   **角色名**:"),
-                (r"\*\s*\*\*([^(]+?)\s*(?:\([^)]+\))?\*\*\s*:", "Pattern 2: * **角色名 (描述)**: or * **角色名**:"),
+                (
+                    r"\*\s+\*\*([^(]+?)\s*(?:\([^)]+\))?\*\*\s*:",
+                    "Pattern 1: *   **角色名 (描述)**: or *   **角色名**:",
+                ),
+                (
+                    r"\*\s*\*\*([^(]+?)\s*(?:\([^)]+\))?\*\*\s*:",
+                    "Pattern 2: * **角色名 (描述)**: or * **角色名**:",
+                ),
                 (r"\*\*\[([^\]]+)\]\*\*", "Pattern 3: **[角色名]**"),
                 (r"\*\*\[?([^\]\*]+)\]?\*\*", "Pattern 4: **[角色名]** or **角色名**"),
                 (r"\*\s*\[?([^\]\:]+)\]?\s*:", "Pattern 5: * [角色名]:"),
                 (r"###\s*\[?([^\]\*]+)\]?", "Pattern 6: ### [角色名]"),
                 (r"\[?([^\]\:]+)\]?\s*:", "Pattern 7: [角色名]:"),
             ]
-            
+
             for pattern, _ in patterns:
                 match = re.match(pattern, line)
                 if match:
                     potential_name = match.group(1).strip()
-                    
+
                     # Skip if this is a known property
                     if potential_name.lower() in known_properties:
                         # This is a property line, not a character name
                         break
-                    
+
                     # Additional checks: character names should not contain certain keywords
                     # Allow longer names (Chinese 2-6 characters, English 2-30 characters)
                     if len(potential_name) >= 2 and len(potential_name) <= 30:
                         # Common character name patterns (Chinese names, English names)
-                        if re.match(r"^[\u4e00-\u9fff]{2,6}$", potential_name):  # Chinese characters
+                        if re.match(
+                            r"^[\u4e00-\u9fff]{2,6}$", potential_name
+                        ):  # Chinese characters
                             is_character = True
                             character_name = potential_name
                             break
-                        elif re.match(r"^[A-Za-z\s]{2,30}$", potential_name):  # English names
+                        elif re.match(
+                            r"^[A-Za-z\s]{2,30}$", potential_name
+                        ):  # English names
                             is_character = True
                             character_name = potential_name
                             break
-            
+
             if is_character and character_name:
                 # Save previous character if exists
                 if current_character and current_data:
@@ -188,9 +206,9 @@ class StoryConsistencyManager:
                         key = key.strip()
                         # 移除项目符号和粗体标记
                         key = re.sub(r"^\*\s*", "", key)  # 移除开头的*和空格
-                        key = re.sub(r"\*\*", "", key)    # 移除粗体标记
+                        key = re.sub(r"\*\*", "", key)  # 移除粗体标记
                         key = key.strip().lower()
-                        
+
                         value = value.strip()
                         # 清理markdown格式
                         value = re.sub(r"\*\*", "", value)  # 移除粗体标记
@@ -208,9 +226,9 @@ class StoryConsistencyManager:
                         key, value = parts
                         # 清理键名中的markdown标记
                         key = key.strip()
-                        key = re.sub(r"\*\*", "", key)    # 移除粗体标记
+                        key = re.sub(r"\*\*", "", key)  # 移除粗体标记
                         key = key.strip().lower()
-                        
+
                         value = value.strip()
                         # 清理markdown格式
                         value = re.sub(r"\*\*", "", value)  # 移除粗体标记
@@ -232,10 +250,10 @@ class StoryConsistencyManager:
             # 清理键名：移除项目符号、粗体标记和多余空格
             cleaned_key = key.strip()
             cleaned_key = re.sub(r"^\*\s*", "", cleaned_key)  # 移除开头的*和空格
-            cleaned_key = re.sub(r"\*\*", "", cleaned_key)    # 移除粗体标记
+            cleaned_key = re.sub(r"\*\*", "", cleaned_key)  # 移除粗体标记
             cleaned_key = cleaned_key.strip().lower()
             cleaned_data[cleaned_key] = value
-        
+
         # Extract visual tags from appearance description
         # 尝试多种可能的键名
         appearance_keys = ["ai演员锚点", "ai演员锚点：", "appearance", "ai演员"]
@@ -244,14 +262,14 @@ class StoryConsistencyManager:
             if key in cleaned_data:
                 appearance_text = cleaned_data[key]
                 break
-        
+
         if not appearance_text:
             # 如果没有找到标准键名，尝试查找包含"锚点"的键
             for key, value in cleaned_data.items():
                 if "锚点" in key or "appearance" in key.lower():
                     appearance_text = value
                     break
-        
+
         visual_tags = self._extract_visual_tags(appearance_text)
 
         # Detailed appearance descriptors
@@ -273,14 +291,14 @@ class StoryConsistencyManager:
             if key in cleaned_data:
                 personality_text = cleaned_data[key]
                 break
-        
+
         if not personality_text:
             # 如果没有找到标准键名，尝试查找包含"性格"的键
             for key, value in cleaned_data.items():
                 if "性格" in key or "personality" in key.lower():
                     personality_text = value
                     break
-        
+
         personality = personality_text.split(",") if personality_text else []
 
         character = CharacterAnchor(
@@ -375,7 +393,7 @@ class StoryConsistencyManager:
             r"蕾丝",
             r"丝绒",
         ]
-        
+
         for phrase in descriptive_phrases:
             if re.search(phrase, text) and phrase not in tags:
                 tags.append(phrase)
@@ -392,32 +410,34 @@ class StoryConsistencyManager:
                 match = re.search(pattern, text, re.IGNORECASE)
                 if match:
                     return match.group(1).strip()
-        
+
         # If no explicit feature found, look for feature in the text
         best_match = ""
         best_match_length = 0
-        
+
         for keyword in keywords:
             # Look for keyword in text (case-insensitive)
             keyword_pattern = re.escape(keyword)
             matches = list(re.finditer(keyword_pattern, text, re.IGNORECASE))
-            
+
             for match in matches:
                 # Extract context around the keyword (up to 50 characters)
                 start = max(0, match.start() - 30)
                 end = min(len(text), match.end() + 50)
                 context = text[start:end]
-                
+
                 # Try to extract descriptive phrase after the keyword
-                after_keyword = text[match.end():]
+                after_keyword = text[match.end() :]
                 # Look for descriptive words (Chinese characters, adjectives, etc.)
-                descriptive_match = re.search(r"([\u4e00-\u9fff]+(?:\s*[\u4e00-\u9fff]+)*)", after_keyword)
+                descriptive_match = re.search(
+                    r"([\u4e00-\u9fff]+(?:\s*[\u4e00-\u9fff]+)*)", after_keyword
+                )
                 if descriptive_match:
                     description = descriptive_match.group(1).strip()
                     if len(description) > best_match_length:
                         best_match = description
                         best_match_length = len(description)
-        
+
         return best_match if best_match else ""
 
     def _parse_visual_style(self, style_section: str) -> None:
@@ -672,12 +692,12 @@ class StoryConsistencyManager:
         """Check if all characters have image paths set."""
         if not self.characters:
             return True  # No characters means nothing to check
-        
+
         has_images_count = 0
         for char in self.characters.values():
             if char.get_image_path():
                 has_images_count += 1
-        
+
         # Return True if at least some characters have images
         # This allows partial generation and avoids blocking all generation
         return has_images_count > 0

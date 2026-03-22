@@ -6,9 +6,10 @@ Ensures consistent visual quality across all video generation.
 """
 
 import re
-from loguru import logger
 from pathlib import Path
 from typing import Dict, Optional
+
+from loguru import logger
 
 from magicplay.services.image_api import ImageService
 from magicplay.utils.paths import DataManager

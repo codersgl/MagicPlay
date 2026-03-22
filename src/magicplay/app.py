@@ -5,11 +5,12 @@ A polished web UI for MagicPlay AI video generation.
 Run with: uv run streamlit run src/magicplay/app.py
 """
 
-import streamlit as st
 from pathlib import Path
 
-from magicplay.core.orchestrator import Orchestrator
+import streamlit as st
+
 from magicplay.config import get_settings
+from magicplay.core.orchestrator import Orchestrator
 from magicplay.logging_config import setup_logging
 from magicplay.utils.paths import DataManager
 
@@ -22,7 +23,8 @@ setup_logging(
 
 
 # Custom CSS for enhanced aesthetics
-st.markdown("""
+st.markdown(
+    """
 <style>
     /* Import distinctive fonts */
     @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Cormorant+Garamond:wght@400;600&display=swap');
@@ -169,7 +171,9 @@ st.markdown("""
         border-color: #6366f1 !important;
     }
 </style>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True,
+)
 
 
 # Page config
@@ -280,7 +284,10 @@ if "generation_complete" not in st.session_state:
 
 # Main header
 st.markdown("<h1>🎬 MagicPlay</h1>", unsafe_allow_html=True)
-st.markdown("<p style='color: rgba(200,200,210,0.7); font-size: 1.1em;'>AI-Powered Video Story Generation</p>", unsafe_allow_html=True)
+st.markdown(
+    "<p style='color: rgba(200,200,210,0.7); font-size: 1.1em;'>AI-Powered Video Story Generation</p>",
+    unsafe_allow_html=True,
+)
 
 st.divider()
 
@@ -296,9 +303,15 @@ with st.sidebar:
     selected_story = st.selectbox(
         "Story",
         options=story_options,
-        index=0 if not st.session_state.story_name else
-              (story_options.index(st.session_state.story_name)
-               if st.session_state.story_name in story_options else 0),
+        index=(
+            0
+            if not st.session_state.story_name
+            else (
+                story_options.index(st.session_state.story_name)
+                if st.session_state.story_name in story_options
+                else 0
+            )
+        ),
     )
 
     if selected_story == "[Create New Story]":
@@ -311,14 +324,24 @@ with st.sidebar:
     # Episode selection
     if st.session_state.story_name:
         existing_episodes = get_existing_episodes(st.session_state.story_name)
-        episode_options = ["[Create New Episode]"] + existing_episodes if existing_episodes else ["[Create New Episode]"]
+        episode_options = (
+            ["[Create New Episode]"] + existing_episodes
+            if existing_episodes
+            else ["[Create New Episode]"]
+        )
 
         selected_episode = st.selectbox(
             "Episode",
             options=episode_options,
-            index=0 if not st.session_state.episode_name else
-                  (episode_options.index(st.session_state.episode_name)
-                   if st.session_state.episode_name in episode_options else 0),
+            index=(
+                0
+                if not st.session_state.episode_name
+                else (
+                    episode_options.index(st.session_state.episode_name)
+                    if st.session_state.episode_name in episode_options
+                    else 0
+                )
+            ),
         )
 
         if selected_episode == "[Create New Episode]":
@@ -381,7 +404,10 @@ if not st.session_state.episode_name:
 header_col1, header_col2 = st.columns([3, 1])
 
 with header_col1:
-    st.markdown(f"### 📖 {st.session_state.story_name} / {st.session_state.episode_name}", unsafe_allow_html=True)
+    st.markdown(
+        f"### 📖 {st.session_state.story_name} / {st.session_state.episode_name}",
+        unsafe_allow_html=True,
+    )
 
     # Show story bible preview
     bible = get_story_bible(st.session_state.story_name)
@@ -427,9 +453,8 @@ st.divider()
 
 
 # Display outputs
-has_content = (
-    st.session_state.generation_complete or
-    get_videos(st.session_state.story_name, st.session_state.episode_name)
+has_content = st.session_state.generation_complete or get_videos(
+    st.session_state.story_name, st.session_state.episode_name
 )
 
 if has_content:
@@ -445,7 +470,9 @@ if has_content:
             for i, anchor in enumerate(anchors):
                 with cols[i % 4]:
                     st.image(str(anchor), caption=anchor.stem, use_container_width=True)
-                    if st.button("🗑️", key=f"del_char_{i}", help=f"Delete {anchor.name}"):
+                    if st.button(
+                        "🗑️", key=f"del_char_{i}", help=f"Delete {anchor.name}"
+                    ):
                         if delete_file(anchor):
                             st.success(f"Deleted {anchor.name}")
                             st.rerun()
@@ -456,13 +483,19 @@ if has_content:
 
     # Scene concepts
     with tabs[1]:
-        concepts = get_scene_concepts(st.session_state.story_name, st.session_state.episode_name)
+        concepts = get_scene_concepts(
+            st.session_state.story_name, st.session_state.episode_name
+        )
         if concepts:
             cols = st.columns(min(len(concepts), 3))
             for i, concept in enumerate(concepts):
                 with cols[i % 3]:
-                    st.image(str(concept), caption=concept.stem, use_container_width=True)
-                    if st.button("🗑️", key=f"del_concept_{i}", help=f"Delete {concept.name}"):
+                    st.image(
+                        str(concept), caption=concept.stem, use_container_width=True
+                    )
+                    if st.button(
+                        "🗑️", key=f"del_concept_{i}", help=f"Delete {concept.name}"
+                    ):
                         if delete_file(concept):
                             st.success(f"Deleted {concept.name}")
                             st.rerun()
@@ -473,21 +506,27 @@ if has_content:
 
     # Videos
     with tabs[2]:
-        final_video = get_final_video(st.session_state.story_name, st.session_state.episode_name)
+        final_video = get_final_video(
+            st.session_state.story_name, st.session_state.episode_name
+        )
         if final_video and final_video.exists():
             st.video(str(final_video))
             col1, col2 = st.columns([4, 1])
             with col1:
                 st.caption(f"📁 {final_video}")
             with col2:
-                if st.button("🗑️ Delete", key=f"del_video_final", help="Delete this video"):
+                if st.button(
+                    "🗑️ Delete", key=f"del_video_final", help="Delete this video"
+                ):
                     if delete_file(final_video):
                         st.success("Video deleted!")
                         st.rerun()
                     else:
                         st.error("Failed to delete video")
         else:
-            videos = get_videos(st.session_state.story_name, st.session_state.episode_name)
+            videos = get_videos(
+                st.session_state.story_name, st.session_state.episode_name
+            )
             if videos:
                 for i, video in enumerate(videos):
                     st.video(str(video))
@@ -495,7 +534,9 @@ if has_content:
                     with col1:
                         st.caption(f"📁 {video}")
                     with col2:
-                        if st.button("🗑️", key=f"del_vid_{i}", help=f"Delete {video.name}"):
+                        if st.button(
+                            "🗑️", key=f"del_vid_{i}", help=f"Delete {video.name}"
+                        ):
                             if delete_file(video):
                                 st.success(f"Deleted {video.name}")
                                 st.rerun()
@@ -506,7 +547,9 @@ if has_content:
 
     # Scripts
     with tabs[3]:
-        scripts = get_scripts(st.session_state.story_name, st.session_state.episode_name)
+        scripts = get_scripts(
+            st.session_state.story_name, st.session_state.episode_name
+        )
         if scripts:
             for i, script in enumerate(sorted(scripts)):
                 col1, col2 = st.columns([4, 1])
@@ -516,7 +559,9 @@ if has_content:
                         st.markdown(content)
                 with col2:
                     st.write("")
-                    if st.button("🗑️ Delete", key=f"del_script_{i}", help=f"Delete {script.name}"):
+                    if st.button(
+                        "🗑️ Delete", key=f"del_script_{i}", help=f"Delete {script.name}"
+                    ):
                         if delete_file(script):
                             st.success(f"Deleted {script.name}")
                             st.rerun()

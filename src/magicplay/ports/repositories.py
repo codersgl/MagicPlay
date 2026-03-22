@@ -8,7 +8,7 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any, Dict, Generic, List, Optional, TypeVar
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 class IRepository(ABC, Generic[T]):
@@ -33,10 +33,7 @@ class IRepository(ABC, Generic[T]):
 
     @abstractmethod
     def save(
-        self,
-        identifier: str,
-        item: T,
-        metadata: Optional[Dict[str, Any]] = None
+        self, identifier: str, item: T, metadata: Optional[Dict[str, Any]] = None
     ) -> bool:
         """
         Save an item.
@@ -79,10 +76,7 @@ class IRepository(ABC, Generic[T]):
 
     @abstractmethod
     def search(
-        self,
-        criteria: Dict[str, Any],
-        limit: int = 100,
-        offset: int = 0
+        self, criteria: Dict[str, Any], limit: int = 100, offset: int = 0
     ) -> List[T]:
         """
         Search for items matching criteria.
@@ -125,10 +119,7 @@ class FileRepository(IRepository[T]):
         return None  # type: ignore
 
     def save(
-        self,
-        identifier: str,
-        item: T,
-        metadata: Optional[Dict[str, Any]] = None
+        self, identifier: str, item: T, metadata: Optional[Dict[str, Any]] = None
     ) -> bool:
         # Subclasses should override to serialize
         return True
@@ -144,10 +135,7 @@ class FileRepository(IRepository[T]):
         return self._get_file_path(identifier).exists()
 
     def search(
-        self,
-        criteria: Dict[str, Any],
-        limit: int = 100,
-        offset: int = 0
+        self, criteria: Dict[str, Any], limit: int = 100, offset: int = 0
     ) -> List[T]:
         # Default implementation returns empty list
         # Subclasses should override

@@ -7,18 +7,19 @@ Abstract base classes and shared functionality for all generators.
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any, Dict, Generic, List, Optional, TypeVar
+
 from loguru import logger
 
 from magicplay.config import Settings
 from magicplay.ports.generators import (
-    IGenerator,
     GenerationContext,
     GenerationResult,
+    IGenerator,
     ValidationResult,
 )
 
 # Type variable for generic result type
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 class BaseGenerator(IGenerator[T], ABC, Generic[T]):
@@ -80,15 +81,11 @@ class BaseGenerator(IGenerator[T], ABC, Generic[T]):
         """
         if not result.success:
             return ValidationResult(
-                is_valid=False,
-                issues=[f"Generation failed: {result.error}"]
+                is_valid=False, issues=[f"Generation failed: {result.error}"]
             )
 
         if result.data is None:
-            return ValidationResult(
-                is_valid=False,
-                issues=["Generated data is None"]
-            )
+            return ValidationResult(is_valid=False, issues=["Generated data is None"])
 
         return ValidationResult(is_valid=True)
 
@@ -96,7 +93,7 @@ class BaseGenerator(IGenerator[T], ABC, Generic[T]):
         self,
         data: T,
         context: GenerationContext,
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
     ) -> GenerationResult[T]:
         """
         Wrap successful generation result.
@@ -120,7 +117,7 @@ class BaseGenerator(IGenerator[T], ABC, Generic[T]):
         self,
         error: str,
         context: GenerationContext,
-        warnings: Optional[List[str]] = None
+        warnings: Optional[List[str]] = None,
     ) -> GenerationResult[T]:
         """
         Wrap failed generation result.
@@ -141,10 +138,7 @@ class BaseGenerator(IGenerator[T], ABC, Generic[T]):
         )
 
     def _wrap_partial(
-        self,
-        data: T,
-        warnings: List[str],
-        context: GenerationContext
+        self, data: T, warnings: List[str], context: GenerationContext
     ) -> GenerationResult[T]:
         """
         Wrap partial generation result (success with warnings).
@@ -180,9 +174,7 @@ class BaseGenerator(IGenerator[T], ABC, Generic[T]):
         )
 
     def post_generate_hook(
-        self,
-        context: GenerationContext,
-        result: GenerationResult[T]
+        self, context: GenerationContext, result: GenerationResult[T]
     ) -> None:
         """
         Hook called after generation.
@@ -195,13 +187,9 @@ class BaseGenerator(IGenerator[T], ABC, Generic[T]):
             result: Generation result
         """
         if result.success:
-            self.logger.info(
-                f"{self.name}: Generation completed successfully"
-            )
+            self.logger.info(f"{self.name}: Generation completed successfully")
         else:
-            self.logger.error(
-                f"{self.name}: Generation failed - {result.error}"
-            )
+            self.logger.error(f"{self.name}: Generation failed - {result.error}")
 
     def _validate_context(self, context: GenerationContext) -> Optional[str]:
         """
@@ -222,11 +210,7 @@ class BaseGenerator(IGenerator[T], ABC, Generic[T]):
         return None
 
     def generate_with_context(
-        self,
-        story_name: str,
-        episode_name: str,
-        scene_name: str = "",
-        **kwargs
+        self, story_name: str, episode_name: str, scene_name: str = "", **kwargs
     ) -> GenerationResult[T]:
         """
         Convenience method to generate with simple parameters.
@@ -246,6 +230,6 @@ class BaseGenerator(IGenerator[T], ABC, Generic[T]):
             story_name=story_name,
             episode_name=episode_name,
             scene_name=scene_name,
-            **kwargs
+            **kwargs,
         )
         return self.generate(context)

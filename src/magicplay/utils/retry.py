@@ -8,15 +8,15 @@ import logging
 from functools import wraps
 from typing import Callable, Optional, Tuple, Type
 
+from loguru import logger
 from tenacity import (
+    after_log,
+    before_log,
     retry,
     retry_if_exception_type,
     stop_after_attempt,
     wait_exponential,
-    before_log,
-    after_log,
 )
-from loguru import logger
 
 
 def api_retry(
@@ -94,6 +94,7 @@ def with_fallback(
         def risky_operation():
             ...
     """
+
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         def wrapper(*args, **kwargs):
@@ -101,9 +102,9 @@ def with_fallback(
                 return func(*args, **kwargs)
             except fallback_exceptions as e:
                 if log_fallback:
-                    logger.warning(
-                        f"{func.__name__} failed, using fallback: {e}"
-                    )
+                    logger.warning(f"{func.__name__} failed, using fallback: {e}")
                 return fallback_value
+
         return wrapper
+
     return decorator

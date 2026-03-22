@@ -2,9 +2,10 @@
 Pytest tests for VideoGenerator.
 """
 
-import pytest
-from unittest.mock import Mock, patch, MagicMock
 from pathlib import Path
+from unittest.mock import MagicMock, Mock, patch
+
+import pytest
 
 from magicplay.generators.video_gen import VideoGenerator
 

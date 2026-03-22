@@ -19,6 +19,7 @@ from typing import Dict, List, Optional
 
 class CharacterRole(Enum):
     """Role of a character in the story."""
+
     PROTAGONIST = "protagonist"
     ANTAGONIST = "antagonist"
     SUPPORTING = "supporting"
@@ -27,6 +28,7 @@ class CharacterRole(Enum):
 
 class SceneType(Enum):
     """Type of scene for video generation."""
+
     INTERIOR = "interior"
     EXTERIOR = "exterior"
     TRANSITION = "transition"
@@ -35,6 +37,7 @@ class SceneType(Enum):
 @dataclass
 class CharacterInfo:
     """Character information extracted from script analysis."""
+
     name: str
     visual_tags: List[str]  # For character anchor generation
     first_appearance: str  # Scene where character first appears
@@ -52,6 +55,7 @@ class CharacterInfo:
 @dataclass
 class SceneInfo:
     """Scene information extracted from script analysis."""
+
     scene_name: str
     setting: str  # INT./EXT. LOCATION - TIME
     scene_type: SceneType
@@ -70,6 +74,7 @@ class SceneInfo:
 @dataclass
 class ScriptAnalysisResult:
     """Complete result of script analysis Phase 1."""
+
     characters: List[CharacterInfo]
     scenes: List[SceneInfo]
     total_duration: int
@@ -91,6 +96,7 @@ class ScriptAnalysisResult:
 @dataclass
 class CharacterReference:
     """Character reference image with metadata."""
+
     name: str
     anchor_image_path: Path  # 2:3 portrait
     character_info: CharacterInfo
@@ -99,6 +105,7 @@ class CharacterReference:
 @dataclass
 class SceneReference:
     """Scene reference image with metadata."""
+
     scene_name: str
     reference_image_path: Path  # 16:9 landscape
     scene_info: SceneInfo
@@ -107,6 +114,7 @@ class SceneReference:
 @dataclass
 class StoryboardFrame:
     """A single frame in a storyboard."""
+
     frame_index: int
     start_second: int
     end_second: int
@@ -124,11 +132,14 @@ class StoryboardFrame:
 @dataclass
 class Storyboard:
     """Complete storyboard for a scene."""
+
     scene_name: str
     scene_reference_path: Path  # 16:9 scene reference
     frames: List[StoryboardFrame] = field(default_factory=list)
     total_duration: int = 0
-    dialogue_lines: List[Dict[str, str]] = field(default_factory=list)  # [{"character": "...", "text": "..."}]
+    dialogue_lines: List[Dict[str, str]] = field(
+        default_factory=list
+    )  # [{"character": "...", "text": "..."}]
 
     def __post_init__(self):
         if self.frames and self.total_duration == 0:
@@ -145,21 +156,26 @@ class Storyboard:
                 "end_second": frame.end_second,
                 "first_frame_prompt": frame.first_frame_prompt,
                 "motion_prompt": frame.motion_prompt,
-                "first_frame_image": str(frame.first_frame_path) if frame.first_frame_path else None,
-                "video_segment": str(frame.video_segment_path) if frame.video_segment_path else None,
+                "first_frame_image": (
+                    str(frame.first_frame_path) if frame.first_frame_path else None
+                ),
+                "video_segment": (
+                    str(frame.video_segment_path) if frame.video_segment_path else None
+                ),
             }
             clips.append(clip)
         return {
             "scene_name": self.scene_name,
             "total_frames": len(self.frames),
             "total_duration": self.total_duration,
-            "clips": clips
+            "clips": clips,
         }
 
 
 @dataclass
 class VideoClip:
     """A video clip with metadata for synthesis."""
+
     video_path: Path
     start_time: int  # Start time in final video
     end_time: int
@@ -177,6 +193,7 @@ class VideoClip:
 @dataclass
 class SubtitleCue:
     """A single subtitle cue for SRT generation."""
+
     index: int
     start_time: float  # In seconds
     end_time: float
@@ -202,6 +219,7 @@ class SubtitleCue:
 @dataclass
 class EpisodeProductionData:
     """Complete production data for an episode."""
+
     episode_name: str
     characters: Dict[str, CharacterReference] = field(default_factory=dict)
     scenes: Dict[str, SceneReference] = field(default_factory=dict)
@@ -218,18 +236,19 @@ class EpisodeProductionData:
             "episode_name": self.episode_name,
             "total_scenes": len(self.storyboards),
             "total_clips": len(all_clips),
-            "clips": all_clips
+            "clips": all_clips,
         }
 
     def save(self, output_dir: Path) -> None:
         """Save production data to directory."""
         output_dir.mkdir(parents=True, exist_ok=True)
         import json
+
         # Save clip list
         clip_list_path = output_dir / "clip_list.json"
         clip_list_path.write_text(
             json.dumps(self.to_clip_list_json(), indent=2, ensure_ascii=False),
-            encoding="utf-8"
+            encoding="utf-8",
         )
         # Save subtitles
         if self.subtitles:
@@ -238,14 +257,21 @@ class EpisodeProductionData:
             srt_path.write_text(srt_content, encoding="utf-8")
 
     @classmethod
-    def from_clip_list_json(cls, episode_name: str, clip_list_path: Path) -> "EpisodeProductionData":
+    def from_clip_list_json(
+        cls, episode_name: str, clip_list_path: Path
+    ) -> "EpisodeProductionData":
         """Load episode production data from clip_list.json."""
         import json
+
         data = json.loads(clip_list_path.read_text(encoding="utf-8"))
         instance = cls(episode_name=episode_name)
         for clip_data in data.get("clips", []):
             clip = VideoClip(
-                video_path=Path(clip_data["video_segment"]) if clip_data.get("video_segment") else Path(""),
+                video_path=(
+                    Path(clip_data["video_segment"])
+                    if clip_data.get("video_segment")
+                    else Path("")
+                ),
                 start_time=clip_data["start_second"],
                 end_time=clip_data["end_second"],
                 clip_id=clip_data["id"],

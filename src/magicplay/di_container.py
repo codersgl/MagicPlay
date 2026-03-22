@@ -7,19 +7,19 @@ Provides wired dependencies for all application components.
 
 from dependency_injector import containers, providers
 
+from magicplay.analyzer.timeline_analyzer import TimelineAnalyzer
 from magicplay.config import Settings, get_settings
-from magicplay.services.llm import LLMService
-from magicplay.services.image_api import ImageService
-from magicplay.services.video_api import VideoService
-from magicplay.services.jimeng_video_api import JimengVideoService
-from magicplay.generators.script_gen import ScriptGenerator
-from magicplay.generators.video_gen import VideoGenerator
 from magicplay.generators.character_gen import CharacterImageGenerator
-from magicplay.generators.scene_concept_gen import SceneConceptGenerator
-from magicplay.generators.scene_segment_gen import SceneSegmentGenerator
 from magicplay.generators.comic_panel_gen import ComicPanelGenerator
 from magicplay.generators.dynamic_panel_selector import DynamicPanelSelector
-from magicplay.analyzer.timeline_analyzer import TimelineAnalyzer
+from magicplay.generators.scene_concept_gen import SceneConceptGenerator
+from magicplay.generators.scene_segment_gen import SceneSegmentGenerator
+from magicplay.generators.script_gen import ScriptGenerator
+from magicplay.generators.video_gen import VideoGenerator
+from magicplay.services.image_api import ImageService
+from magicplay.services.jimeng_video_api import JimengVideoService
+from magicplay.services.llm import LLMService
+from magicplay.services.video_api import VideoService
 
 
 class Container(containers.DeclarativeContainer):

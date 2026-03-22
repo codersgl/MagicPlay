@@ -72,9 +72,7 @@ class MusicGenerator:
         # Check if we have a music generation API available
         music_api = self._get_music_api()
         if music_api:
-            return self._generate_music_via_api(
-                genre, mood, duration, output_path
-            )
+            return self._generate_music_via_api(genre, mood, duration, output_path)
 
         # Create placeholder
         return self._create_placeholder_music(genre, mood, duration, output_path)
@@ -139,9 +137,7 @@ class MusicGenerator:
         # Convert to .txt since we can't generate actual music
         placeholder_path = output_path.with_suffix(".txt")
 
-        style_description = self.MOOD_STYLES.get(
-            mood.lower(), "instrumental, ambient"
-        )
+        style_description = self.MOOD_STYLES.get(mood.lower(), "instrumental, ambient")
 
         content = f"""# Background Music Selection Guide
 
@@ -249,6 +245,7 @@ This is a placeholder. To generate actual background music:
 
                 # For now, just copy the original
                 import shutil
+
                 shutil.copy(music_path, output_path)
 
                 logger.info(

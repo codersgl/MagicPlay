@@ -20,7 +20,7 @@ class VideoService:
         self.api_provider = api_provider
         self.max_retries = max_retries
         self.retry_delay = retry_delay
-        
+
         self.api_key = os.getenv("DASHSCOPE_API_KEY", "")
         if not self.api_key:
             raise ValueError("DASHSCOPE_API_KEY environment variable is not set")
@@ -30,7 +30,10 @@ class VideoService:
     def generate_video_url(
         self,
         prompt: str,
-        size: Tuple[int, int] = (1920, 1080),  # Updated default to 1080p for higher quality
+        size: Tuple[int, int] = (
+            1920,
+            1080,
+        ),  # Updated default to 1080p for higher quality
         duration: int = 5,
         ref_img_path: Optional[str] = None,
     ) -> str:
@@ -125,7 +128,7 @@ class VideoService:
                 "deformed hands, extra fingers, missing limbs, floating objects, "
                 "inconsistent lighting, color shifting, morphing artifacts"
             )
-        
+
         for attempt in range(1, self.max_retries + 1):
             try:
                 if img_url:
@@ -168,21 +171,29 @@ class VideoService:
                         "Video generation failed, status_code: %s, code: %s, message: %s"
                         % (rsp.status_code, rsp.code, rsp.message)
                     )
-                    
+
             except Exception as e:
                 last_exception = e
                 error_msg = str(e)
-                
+
                 # 检查是否是网络相关错误
                 is_network_error = any(
-                    keyword in error_msg for keyword in [
-                        "HTTPSConnectionPool", "NameResolutionError", "timeout", 
-                        "connection", "network", "resolve", "dashscope.aliyuncs.com"
+                    keyword in error_msg
+                    for keyword in [
+                        "HTTPSConnectionPool",
+                        "NameResolutionError",
+                        "timeout",
+                        "connection",
+                        "network",
+                        "resolve",
+                        "dashscope.aliyuncs.com",
                     ]
                 )
-                
+
                 if attempt < self.max_retries and is_network_error:
-                    print(f"Attempt {attempt}/{self.max_retries} failed with network error: {error_msg}")
+                    print(
+                        f"Attempt {attempt}/{self.max_retries} failed with network error: {error_msg}"
+                    )
                     print(f"Retrying in {self.retry_delay} seconds...")
                     time.sleep(self.retry_delay)
                     self.retry_delay *= 1.5  # 指数退避
@@ -198,6 +209,8 @@ class VideoService:
                         raise RuntimeError(
                             f"Video generation failed: {error_msg}"
                         ) from e
-        
+
         # 理论上不会到达这里，但为了完整性
-        raise RuntimeError(f"Video generation failed after {self.max_retries} attempts") from last_exception
+        raise RuntimeError(
+            f"Video generation failed after {self.max_retries} attempts"
+        ) from last_exception

@@ -17,23 +17,23 @@ import pytest
 # Add src to Python path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from magicplay.config import Settings
-from magicplay.generators.base import GenerationContext
-
 # Import mocks for type hints and fixtures
 from test.mocks import (
-    MockLLMService,
-    MockImageService,
-    MockVideoService,
-    MockScriptGenerator,
     MockCharacterGenerator,
+    MockImageService,
+    MockLLMService,
+    MockScriptGenerator,
     MockVideoGenerator,
+    MockVideoService,
 )
 
+from magicplay.config import Settings
+from magicplay.generators.base import GenerationContext
 
 # =============================================================================
 # Test Settings
 # =============================================================================
+
 
 @pytest.fixture
 def test_settings() -> Settings:
@@ -63,12 +63,14 @@ def production_settings() -> Settings:
         Settings instance from environment
     """
     from magicplay.config import get_settings
+
     return get_settings()
 
 
 # =============================================================================
 # Mock Services
 # =============================================================================
+
 
 @pytest.fixture
 def mock_llm_service(test_settings: Settings) -> MockLLMService:
@@ -107,10 +109,10 @@ def mock_video_service(test_settings: Settings) -> MockVideoService:
 # Mock Generators
 # =============================================================================
 
+
 @pytest.fixture
 def mock_script_generator(
-    test_settings: Settings,
-    mock_llm_service: MockLLMService
+    test_settings: Settings, mock_llm_service: MockLLMService
 ) -> MockScriptGenerator:
     """
     Create mock script generator for testing.
@@ -123,8 +125,7 @@ def mock_script_generator(
 
 @pytest.fixture
 def mock_character_generator(
-    test_settings: Settings,
-    mock_image_service: MockImageService
+    test_settings: Settings, mock_image_service: MockImageService
 ) -> MockCharacterGenerator:
     """
     Create mock character generator for testing.
@@ -137,8 +138,7 @@ def mock_character_generator(
 
 @pytest.fixture
 def mock_video_generator(
-    test_settings: Settings,
-    mock_video_service: MockVideoService
+    test_settings: Settings, mock_video_service: MockVideoService
 ) -> MockVideoGenerator:
     """
     Create mock video generator for testing.
@@ -153,12 +153,16 @@ def mock_video_generator(
 # Mock Comic Generators
 # =============================================================================
 
+
 @pytest.fixture
 def mock_dynamic_panel_selector():
     """Mock DynamicPanelSelector for testing without LLM calls."""
     from unittest.mock import MagicMock
 
-    from magicplay.generators.dynamic_panel_selector import DynamicPanelSelector, PanelInfo
+    from magicplay.generators.dynamic_panel_selector import (
+        DynamicPanelSelector,
+        PanelInfo,
+    )
 
     mock = MagicMock(spec=DynamicPanelSelector)
     mock.analyze.return_value = [
@@ -194,6 +198,7 @@ def mock_comic_panel_generator(tmp_path):
 # =============================================================================
 # Test Directories
 # =============================================================================
+
 
 @pytest.fixture
 def test_data_dir(tmp_path: Path) -> Path:
@@ -315,6 +320,7 @@ def sample_episode_outline() -> str:
 # Utility Fixtures
 # =============================================================================
 
+
 @pytest.fixture
 def sample_generation_context() -> GenerationContext:
     """
@@ -337,6 +343,7 @@ def sample_generation_context() -> GenerationContext:
 # =============================================================================
 # Helper Functions for Tests
 # =============================================================================
+
 
 def create_test_video_file(path: Path, duration: float = 1.0) -> Path:
     """
@@ -366,7 +373,8 @@ def create_test_image_file(path: Path, size: tuple = (100, 100)) -> Path:
         Path to created image
     """
     from PIL import Image
+
     path.parent.mkdir(parents=True, exist_ok=True)
-    img = Image.new('RGB', size, color='red')
+    img = Image.new("RGB", size, color="red")
     img.save(path)
     return path

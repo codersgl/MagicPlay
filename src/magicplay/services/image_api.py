@@ -8,12 +8,13 @@ from typing import Any, List, Optional, Tuple
 import dashscope
 import requests
 import tenacity
-from loguru import logger
 from dashscope.aigc.image_generation import ImageGeneration
 from dashscope.api_entities.dashscope_response import Message
 from dotenv import load_dotenv
+from loguru import logger
 
 load_dotenv()
+
 
 # Define retry decorator for network-related errors
 def retry_on_network_error(func):
@@ -30,12 +31,18 @@ def retry_on_network_error(func):
             )
         ),
         stop=tenacity.stop_after_attempt(5),  # Max 5 attempts
-        wait=tenacity.wait_exponential(multiplier=1, min=2, max=30),  # Exponential backoff: 2, 4, 8, 16, 30 seconds
-        before_sleep=lambda retry_state: print(
-            f"Retrying {func.__name__} due to network error, "
-            f"attempt {retry_state.attempt_number}/{5}, "
-            f"waiting {retry_state.next_action.sleep if hasattr(retry_state.next_action, 'sleep') else 2} seconds..."
-        ) if retry_state.attempt_number > 0 else None,
+        wait=tenacity.wait_exponential(
+            multiplier=1, min=2, max=30
+        ),  # Exponential backoff: 2, 4, 8, 16, 30 seconds
+        before_sleep=lambda retry_state: (
+            print(
+                f"Retrying {func.__name__} due to network error, "
+                f"attempt {retry_state.attempt_number}/{5}, "
+                f"waiting {retry_state.next_action.sleep if hasattr(retry_state.next_action, 'sleep') else 2} seconds..."
+            )
+            if retry_state.attempt_number > 0
+            else None
+        ),
         reraise=True,
     )
     return retry_decorator(func)
@@ -52,6 +59,7 @@ class ImageService:
         # Get default provider from settings if not specified
         if api_provider is None:
             from magicplay.config import get_settings
+
             settings = get_settings()
             api_provider = settings.default_image_provider
 
@@ -72,8 +80,10 @@ class ImageService:
 
         elif api_provider == "jimeng":
             from magicplay.services.jimeng_video_api import JimengVideoService
+
             if config is None:
                 from magicplay.config import get_settings
+
                 config = get_settings()
             self.jimeng_service = JimengVideoService(config=config)
 
@@ -83,7 +93,7 @@ class ImageService:
         Returns the response object.
         """
         import inspect
-        
+
         # Check if response is a generator
         if inspect.isgenerator(rsp):
             try:
@@ -133,7 +143,7 @@ class ImageService:
                 api_result = ImageGeneration.call(
                     api_key=self.api_key, model=model_name, messages=[message], **params
                 )
-                
+
                 # Handle the response (could be generator or direct response)
                 rsp = self._get_api_response(api_result)
 
@@ -159,7 +169,10 @@ class ImageService:
 
                     raise RuntimeError("No image URL found in API response")
                 else:
-                    if hasattr(rsp, "code") and rsp.code == "AllocationQuota.FreeTierOnly":
+                    if (
+                        hasattr(rsp, "code")
+                        and rsp.code == "AllocationQuota.FreeTierOnly"
+                    ):
                         raise RuntimeError(
                             "Aliyun Dashscope Quota Error: Your free tier quota for this model is exhausted. "
                             "Please go to the Aliyun Dashscope Console -> Model Plaza or API Keys management, "
@@ -171,10 +184,16 @@ class ImageService:
                     )
             except Exception as e:
                 # Re-raise any exceptions that should trigger retry
-                if isinstance(e, (requests.exceptions.SSLError, 
-                                requests.exceptions.ConnectionError,
-                                requests.exceptions.Timeout,
-                                ssl.SSLError, OSError)):
+                if isinstance(
+                    e,
+                    (
+                        requests.exceptions.SSLError,
+                        requests.exceptions.ConnectionError,
+                        requests.exceptions.Timeout,
+                        ssl.SSLError,
+                        OSError,
+                    ),
+                ):
                     raise
                 # For other exceptions (API errors, quota errors), don't retry
                 raise RuntimeError(f"Image generation API error: {e}")
@@ -336,6 +355,7 @@ class ImageService:
                 logger.warning("moviepy not available, saving video instead")
                 # Rename video to output path
                 import shutil
+
                 shutil.move(str(video_path), output_path)
                 return output_path
 

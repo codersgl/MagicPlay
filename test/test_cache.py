@@ -1,9 +1,11 @@
 """
 Tests for cache utilities.
 """
-import pytest
+
 from datetime import timedelta
 from unittest.mock import patch
+
+import pytest
 
 from magicplay.utils.cache import SimpleCache, cached, memoize
 

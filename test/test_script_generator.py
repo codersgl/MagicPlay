@@ -2,14 +2,15 @@
 Tests for ScriptGenerator module.
 """
 
-import pytest
-from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
 import tempfile
+from pathlib import Path
+from test.mocks import MockLLMService
+from unittest.mock import MagicMock, Mock, patch
+
+import pytest
 
 from magicplay.config import Settings
 from magicplay.generators.script_gen import ScriptGenerator
-from test.mocks import MockLLMService
 
 
 class TestScriptGenerator:

@@ -2,10 +2,11 @@
 Tests for the core Orchestrator module.
 """
 
-import pytest
 import tempfile
 from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import MagicMock, Mock, patch
+
+import pytest
 
 from magicplay.core.orchestrator import Orchestrator, StoryOrchestrator
 from magicplay.generators.script_gen import ScriptGenerator

@@ -1,6 +1,9 @@
-import pytest
 from pathlib import Path
+
+import pytest
+
 from magicplay.generators.comic_panel_gen import ComicPanelGenerator, PanelOutput
+
 
 def test_comic_panel_generator_init():
     generator = ComicPanelGenerator(story_name="TestStory", episode_name="01")
@@ -8,13 +11,13 @@ def test_comic_panel_generator_init():
     assert generator.episode_name == "01"
     assert generator.style == "anime"
 
+
 def test_comic_panel_generator_custom_style():
     generator = ComicPanelGenerator(
-        story_name="TestStory",
-        episode_name="01",
-        style="comic"
+        story_name="TestStory", episode_name="01", style="comic"
     )
     assert generator.style == "comic"
+
 
 def test_panel_output_structure():
     output = PanelOutput(
@@ -29,6 +32,7 @@ def test_panel_output_structure():
     assert output.success is True
     assert output.error is None
 
+
 def test_panel_output_failure():
     output = PanelOutput(
         panel_number=1,
@@ -40,6 +44,7 @@ def test_panel_output_failure():
     )
     assert output.success is False
     assert output.error == "API error"
+
 
 def test_parse_resolution():
     """Test resolution string parsing."""

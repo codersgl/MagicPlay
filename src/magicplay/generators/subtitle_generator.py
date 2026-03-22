@@ -55,7 +55,9 @@ class SubtitleGenerator:
             cue = SubtitleCue(
                 index=i + 1,
                 start_time=float(timing.get("start_second", 0)),
-                end_time=float(timing.get("end_second", timing.get("start_second", 0) + 3)),
+                end_time=float(
+                    timing.get("end_second", timing.get("start_second", 0) + 3)
+                ),
                 text=dialogue.get("text", ""),
                 character=dialogue.get("character", ""),
             )
@@ -194,6 +196,7 @@ class SubtitleGenerator:
 
             # Add some variance
             import random
+
             variance = random.randint(-1, 1)
             segment_duration = max(2, segment_duration + variance)
 
