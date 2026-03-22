@@ -193,6 +193,26 @@ class Settings(BaseSettings):
         description="Enable experiment tracking"
     )
 
+    # Comic Generation Settings
+    comic_style: str = Field(
+        default="anime",
+        description="Comic style: anime, comic, webtoon, ink"
+    )
+    comic_panel_style: str = Field(
+        default="manga",
+        description="Panel layout style: manga, western, webtoon"
+    )
+    default_panel_count: int = Field(
+        default=4,
+        ge=1,
+        le=6,
+        description="Default number of panels per scene"
+    )
+    comic_image_resolution: str = Field(
+        default="1024*1024",
+        description="Comic panel image resolution as WIDTH*HEIGHT string"
+    )
+
     # Project Paths
     project_root: Path = Field(
         default_factory=lambda: Path(__file__).parent.parent.parent.parent,

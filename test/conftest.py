@@ -150,6 +150,48 @@ def mock_video_generator(
 
 
 # =============================================================================
+# Mock Comic Generators
+# =============================================================================
+
+@pytest.fixture
+def mock_dynamic_panel_selector():
+    """Mock DynamicPanelSelector for testing without LLM calls."""
+    from unittest.mock import MagicMock
+
+    from magicplay.generators.dynamic_panel_selector import DynamicPanelSelector, PanelInfo
+
+    mock = MagicMock(spec=DynamicPanelSelector)
+    mock.analyze.return_value = [
+        PanelInfo(
+            panel_number=1,
+            description="Test panel",
+            dialogue="Hello!",
+            composition="close-up",
+            emotion="happy",
+        )
+    ]
+    return mock
+
+
+@pytest.fixture
+def mock_comic_panel_generator(tmp_path):
+    """Mock ComicPanelGenerator for testing without API calls."""
+    from unittest.mock import MagicMock
+
+    from magicplay.generators.comic_panel_gen import ComicPanelGenerator, PanelOutput
+
+    mock = MagicMock(spec=ComicPanelGenerator)
+    mock.generate_panel.return_value = PanelOutput(
+        panel_number=1,
+        image_path=tmp_path / "panel_001.png",
+        description="Test panel",
+        dialogue="Hello!",
+        success=True,
+    )
+    return mock
+
+
+# =============================================================================
 # Test Directories
 # =============================================================================
 

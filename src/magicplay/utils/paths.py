@@ -47,19 +47,14 @@ class DataManager:
         return cls.get_episode_path(story_name, episode_name) / "scene_segments"
 
     @classmethod
-    def get_scene_references_path(cls, story_name: str) -> Path:
-        """Returns the directory for scene reference images (16:9 landscape)."""
-        return cls.get_story_path(story_name) / "scene_references"
+    def get_comic_panels_path(cls, story_name: str, episode_name: str) -> Path:
+        """Returns the directory where comic panel images should be saved."""
+        return cls.get_episode_path(story_name, episode_name) / "panels"
 
     @classmethod
-    def get_storyboard_path(cls, story_name: str, episode_name: str) -> Path:
-        """Returns the directory for storyboard data (first frames, prompts)."""
-        return cls.get_episode_path(story_name, episode_name) / "storyboard"
-
-    @classmethod
-    def get_final_output_path(cls, story_name: str, episode_name: str) -> Path:
-        """Returns the directory for final synthesized output (video, subtitles, music)."""
-        return cls.get_episode_path(story_name, episode_name) / "final"
+    def ensure_comic_structure(cls, story_name: str, episode_name: str):
+        """Creates necessary directories for comic generation."""
+        cls.get_comic_panels_path(story_name, episode_name).mkdir(parents=True, exist_ok=True)
 
     @classmethod
     def ensure_structure(cls, story_name: str, episode_name: str):
@@ -78,10 +73,7 @@ class DataManager:
         cls.get_scene_segments_path(story_name, episode_name).mkdir(
             parents=True, exist_ok=True
         )
-        # Professional workflow directories
-        cls.get_scene_references_path(story_name).mkdir(parents=True, exist_ok=True)
-        cls.get_storyboard_path(story_name, episode_name).mkdir(parents=True, exist_ok=True)
-        cls.get_final_output_path(story_name, episode_name).mkdir(parents=True, exist_ok=True)
+        cls.get_comic_panels_path(story_name, episode_name).mkdir(parents=True, exist_ok=True)
 
     @classmethod
     def get_stories(cls) -> list[Path]:
