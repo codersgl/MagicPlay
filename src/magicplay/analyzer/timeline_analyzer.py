@@ -7,6 +7,7 @@ individual visual prompts for each segment.
 
 import json
 import logging
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Optional
@@ -20,6 +21,8 @@ logger = logging.getLogger(__name__)
 class TimelineSegment:
     """A time-indexed segment of a video timeline."""
 
+    MIN_SEGMENT_DURATION = 3
+
     start_second: int
     end_second: int
     visual_prompt: str
@@ -32,10 +35,10 @@ class TimelineSegment:
                 f"end_second ({self.end_second}) must be greater than "
                 f"start_second ({self.start_second})"
             )
-        if self.end_second - self.start_second < 3:
+        if self.end_second - self.start_second < self.MIN_SEGMENT_DURATION:
             raise ValueError(
                 f"Segment duration ({self.end_second - self.start_second}s) "
-                f"must be at least 3 seconds"
+                f"must be at least {self.MIN_SEGMENT_DURATION} seconds"
             )
 
 
@@ -59,8 +62,6 @@ class TimelineAnalyzer:
     Attributes:
         llm_service: LLM service instance for generating timeline analysis
     """
-
-    MIN_SEGMENT_DURATION = 3
 
     def __init__(self, llm_service: Optional[LLMService] = None):
         """
@@ -127,15 +128,9 @@ class TimelineAnalyzer:
 
     def _load_prompt_template(self) -> str:
         """Load the prompt template from file."""
-        # Try to find the prompt template
-        possible_paths = [
-            Path(__file__).parent.parent / "prompts" / "timeline_analyze.md",
-            Path("src/magicplay/prompts/timeline_analyze.md"),
-        ]
-
-        for path in possible_paths:
-            if path.exists():
-                return path.read_text(encoding="utf-8")
+        prompt_path = Path(__file__).parent.parent / "prompts" / "timeline_analyze.md"
+        if prompt_path.exists():
+            return prompt_path.read_text(encoding="utf-8")
 
         # Fallback to default template
         return """你是一个专业的视频分镜专家。根据场景脚本和总时长，
@@ -238,8 +233,6 @@ class TimelineAnalyzer:
             pass
 
         # Look for JSON in code blocks
-        import re
-
         # Match ```json ... ``` blocks
         match = re.search(r"```(?:json)?\s*\n?(.*?)\n?```", text, re.DOTALL)
         if match:
