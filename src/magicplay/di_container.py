@@ -17,6 +17,8 @@ from magicplay.generators.video_gen import VideoGenerator
 from magicplay.generators.character_gen import CharacterImageGenerator
 from magicplay.generators.scene_concept_gen import SceneConceptGenerator
 from magicplay.generators.scene_segment_gen import SceneSegmentGenerator
+from magicplay.generators.comic_panel_gen import ComicPanelGenerator
+from magicplay.generators.dynamic_panel_selector import DynamicPanelSelector
 from magicplay.analyzer.timeline_analyzer import TimelineAnalyzer
 
 
@@ -85,6 +87,18 @@ class Container(containers.DeclarativeContainer):
             story_name=story_name,
             episode_name=episode_name,
         )
+
+    # Comic Generators
+    def comic_panel_generator(self, story_name: str, episode_name: str):
+        """Create a ComicPanelGenerator for a specific story/episode."""
+        return ComicPanelGenerator(
+            story_name=story_name,
+            episode_name=episode_name,
+        )
+
+    def dynamic_panel_selector(self):
+        """Create a DynamicPanelSelector."""
+        return DynamicPanelSelector()
 
     # Analyzers - factory instances (created per use)
     timeline_analyzer = providers.Factory(
