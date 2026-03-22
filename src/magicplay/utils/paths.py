@@ -47,6 +47,16 @@ class DataManager:
         return cls.get_episode_path(story_name, episode_name) / "scene_segments"
 
     @classmethod
+    def get_comic_panels_path(cls, story_name: str, episode_name: str) -> Path:
+        """Returns the directory where comic panel images should be saved."""
+        return cls.get_episode_path(story_name, episode_name) / "panels"
+
+    @classmethod
+    def ensure_comic_structure(cls, story_name: str, episode_name: str):
+        """Creates necessary directories for comic generation."""
+        cls.get_comic_panels_path(story_name, episode_name).mkdir(parents=True, exist_ok=True)
+
+    @classmethod
     def ensure_structure(cls, story_name: str, episode_name: str):
         """Creates necessary directories for scenes and output videos."""
         cls.get_scenes_path(story_name, episode_name).mkdir(parents=True, exist_ok=True)
@@ -63,6 +73,7 @@ class DataManager:
         cls.get_scene_segments_path(story_name, episode_name).mkdir(
             parents=True, exist_ok=True
         )
+        cls.get_comic_panels_path(story_name, episode_name).mkdir(parents=True, exist_ok=True)
 
     @classmethod
     def get_stories(cls) -> list[Path]:
