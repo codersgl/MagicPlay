@@ -6,8 +6,8 @@ and experiment tracking to improve video quality and reduce costs.
 """
 import asyncio
 import hashlib
-import logging
 from pathlib import Path
+from loguru import logger
 from typing import Any, Dict, List, Optional, Tuple
 
 from ..evaluator.base import QualityLevel
@@ -53,7 +53,7 @@ class OptimizedOrchestrator(BaseOrchestrator):
         self.max_parallel_tasks = max_parallel_tasks
         
         # Setup logging
-        self.logger = logging.getLogger(__name__)
+        self.logger = logger
         
         # Initialize optimization components
         self._init_optimization_components()

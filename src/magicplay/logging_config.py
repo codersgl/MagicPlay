@@ -1,142 +1,78 @@
 """
-MagicPlay Logging Configuration
+MagicPlay Loguru Logging Configuration
 
-Centralized logging setup with consistent formatting and handlers.
+Centralized logging setup using loguru with consistent formatting,
+rotation, and retention policies.
 """
 
-import logging
 import sys
 from pathlib import Path
 from typing import Optional
 
-from magicplay.config import Settings
-
-
-# Cache for configured logger to avoid redundant configuration
-_configured_loggers = set()
+from loguru import logger
 
 
 def setup_logging(
-    settings: Optional[Settings] = None,
     log_file: Optional[Path] = None,
-    force: bool = False
+    level: str = "INFO",
+    rotation: str = "100 MB",
+    retention: str = "7 days",
+    compression: str = "zip",
 ) -> None:
     """
-    Configure application-wide logging.
+    Configure loguru for the application.
 
     Args:
-        settings: Application settings (uses get_settings() if not provided)
-        log_file: Optional log file path (overrides settings)
-        force: If True, reconfigure even if already configured
+        log_file: Optional path to log file (enables file logging with rotation)
+        level: Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+        rotation: Max size before rotating (e.g., "100 MB", "1 week")
+        retention: How long to keep old logs (e.g., "7 days", "1 month")
+        compression: Compression format for rotated logs (e.g., "zip", "gz")
     """
-    if settings is None:
-        from magicplay.config import get_settings
-        settings = get_settings()
+    # Remove default handler
+    logger.remove()
 
-    # Skip if already configured (unless force=True)
-    root_logger_name = logging.getLogger().name
-    if root_logger_name in _configured_loggers and not force:
-        return
+    # Console handler with color formatting
+    logger.add(
+        sink=sys.stdout,
+        level=level,
+        format=(
+            "<green>{time:YYYY-MM-DD HH:mm:ss}</green> | "
+            "<level>{level: <8}</level> | "
+            "<cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - "
+            "<level>{message}</level>"
+        ),
+    )
 
-    # Parse log level
-    level = getattr(logging, settings.log_level.upper(), logging.INFO)
-
-    # Get root logger
-    root_logger = logging.getLogger()
-    root_logger.setLevel(level)
-
-    # Remove existing handlers
-    root_logger.handlers.clear()
-
-    # Create formatter
-    formatter = logging.Formatter(settings.log_format)
-
-    # Console handler
-    console_handler = logging.StreamHandler(sys.stdout)
-    console_handler.setLevel(level)
-    console_handler.setFormatter(formatter)
-    root_logger.addHandler(console_handler)
-
-    # File handler (if configured)
-    log_path = log_file or settings.log_file
-    if log_path:
-        log_path = Path(log_path)
-        log_path.parent.mkdir(parents=True, exist_ok=True)
-        file_handler = logging.FileHandler(log_path, encoding="utf-8")
-        file_handler.setLevel(level)
-        file_handler.setFormatter(formatter)
-        root_logger.addHandler(file_handler)
-
-    _configured_loggers.add(root_logger_name)
+    # File handler with rotation (if log_file specified)
+    if log_file:
+        log_file = Path(log_file)
+        log_file.parent.mkdir(parents=True, exist_ok=True)
+        logger.add(
+            sink=str(log_file),
+            level=level,
+            rotation=rotation,
+            retention=retention,
+            compression=compression,
+            format=(
+                "{time:YYYY-MM-DD HH:mm:ss} | "
+                "{level: <8} | "
+                "{name}:{function}:{line} - {message}"
+            ),
+        )
 
 
-def get_logger(name: str) -> logging.Logger:
+def get_logger(name: str = None):
     """
-    Get a logger instance with the given name.
+    Get a logger instance.
+
+    With loguru, you typically just use `from loguru import logger`.
+    This function exists for compatibility with legacy code.
 
     Args:
-        name: Logger name (usually __name__ of the module)
+        name: Ignored (kept for backward compatibility)
 
     Returns:
-        logging.Logger: Configured logger instance
+        The global loguru logger
     """
-    return logging.getLogger(name)
-
-
-class LoggingContext:
-    """
-    Context manager for temporary logging configuration.
-
-    Usage:
-        with LoggingContext("DEBUG", log_file="debug.log"):
-            # Debug logging enabled in this block
-            pass
-    """
-
-    def __init__(
-        self,
-        level: str = "DEBUG",
-        log_file: Optional[Path] = None
-    ):
-        self.level = level
-        self.log_file = log_file
-        self.original_handlers = None
-        self.original_level = None
-
-    def __enter__(self):
-        """Save current logging state and apply temporary config."""
-        root_logger = logging.getLogger()
-        self.original_handlers = root_logger.handlers.copy()
-        self.original_level = root_logger.level
-
-        # Clear handlers
-        root_logger.handlers.clear()
-
-        # Set new level
-        root_logger.setLevel(getattr(logging, self.level.upper(), logging.DEBUG))
-
-        # Add console handler
-        formatter = logging.Formatter(
-            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-        )
-        console_handler = logging.StreamHandler(sys.stdout)
-        console_handler.setFormatter(formatter)
-        root_logger.addHandler(console_handler)
-
-        # Add file handler if specified
-        if self.log_file:
-            log_path = Path(self.log_file)
-            log_path.parent.mkdir(parents=True, exist_ok=True)
-            file_handler = logging.FileHandler(log_path, encoding="utf-8")
-            file_handler.setFormatter(formatter)
-            root_logger.addHandler(file_handler)
-
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        """Restore original logging state."""
-        root_logger = logging.getLogger()
-        root_logger.handlers.clear()
-        root_logger.handlers.extend(self.original_handlers or [])
-        if self.original_level is not None:
-            root_logger.setLevel(self.original_level)
+    return logger

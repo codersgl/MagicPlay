@@ -3,7 +3,7 @@ import ssl
 import time
 from http import HTTPStatus
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Any, Optional, Tuple
 
 import dashscope
 import requests
@@ -41,16 +41,40 @@ def retry_on_network_error(func):
 
 
 class ImageService:
+    SUPPORTED_PROVIDERS = ["qwen", "jimeng"]
+
     def __init__(
         self,
-        api_provider: str = "qwen",
+        api_provider: Optional[str] = None,
+        config: Optional[Any] = None,
     ) -> None:
-        self.api_provider = api_provider
-        self.api_key = os.getenv("DASHSCOPE_API_KEY", "")
-        if not self.api_key:
-            raise ValueError("DASHSCOPE_API_KEY environment variable is not set")
+        # Get default provider from settings if not specified
+        if api_provider is None:
+            from magicplay.config import get_settings
+            settings = get_settings()
+            api_provider = settings.default_image_provider
 
-        dashscope.base_http_api_url = "https://dashscope.aliyuncs.com/api/v1"
+        if api_provider not in self.SUPPORTED_PROVIDERS:
+            raise ValueError(
+                f"Unsupported image provider: {api_provider}. "
+                f"Supported: {self.SUPPORTED_PROVIDERS}"
+            )
+
+        self.api_provider = api_provider
+        self.config = config
+
+        if api_provider == "qwen":
+            self.api_key = os.getenv("DASHSCOPE_API_KEY", "")
+            if not self.api_key:
+                raise ValueError("DASHSCOPE_API_KEY environment variable is not set")
+            dashscope.base_http_api_url = "https://dashscope.aliyuncs.com/api/v1"
+
+        elif api_provider == "jimeng":
+            from magicplay.services.jimeng_video_api import JimengVideoService
+            if config is None:
+                from magicplay.config import get_settings
+                config = get_settings()
+            self.jimeng_service = JimengVideoService(config=config)
 
     def _get_api_response(self, rsp):
         """
@@ -171,7 +195,21 @@ class ImageService:
         Generate an image and download it directly to the specified path.
         Returns the path to the downloaded image.
         """
-        # Generate image URL
+        if self.api_provider == "jimeng":
+            # Use Jimeng T2I API (handles generation and download internally)
+            result = self.jimeng_service.generate_image(
+                prompt=prompt,
+                output_path=output_path,
+                negative_prompt=negative_prompt,
+                width=size[0],
+                height=size[1],
+                seed=seed if seed is not None else -1,
+            )
+            if result is None:
+                raise RuntimeError("Jimeng image generation failed")
+            return str(result)
+
+        # Generate image URL for Qwen provider
         image_url = self.generate_image_url(
             prompt=prompt,
             size=size,

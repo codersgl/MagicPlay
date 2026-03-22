@@ -51,15 +51,14 @@ class VideoService:
 
                 img_url = f"file://{os.path.abspath(ref_img_path)}"
 
-                # Enhanced negative prompt for sci-fi/suspense quality
+                # Enhanced negative prompt for sci-fi/suspense anime quality
                 enhanced_negative_prompt = (
                     "blurry, low quality, watermark, text, distorted faces, extra limbs, "
-                    "jittery, flickering, anime style, 3d render, cartoon, illustration, "
+                    "jittery, flickering, realistic, photographic, photorealistic, natural skin, "
                     "deformed hands, extra fingers, missing limbs, floating objects, "
                     "inconsistent lighting, color shifting, morphing artifacts, "
-                    "unrealistic physics, defying gravity, impossible movements, "
-                    "plastic skin, wax figure, uncanny valley, oversaturated, "
-                    "poor anatomy, unnatural pose, awkward framing"
+                    "unrealistic anatomy, defying gravity, impossible movements, "
+                    "oversaturated, poor anime anatomy, unnatural pose, awkward framing"
                 )
 
                 # 添加重试机制
@@ -75,15 +74,14 @@ class VideoService:
                 # Use Text-to-Video model
                 model_name = "wan2.6-t2v"
 
-                # Enhanced negative prompt for sci-fi/suspense quality
+                # Enhanced negative prompt for sci-fi/suspense anime quality
                 enhanced_negative_prompt = (
                     "blurry, low quality, watermark, text, distorted faces, extra limbs, "
-                    "jittery, flickering, anime style, 3d render, cartoon, illustration, "
+                    "jittery, flickering, realistic, photographic, photorealistic, natural skin, "
                     "deformed hands, extra fingers, missing limbs, floating objects, "
                     "inconsistent lighting, color shifting, morphing artifacts, "
-                    "unrealistic physics, defying gravity, impossible movements, "
-                    "plastic skin, wax figure, uncanny valley, oversaturated, "
-                    "poor anatomy, unnatural pose, awkward framing"
+                    "unrealistic anatomy, defying gravity, impossible movements, "
+                    "oversaturated, poor anime anatomy, unnatural pose, awkward framing"
                 )
 
                 return self._call_video_api_with_retry(
@@ -123,7 +121,7 @@ class VideoService:
         if negative_prompt is None:
             negative_prompt = (
                 "blurry, low quality, watermark, text, distorted faces, extra limbs, "
-                "jittery, flickering, anime style, 3d render, cartoon, illustration, "
+                "jittery, flickering, realistic, photographic, photorealistic, natural skin, "
                 "deformed hands, extra fingers, missing limbs, floating objects, "
                 "inconsistent lighting, color shifting, morphing artifacts"
             )

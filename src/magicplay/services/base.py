@@ -4,9 +4,9 @@ MagicPlay Base Service
 Abstract base class for all external service integrations.
 """
 
-import logging
 from abc import ABC
 from typing import Optional
+from loguru import logger
 
 from magicplay.config import Settings
 from magicplay.exceptions import APIError
@@ -34,7 +34,7 @@ class BaseService(ABC):
             config: Application settings
         """
         self.config = config
-        self.logger = logging.getLogger(f"{self.__class__.__module__}.{self.__class__.__name__}")
+        self.logger = logger
         self._healthy: Optional[bool] = None
 
     def _get_api_key(self) -> str:

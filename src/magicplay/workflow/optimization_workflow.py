@@ -5,8 +5,8 @@ This module provides the OptimizationWorkflow class which experiments with
 different generation configurations to find the optimal balance between
 quality and cost.
 """
-import logging
 from typing import Dict, List, Optional, Tuple
+from loguru import logger
 
 from ..evaluator.base import EvaluationResult, QualityLevel
 from ..experiment.tracker import ExperimentTracker, ExperimentConfig, ExperimentResult
@@ -45,7 +45,7 @@ class OptimizationWorkflow:
         self.strategy = strategy.lower()
         self.registry = registry or ResourceRegistry()
         self.tracker = tracker or ExperimentTracker()
-        self.logger = logging.getLogger(__name__)
+        self.logger = logger
         
         # Validate strategy
         valid_strategies = ["quality_first", "balanced", "cost_optimized"]

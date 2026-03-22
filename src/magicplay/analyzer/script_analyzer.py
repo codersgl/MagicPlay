@@ -31,7 +31,7 @@ class ScriptAnalyzer:
     Analyzes script content to determine appropriate video duration and other parameters.
     """
 
-    def __init__(self, min_duration: int = 2, max_duration: int = 15):
+    def __init__(self, min_duration: int = 5, max_duration: int = 30):
         """
         Initialize analyzer with duration limits.
 
@@ -274,34 +274,35 @@ class ScriptAnalyzer:
         """
         Estimate optimal video duration based on scene type and complexity.
 
-        Base durations (adjusted for 2-15 second range):
-        - Transition: 2-5 seconds
-        - Dialogue: 4-10 seconds
-        - Action: 6-15 seconds
-        - Mixed: 5-12 seconds
+        Base durations (adjusted for 5-30 second range):
+        - Transition: 3-8 seconds
+        - Dialogue: 8-18 seconds
+        - Action: 12-30 seconds
+        - Mixed: 10-25 seconds
 
         Complexity adjusts within these ranges.
         """
-        # Adjusted base ranges by scene type for 2-15 second range
+        # Adjusted base ranges by scene type for 5-30 second range
         ranges = {
-            SceneType.TRANSITION: (2, 5),
-            SceneType.DIALOGUE: (4, 10),
-            SceneType.ACTION: (6, 15),
-            SceneType.MIXED: (5, 12),
+            SceneType.TRANSITION: (3, 8),
+            SceneType.DIALOGUE: (8, 18),
+            SceneType.ACTION: (12, 30),
+            SceneType.MIXED: (10, 25),
         }
 
-        min_dur, max_dur = ranges.get(scene_type, (5, 10))
+        min_dur, max_dur = ranges.get(scene_type, (8, 20))
 
         # Adjust by complexity
         duration = min_dur + (max_dur - min_dur) * complexity_score
 
-        # Adjust by word count with more conservative factor
-        # Ensure minimum factor of 0.5 to avoid extremely short durations
-        word_factor = max(0.5, min(1.3, total_words / 800))  # 800 words = 1.3x duration
+        # Adjust by word count
+        # For Chinese scripts, 500 characters ≈ 1 minute of dialogue
+        # Video typically shows 150-200 words per 10 seconds
+        word_factor = max(0.7, min(1.5, total_words / 600))
         duration *= word_factor
 
-        # Ensure minimum duration of at least min_dur * 0.5
-        duration = max(min_dur * 0.5, duration)
+        # Ensure minimum duration of at least min_dur * 0.7
+        duration = max(min_dur * 0.7, duration)
 
         return int(round(duration))
 

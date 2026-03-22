@@ -17,7 +17,7 @@ class TestImageService:
     def image_service(self):
         """Create an ImageService instance for tests."""
         with patch.dict(os.environ, {"DASHSCOPE_API_KEY": "test_api_key"}):
-            return ImageService()
+            return ImageService(api_provider="qwen")
 
     @pytest.fixture
     def mock_dashscope_response(self):
@@ -48,13 +48,14 @@ class TestImageService:
     def test_image_service_initialization_missing_api_key(self):
         """Test ImageService initialization without API key."""
         with patch.dict(os.environ, {}, clear=True):
-            with pytest.raises(ValueError, match="DASHSCOPE_API_KEY environment variable is not set"):
-                ImageService()
+            with patch('magicplay.config.settings.load_dotenv') as mock_load_dotenv:
+                with pytest.raises(ValueError, match="DASHSCOPE_API_KEY environment variable is not set"):
+                    ImageService(api_provider="qwen")
 
     def test_image_service_initialization_with_api_key(self):
         """Test ImageService initialization with API key."""
         with patch.dict(os.environ, {"DASHSCOPE_API_KEY": "test_key"}):
-            service = ImageService()
+            service = ImageService(api_provider="qwen")
             assert service.api_provider == "qwen"
             assert service.api_key == "test_key"
 
@@ -155,10 +156,8 @@ class TestImageService:
     def test_generate_image_url_unsupported_provider(self):
         """Test image URL generation with unsupported provider."""
         with patch.dict(os.environ, {"DASHSCOPE_API_KEY": "test_key"}):
-            service = ImageService(api_provider="unsupported")
-            
-            with pytest.raises(ValueError, match="Unsupported provider"):
-                service.generate_image_url("Test prompt")
+            with pytest.raises(ValueError, match="Unsupported image provider"):
+                ImageService(api_provider="unsupported")
 
     def test_generate_image_and_download_success(self, image_service, mock_dashscope_response, tmp_path):
         """Test successful image generation and download."""

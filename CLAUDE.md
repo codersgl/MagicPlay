@@ -5,7 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Quick Commands
 
 ```bash
-# Install dependencies
+# Install dependencies (requires Python >= 3.13)
 uv sync
 
 # Run all tests
@@ -30,7 +30,42 @@ uv run mypy src/magicplay --ignore-missing-imports
 # Run generation pipeline
 uv run scripts/run.py --story "MyStory" --episode "01_EpisodeOne"
 uv run scripts/run.py --story "MyStory" --run-all
+
+# Run Streamlit UI (requires ui extras: uv sync --all-packages)
+uv run streamlit run src/magicplay/app.py
 ```
+
+### CLI Arguments
+
+| Argument | Type | Default | Description |
+|----------|------|---------|-------------|
+| `--story` | str | Required | Name of the story folder |
+| `--episode` | str | Series1 | Episode folder name |
+| `--scenes` | int | 5 | Number of scenes per episode |
+| `--run-all` | flag | False | Process all episodes in story |
+| `--genre` | str | "" | Genre (e.g., Xuanhuan, Xiuxian, Sci-Fi) |
+| `--reference-story` | str | "" | Reference story for style guidance |
+```
+```
+
+## Environment Setup
+
+Create a `.env` file in the project root:
+
+```
+DEEPSEEK_API_KEY=your_api_key_here
+DASHSCOPE_API_KEY=your_api_key_here
+```
+
+The `.env` file is automatically gitignored - never commit API keys.
+
+## Key Conventions
+
+- **Paths**: Always use `pathlib.Path` for file system operations, not string concatenation
+- **Imports**: Use absolute imports (e.g., `from magicplay.utils.paths import DataManager`)
+- **Path Management**: Always use `DataManager` from `magicplay.utils.paths` for resolving paths to data, scripts, and video outputs. Never hardcode paths.
+- **Package Name**: Use `magicplay`, not typos like `magicpaly`
+- **Prompts**: Stored as Markdown files in `src/magicplay/prompts/`
 
 ## Architecture Overview
 
@@ -160,6 +195,7 @@ Key test fixtures:
 - `mock_llm_service`, `mock_image_service`, `mock_video_service`: Mock services
 - `mock_script_generator`, `mock_character_generator`, `mock_video_generator`: Mock generators
 - `sample_story_bible`, `sample_episode_outline`: Sample data
+- Located in: `test/conftest.py` (fixtures) and `test/mocks.py` (mock classes)
 
 ## Dependency Injection
 
@@ -246,17 +282,27 @@ def expensive_function(x, y):
     # Implementation
 ```
 
+## Gotchas
+
+- Video generation may fail if scene duration exceeds model limits (~10 seconds)
+- Phase 3 segmentation is automatically triggered for scenes > 8 seconds
+- Use `DataManager` for ALL path operations - never hardcode paths
+
 ## Important Paths
 
 ```
 MagicPlay/
 ├── src/magicplay/          # Source code
+│   └── prompts/            # Prompt templates (Markdown)
 ├── data/                   # Generated data
 │   └── story/
 │       └── {StoryName}/
 │           ├── story_bible.md
 │           ├── character_anchors/
 │           └── {EpisodeName}/
+│               ├── generated_scripts/
+│               ├── scene_concepts/
+│               └── scene_segments/
 ├── videos/                 # Generated videos
 │   └── {StoryName}/
 │       └── {EpisodeName}/

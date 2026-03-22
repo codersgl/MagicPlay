@@ -3,15 +3,23 @@ MagicPlay Dependency Injection Container
 
 Centralized dependency injection using dependency-injector library.
 Provides wired dependencies for all application components.
-
-Note: This is a work in progress. Some generators need to be refactored first.
 """
 
 from dependency_injector import containers, providers
 
-from magicplay.config import Settings
+from magicplay.config import Settings, get_settings
 from magicplay.services.llm import LLMService
+from magicplay.services.image_api import ImageService
+from magicplay.services.video_api import VideoService
+from magicplay.services.jimeng_video_api import JimengVideoService
 from magicplay.generators.script_gen import ScriptGenerator
+from magicplay.generators.video_gen import VideoGenerator
+from magicplay.generators.character_gen import CharacterImageGenerator
+from magicplay.generators.scene_concept_gen import SceneConceptGenerator
+from magicplay.generators.scene_segment_gen import SceneSegmentGenerator
+from magicplay.generators.comic_panel_gen import ComicPanelGenerator
+from magicplay.generators.dynamic_panel_selector import DynamicPanelSelector
+from magicplay.analyzer.timeline_analyzer import TimelineAnalyzer
 
 
 class Container(containers.DeclarativeContainer):
@@ -29,11 +37,25 @@ class Container(containers.DeclarativeContainer):
     """
 
     # Configuration
-    config = providers.Singleton(Settings)
+    config = providers.Singleton(get_settings)
 
     # Services - singleton instances
     llm_service = providers.Singleton(
         LLMService,
+        config=config,
+    )
+
+    image_service = providers.Factory(
+        ImageService,
+        config=config,
+    )
+
+    video_service = providers.Factory(
+        VideoService,
+    )
+
+    jimeng_video_service = providers.Factory(
+        JimengVideoService,
         config=config,
     )
 
@@ -44,12 +66,45 @@ class Container(containers.DeclarativeContainer):
         llm_service=llm_service,
     )
 
-    # Note: The following generators need to be refactored before adding:
-    # - ImageGenerator (needs ImageService refactoring)
-    # - VideoGenerator (needs VideoService refactoring)
-    # - SceneConceptGenerator (needs rewrite - file corrupted)
-    # - CharacterGenerator (needs rewrite)
-    # - SceneSegmentGenerator (needs rewrite)
+    video_generator = providers.Factory(
+        VideoGenerator,
+    )
+
+    def character_image_generator(self, story_name: str):
+        """Create a CharacterImageGenerator for a specific story."""
+        return CharacterImageGenerator(story_name=story_name)
+
+    def scene_concept_generator(self, story_name: str, episode_name: str):
+        """Create a SceneConceptGenerator for a specific story/episode."""
+        return SceneConceptGenerator(
+            story_name=story_name,
+            episode_name=episode_name,
+        )
+
+    def scene_segment_generator(self, story_name: str, episode_name: str):
+        """Create a SceneSegmentGenerator for a specific story/episode."""
+        return SceneSegmentGenerator(
+            story_name=story_name,
+            episode_name=episode_name,
+        )
+
+    # Comic Generators
+    def comic_panel_generator(self, story_name: str, episode_name: str):
+        """Create a ComicPanelGenerator for a specific story/episode."""
+        return ComicPanelGenerator(
+            story_name=story_name,
+            episode_name=episode_name,
+        )
+
+    def dynamic_panel_selector(self):
+        """Create a DynamicPanelSelector."""
+        return DynamicPanelSelector()
+
+    # Analyzers - factory instances (created per use)
+    timeline_analyzer = providers.Factory(
+        TimelineAnalyzer,
+        llm_service=llm_service,
+    )
 
 
 # Convenience function for getting container instances
