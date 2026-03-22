@@ -157,7 +157,9 @@ class ComicOrchestrator:
             self.consistency_manager = StoryConsistencyManager(self.story_name)
             self.consistency_manager.load_from_story_bible()
 
-        return self.character_gen.ensure_character_images(self.consistency_manager)  # type: ignore[no-any-return]
+        return self.character_gen.ensure_character_images(
+            self.consistency_manager
+        )
 
     def _get_scene_scripts(self) -> List[Dict[str, str]]:
         """Get all scene scripts for the episode."""
