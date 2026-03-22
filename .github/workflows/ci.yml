@@ -47,6 +47,9 @@ jobs:
         # mypy src
     
     - name: Run tests with coverage
+      env:
+        DASHSCOPE_API_KEY: ${{ secrets.DASHSCOPE_API_KEY || 'fake-key-for-ci-testing' }}
+        DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY || 'fake-key-for-ci-testing' }}
       run: |
         source .venv/bin/activate
         echo "=== Running pytest with coverage ==="
