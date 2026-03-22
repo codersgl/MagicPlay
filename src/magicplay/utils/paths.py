@@ -42,6 +42,11 @@ class DataManager:
         return cls.get_episode_path(story_name, episode_name) / "scene_concepts"
 
     @classmethod
+    def get_scene_segments_path(cls, story_name: str, episode_name: str) -> Path:
+        """Returns the directory where scene segment videos should be saved."""
+        return cls.get_episode_path(story_name, episode_name) / "scene_segments"
+
+    @classmethod
     def ensure_structure(cls, story_name: str, episode_name: str):
         """Creates necessary directories for scenes and output videos."""
         cls.get_scenes_path(story_name, episode_name).mkdir(parents=True, exist_ok=True)
@@ -53,6 +58,9 @@ class DataManager:
         )
         cls.get_character_anchors_path(story_name).mkdir(parents=True, exist_ok=True)
         cls.get_scene_concepts_path(story_name, episode_name).mkdir(
+            parents=True, exist_ok=True
+        )
+        cls.get_scene_segments_path(story_name, episode_name).mkdir(
             parents=True, exist_ok=True
         )
 

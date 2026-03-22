@@ -137,10 +137,11 @@ class StoryConsistencyManager:
             patterns = [
                 (r"\*\s+\*\*([^(]+?)\s*(?:\([^)]+\))?\*\*\s*:", "Pattern 1: *   **角色名 (描述)**: or *   **角色名**:"),
                 (r"\*\s*\*\*([^(]+?)\s*(?:\([^)]+\))?\*\*\s*:", "Pattern 2: * **角色名 (描述)**: or * **角色名**:"),
-                (r"\*\*\[?([^\]\*]+)\]?\*\*", "Pattern 3: **[角色名]**"),
-                (r"\*\s*\[?([^\]\:]+)\]?\s*:", "Pattern 4: * [角色名]:"),
-                (r"###\s*\[?([^\]\*]+)\]?", "Pattern 5: ### [角色名]"),
-                (r"\[?([^\]\:]+)\]?\s*:", "Pattern 6: [角色名]:"),
+                (r"\*\*\[([^\]]+)\]\*\*", "Pattern 3: **[角色名]**"),
+                (r"\*\*\[?([^\]\*]+)\]?\*\*", "Pattern 4: **[角色名]** or **角色名**"),
+                (r"\*\s*\[?([^\]\:]+)\]?\s*:", "Pattern 5: * [角色名]:"),
+                (r"###\s*\[?([^\]\*]+)\]?", "Pattern 6: ### [角色名]"),
+                (r"\[?([^\]\:]+)\]?\s*:", "Pattern 7: [角色名]:"),
             ]
             
             for pattern, _ in patterns:
@@ -154,14 +155,14 @@ class StoryConsistencyManager:
                         break
                     
                     # Additional checks: character names should not contain certain keywords
-                    # and should not be too short or too long (typical Chinese names are 2-4 characters)
-                    if len(potential_name) >= 2 and len(potential_name) <= 6:
+                    # Allow longer names (Chinese 2-6 characters, English 2-30 characters)
+                    if len(potential_name) >= 2 and len(potential_name) <= 30:
                         # Common character name patterns (Chinese names, English names)
-                        if re.match(r"^[\u4e00-\u9fff]{2,4}$", potential_name):  # Chinese characters
+                        if re.match(r"^[\u4e00-\u9fff]{2,6}$", potential_name):  # Chinese characters
                             is_character = True
                             character_name = potential_name
                             break
-                        elif re.match(r"^[A-Za-z\s]{2,20}$", potential_name):  # English names
+                        elif re.match(r"^[A-Za-z\s]{2,30}$", potential_name):  # English names
                             is_character = True
                             character_name = potential_name
                             break

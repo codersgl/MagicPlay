@@ -16,9 +16,16 @@ dependencies = [
     "pydantic>=2.0.0",     # Data validation
     "pydantic-settings>=2.0.0",  # Settings management
     "dependency-injector>=4.41.0",  # Dependency injection
+    "pyjwt>=2.12.1",
+    "volcengine>=1.0.218",
+    "pyyaml>=6.0",        # For config.yaml support
+    "streamlit>=1.55.0",
 ]
 
 [project.optional-dependencies]
+ui = [
+    "streamlit>=1.28.0",
+]
 dev = [
     "pytest>=9.0.2",
     "pytest-cov>=6.0.0",

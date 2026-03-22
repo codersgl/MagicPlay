@@ -1,5 +1,9 @@
 # Python-generated files
 __pycache__/
+
+# Environment
+.env
+config.yaml
 *.py[oc]
 build/
 dist/

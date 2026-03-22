@@ -2,26 +2,55 @@
 MagicPlay Configuration Settings
 
 Centralized configuration management using Pydantic settings.
-All environment variables are loaded from .env file or system environment.
+
+Configuration sources (in order of precedence):
+1. config.yaml - User-friendly YAML configuration file
+2. Environment variables (e.g., DEEPSEEK_API_KEY)
+3. .env file in project root
+4. .env.local file for local overrides (gitignored)
+
+For sensitive values (API keys), use environment variables or .env file.
+For non-sensitive settings, use config.yaml.
 """
 
+import os
 from functools import lru_cache
 from pathlib import Path
-from typing import Optional
+from typing import Any, Dict, Optional
 
 from dotenv import load_dotenv
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
+def _load_yaml_config() -> Dict[str, Any]:
+    """
+    Load configuration from config.yaml file.
+
+    Returns:
+        Dictionary with configuration values
+    """
+    config_path = Path(__file__).parent.parent.parent.parent / "config.yaml"
+    if config_path.exists():
+        try:
+            import yaml
+            with open(config_path, "r", encoding="utf-8") as f:
+                return yaml.safe_load(f) or {}
+        except ImportError:
+            # PyYAML not installed, skip config.yaml
+            return {}
+    return {}
+
+
 class Settings(BaseSettings):
     """
-    Application settings loaded from environment variables.
+    Application settings loaded from multiple sources.
 
-    All settings can be configured via:
-    1. Environment variables (e.g., DEEPSEEK_API_KEY)
-    2. .env file in project root
-    3. .env.local file for local overrides (gitignored)
+    Configuration sources (in order of precedence):
+    1. Environment variables (highest priority)
+    2. config.yaml file
+    3. .env file
+    4. Default values (lowest priority)
     """
 
     model_config = SettingsConfigDict(
@@ -31,7 +60,7 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    # API Keys
+    # API Keys (from environment variables only - never put in config.yaml)
     deepseek_api_key: str = Field(
         default="",
         description="DeepSeek API key for LLM services"
@@ -41,7 +70,7 @@ class Settings(BaseSettings):
         description="DashScope API key for image/video generation"
     )
 
-    # API Endpoints (optional, use defaults if not set)
+    # API Endpoints
     deepseek_base_url: str = Field(
         default="https://api.deepseek.com",
         description="DeepSeek API base URL"
@@ -51,10 +80,38 @@ class Settings(BaseSettings):
         description="DashScope API base URL (uses SDK default if not set)"
     )
 
+    # Jimeng (即梦) API Configuration
+    jimeng_access_key: str = Field(
+        default="",
+        description="Jimeng AI Access Key (Volcengine)"
+    )
+    jimeng_secret_key: str = Field(
+        default="",
+        description="Jimeng AI Secret Key (Volcengine)"
+    )
+    jimeng_api_base_url: str = Field(
+        default="https://visual.volcengineapi.com",
+        description="Jimeng API base URL"
+    )
+    jimeng_default_aspect_ratio: str = Field(
+        default="16:9",
+        description="Default Jimeng video aspect ratio"
+    )
+
     # Model Configuration
     deepseek_model: str = Field(
         default="deepseek-chat",
         description="DeepSeek model to use"
+    )
+
+    # Provider Configuration
+    default_video_provider: str = Field(
+        default="qwen",
+        description="Default video generation provider (qwen or jimeng)"
+    )
+    default_image_provider: str = Field(
+        default="qwen",
+        description="Default image generation provider (qwen or jimeng)"
     )
     default_temperature: float = Field(
         default=0.7,
@@ -168,7 +225,6 @@ class Settings(BaseSettings):
     @property
     def is_production(self) -> bool:
         """Check if running in production mode."""
-        import os
         return os.getenv("MAGICPLAY_ENV", "development") == "production"
 
     @property
