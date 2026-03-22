@@ -1,17 +1,20 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Optional, Dict, Tuple
+from typing import Dict, List, Optional, Tuple
+
 from loguru import logger
 
+from magicplay.config import Settings, get_settings
 from magicplay.services.image_api import ImageService
 from magicplay.utils.paths import DataManager
-from magicplay.config import Settings, get_settings
+
 from .dynamic_panel_selector import PanelInfo
 
 
 @dataclass
 class PanelOutput:
     """Output from comic panel generation."""
+
     panel_number: int
     image_path: Path
     description: str
@@ -53,9 +56,12 @@ class ComicPanelGenerator:
 
         # Load prompt template
         from pathlib import Path
+
         prompts_dir = Path(__file__).parent.parent / "prompts"
         try:
-            self.prompt_template = (prompts_dir / "comic_panel.md").read_text(encoding="utf-8")
+            self.prompt_template = (prompts_dir / "comic_panel.md").read_text(
+                encoding="utf-8"
+            )
         except FileNotFoundError:
             self.prompt_template = "Create a comic panel: {panel_description}"
 
@@ -77,12 +83,20 @@ class ComicPanelGenerator:
             PanelOutput with generated image path
         """
         # Build character description string
-        char_desc_str = "\n".join(
-            f"- {name}: {desc}" for name, desc in character_descriptions.items()
-        ) if character_descriptions else "No specific characters"
+        char_desc_str = (
+            "\n".join(
+                f"- {name}: {desc}" for name, desc in character_descriptions.items()
+            )
+            if character_descriptions
+            else "No specific characters"
+        )
 
         # Build dialogue text if present
-        dialogue_section = f"Dialogue/Text: {panel_info.dialogue}" if panel_info.dialogue else "No dialogue"
+        dialogue_section = (
+            f"Dialogue/Text: {panel_info.dialogue}"
+            if panel_info.dialogue
+            else "No dialogue"
+        )
 
         # Create prompt
         prompt = self._build_prompt(

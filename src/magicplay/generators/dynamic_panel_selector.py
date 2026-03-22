@@ -1,15 +1,17 @@
 from dataclasses import dataclass
 from typing import List, Optional
+
 from loguru import logger
 
+from magicplay.config import Settings, get_settings
 from magicplay.ports.services import ILLMService
 from magicplay.services.llm import LLMService
-from magicplay.config import Settings, get_settings
 
 
 @dataclass
 class PanelInfo:
     """Information about a single comic panel."""
+
     panel_number: int
     description: str
     dialogue: Optional[str] = None
@@ -41,9 +43,12 @@ class DynamicPanelSelector:
 
         # Load prompt template
         from pathlib import Path
+
         prompts_dir = Path(__file__).parent.parent / "prompts"
         try:
-            self.prompt_template = (prompts_dir / "dynamic_panel_selector.md").read_text(encoding="utf-8")
+            self.prompt_template = (
+                prompts_dir / "dynamic_panel_selector.md"
+            ).read_text(encoding="utf-8")
         except FileNotFoundError:
             self.prompt_template = "Analyze the scene and determine panel breakdown."
 
@@ -65,7 +70,9 @@ class DynamicPanelSelector:
             List of PanelInfo objects describing each panel
         """
         # Build prompt
-        character_list = ", ".join(characters) if characters else "No specific characters"
+        character_list = (
+            ", ".join(characters) if characters else "No specific characters"
+        )
         prompt = self.prompt_template.format(
             scene_script=scene_script,
             character_list=character_list,
@@ -75,7 +82,9 @@ class DynamicPanelSelector:
 
         # Call LLM (use generate_content which takes system + user prompts)
         # For JSON response, instruct LLM clearly in prompt
-        system_prompt = "You are a professional comic panel designer. Return ONLY valid JSON array."
+        system_prompt = (
+            "You are a professional comic panel designer. Return ONLY valid JSON array."
+        )
         response = self.llm.generate_content(
             system_prompt=system_prompt,
             user_prompt=prompt,
@@ -84,6 +93,7 @@ class DynamicPanelSelector:
         # Parse JSON response
         try:
             import json
+
             panels_data = json.loads(response)
             panels = [
                 PanelInfo(
@@ -100,10 +110,12 @@ class DynamicPanelSelector:
         except (json.JSONDecodeError, KeyError) as e:
             logger.error(f"Failed to parse panel data: {e}")
             # Fallback: single panel
-            return [PanelInfo(
-                panel_number=1,
-                description=scene_script[:200],
-                dialogue=None,
-                composition="wide",
-                emotion="neutral",
-            )]
+            return [
+                PanelInfo(
+                    panel_number=1,
+                    description=scene_script[:200],
+                    dialogue=None,
+                    composition="wide",
+                    emotion="neutral",
+                )
+            ]

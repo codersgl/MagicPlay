@@ -19,9 +19,15 @@ def main():
     parser.add_argument("--episode", default="Series1", help="Episode name")
     parser.add_argument("--scenes", type=int, default=5, help="Number of scenes")
     parser.add_argument("--genre", default="", help="Genre (e.g., Xuanhuan, Sci-Fi)")
-    parser.add_argument("--reference-story", default="", help="Reference story for style")
-    parser.add_argument("--style", default="anime", choices=["anime", "comic", "webtoon", "ink"],
-                        help="Comic art style")
+    parser.add_argument(
+        "--reference-story", default="", help="Reference story for style"
+    )
+    parser.add_argument(
+        "--style",
+        default="anime",
+        choices=["anime", "comic", "webtoon", "ink"],
+        help="Comic art style",
+    )
     parser.add_argument("--run-all", action="store_true", help="Process all episodes")
 
     args = parser.parse_args()
@@ -29,6 +35,7 @@ def main():
     # Get episodes
     if args.run_all:
         from magicplay.utils.paths import DataManager
+
         episodes = DataManager.get_episodes(args.story)
         episode_names = [ep.name for ep in episodes]
     else:

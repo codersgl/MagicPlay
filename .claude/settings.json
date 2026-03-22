@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git stash:*)",
+      "Bash(isort --apply src/magicplay/generators/comic_panel_gen.py src/magicplay/generators/dynamic_panel_selector.py src/magicplay/core/comic_orchestrator.py scripts/run_comic.py)",
+      "Bash(black src/magicplay/generators/comic_panel_gen.py src/magicplay/generators/dynamic_panel_selector.py src/magicplay/core/comic_orchestrator.py scripts/run_comic.py)"
+    ]
+  }
+}

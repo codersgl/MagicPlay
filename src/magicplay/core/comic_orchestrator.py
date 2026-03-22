@@ -60,7 +60,9 @@ class ComicOrchestrator:
         DataManager.ensure_comic_structure(story_name, episode_name)
 
         # Initialize generators
-        self.scripts_dir = DataManager.get_generated_scripts_path(story_name, episode_name)
+        self.scripts_dir = DataManager.get_generated_scripts_path(
+            story_name, episode_name
+        )
         self.scenes_dir = DataManager.get_scenes_path(story_name, episode_name)
 
         self.script_gen = ScriptGenerator(
@@ -114,7 +116,7 @@ class ComicOrchestrator:
             panels = self.panel_selector.analyze(
                 scene_script=scene_script,
                 characters=characters_in_scene,
-                previous_context=scenes[i-1]["script"] if i > 0 else "",
+                previous_context=scenes[i - 1]["script"] if i > 0 else "",
             )
 
             # Get character descriptions for reference
@@ -213,7 +215,11 @@ class ComicOrchestrator:
             if char_name.lower() in script_lower:
                 characters.append(char_name)
 
-        return characters if characters else list(self.consistency_manager.characters.keys())[:2]
+        return (
+            characters
+            if characters
+            else list(self.consistency_manager.characters.keys())[:2]
+        )
 
     def _get_character_descriptions(self, characters: List[str]) -> Dict[str, str]:
         """Get character descriptions for prompt building."""
@@ -225,7 +231,9 @@ class ComicOrchestrator:
         for char_name in characters:
             if char_name in self.consistency_manager.characters:
                 char = self.consistency_manager.characters[char_name]
-                visual_tags = ", ".join(char.visual_tags) if char.visual_tags else char.name
+                visual_tags = (
+                    ", ".join(char.visual_tags) if char.visual_tags else char.name
+                )
                 descriptions[char_name] = visual_tags
 
         return descriptions
