@@ -8,12 +8,11 @@ Usage:
 """
 
 import argparse
-from pathlib import Path
 
 from magicplay.core.comic_orchestrator import ComicOrchestrator
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(description="Generate AI comic from story")
     parser.add_argument("--story", required=True, help="Story name")
     parser.add_argument("--episode", default="Series1", help="Episode name")
@@ -59,7 +58,7 @@ def main():
         try:
             results = orchestrator.run()
             total_panels = sum(len(scene_results) for scene_results in results)
-            print(f"\n✓ Comic generation complete!")
+            print("\n✓ Comic generation complete!")
             print(f"  - Scenes: {len(results)}")
             print(f"  - Total panels: {total_panels}")
             print(f"  - Output: data/story/{args.story}/{episode_name}/panels/")

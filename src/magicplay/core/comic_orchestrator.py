@@ -20,7 +20,7 @@ from magicplay.consistency.story_consistency import StoryConsistencyManager
 from magicplay.core.orchestrator import Orchestrator  # Reuse some methods
 from magicplay.generators.character_gen import CharacterImageGenerator
 from magicplay.generators.comic_panel_gen import ComicPanelGenerator, PanelOutput
-from magicplay.generators.dynamic_panel_selector import DynamicPanelSelector, PanelInfo
+from magicplay.generators.dynamic_panel_selector import DynamicPanelSelector
 from magicplay.generators.script_gen import ScriptGenerator
 from magicplay.utils.paths import DataManager
 
@@ -93,8 +93,8 @@ class ComicOrchestrator:
         # Load context
         story_ctx, episode_ctx = self.load_context()
 
-        # Ensure character images
-        character_images = self._ensure_character_images()
+        # Ensure character images (called for side effect)
+        self._ensure_character_images()
 
         # Get scene scripts
         scenes = self._get_scene_scripts()
@@ -149,7 +149,7 @@ class ComicOrchestrator:
             genre=self.genre,
             reference_story=self.reference_story,
         )
-        return orchestrator.load_context()
+        return orchestrator.load_context()  # type: ignore[no-any-return]
 
     def _ensure_character_images(self) -> Dict[str, Path]:
         """Ensure all characters have anchor images."""
@@ -157,7 +157,7 @@ class ComicOrchestrator:
             self.consistency_manager = StoryConsistencyManager(self.story_name)
             self.consistency_manager.load_from_story_bible()
 
-        return self.character_gen.ensure_character_images(self.consistency_manager)
+        return self.character_gen.ensure_character_images(self.consistency_manager)  # type: ignore[no-any-return]
 
     def _get_scene_scripts(self) -> List[Dict[str, str]]:
         """Get all scene scripts for the episode."""
@@ -223,7 +223,7 @@ class ComicOrchestrator:
 
     def _get_character_descriptions(self, characters: List[str]) -> Dict[str, str]:
         """Get character descriptions for prompt building."""
-        descriptions = {}
+        descriptions: Dict[str, str] = {}
 
         if self.consistency_manager is None:
             return descriptions

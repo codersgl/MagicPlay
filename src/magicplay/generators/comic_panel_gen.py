@@ -119,7 +119,10 @@ class ComicPanelGenerator:
                 prompt=prompt,
                 output_path=str(output_path),
                 size=size,
-                negative_prompt="low quality, blurry, distorted, deformed, bad anatomy, watermark",
+                negative_prompt=(
+                    "low quality, blurry, distorted, deformed, "
+                    "bad anatomy, watermark"
+                ),
                 n=1,
             )
 
