@@ -307,9 +307,7 @@ with st.sidebar:
             0
             if not st.session_state.story_name
             else (
-                story_options.index(st.session_state.story_name)
-                if st.session_state.story_name in story_options
-                else 0
+                story_options.index(st.session_state.story_name) if st.session_state.story_name in story_options else 0
             )
         ),
     )
@@ -325,9 +323,7 @@ with st.sidebar:
     if st.session_state.story_name:
         existing_episodes = get_existing_episodes(st.session_state.story_name)
         episode_options = (
-            ["[Create New Episode]"] + existing_episodes
-            if existing_episodes
-            else ["[Create New Episode]"]
+            ["[Create New Episode]"] + existing_episodes if existing_episodes else ["[Create New Episode]"]
         )
 
         selected_episode = st.selectbox(
@@ -438,7 +434,7 @@ with header_col2:
                 st.session_state.generation_complete = True
 
                 if final_video and final_video.exists():
-                    st.success(f"✅ Episode generated!")
+                    st.success("✅ Episode generated!")
                 else:
                     st.warning("Generation completed. Check outputs below.")
 
@@ -469,10 +465,12 @@ if has_content:
             cols = st.columns(min(len(anchors), 4))
             for i, anchor in enumerate(anchors):
                 with cols[i % 4]:
-                    st.image(str(anchor), caption=anchor.stem, use_container_width=True)
-                    if st.button(
-                        "🗑️", key=f"del_char_{i}", help=f"Delete {anchor.name}"
-                    ):
+                    st.image(
+                        str(anchor),
+                        caption=anchor.stem,
+                        use_container_width=True,
+                    )
+                    if st.button("🗑️", key=f"del_char_{i}", help=f"Delete {anchor.name}"):
                         if delete_file(anchor):
                             st.success(f"Deleted {anchor.name}")
                             st.rerun()
@@ -483,18 +481,20 @@ if has_content:
 
     # Scene concepts
     with tabs[1]:
-        concepts = get_scene_concepts(
-            st.session_state.story_name, st.session_state.episode_name
-        )
+        concepts = get_scene_concepts(st.session_state.story_name, st.session_state.episode_name)
         if concepts:
             cols = st.columns(min(len(concepts), 3))
             for i, concept in enumerate(concepts):
                 with cols[i % 3]:
                     st.image(
-                        str(concept), caption=concept.stem, use_container_width=True
+                        str(concept),
+                        caption=concept.stem,
+                        use_container_width=True,
                     )
                     if st.button(
-                        "🗑️", key=f"del_concept_{i}", help=f"Delete {concept.name}"
+                        "🗑️",
+                        key=f"del_concept_{i}",
+                        help=f"Delete {concept.name}",
                     ):
                         if delete_file(concept):
                             st.success(f"Deleted {concept.name}")
@@ -506,9 +506,7 @@ if has_content:
 
     # Videos
     with tabs[2]:
-        final_video = get_final_video(
-            st.session_state.story_name, st.session_state.episode_name
-        )
+        final_video = get_final_video(st.session_state.story_name, st.session_state.episode_name)
         if final_video and final_video.exists():
             st.video(str(final_video))
             col1, col2 = st.columns([4, 1])
@@ -516,7 +514,9 @@ if has_content:
                 st.caption(f"📁 {final_video}")
             with col2:
                 if st.button(
-                    "🗑️ Delete", key=f"del_video_final", help="Delete this video"
+                    "🗑️ Delete",
+                    key="del_video_final",
+                    help="Delete this video",
                 ):
                     if delete_file(final_video):
                         st.success("Video deleted!")
@@ -524,9 +524,7 @@ if has_content:
                     else:
                         st.error("Failed to delete video")
         else:
-            videos = get_videos(
-                st.session_state.story_name, st.session_state.episode_name
-            )
+            videos = get_videos(st.session_state.story_name, st.session_state.episode_name)
             if videos:
                 for i, video in enumerate(videos):
                     st.video(str(video))
@@ -535,7 +533,9 @@ if has_content:
                         st.caption(f"📁 {video}")
                     with col2:
                         if st.button(
-                            "🗑️", key=f"del_vid_{i}", help=f"Delete {video.name}"
+                            "🗑️",
+                            key=f"del_vid_{i}",
+                            help=f"Delete {video.name}",
                         ):
                             if delete_file(video):
                                 st.success(f"Deleted {video.name}")
@@ -547,9 +547,7 @@ if has_content:
 
     # Scripts
     with tabs[3]:
-        scripts = get_scripts(
-            st.session_state.story_name, st.session_state.episode_name
-        )
+        scripts = get_scripts(st.session_state.story_name, st.session_state.episode_name)
         if scripts:
             for i, script in enumerate(sorted(scripts)):
                 col1, col2 = st.columns([4, 1])
@@ -560,7 +558,9 @@ if has_content:
                 with col2:
                     st.write("")
                     if st.button(
-                        "🗑️ Delete", key=f"del_script_{i}", help=f"Delete {script.name}"
+                        "🗑️ Delete",
+                        key=f"del_script_{i}",
+                        help=f"Delete {script.name}",
                     ):
                         if delete_file(script):
                             st.success(f"Deleted {script.name}")

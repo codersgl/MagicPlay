@@ -11,10 +11,14 @@ Provides mock implementations of:
 """
 
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Dict, List, Optional, Union
 
 from magicplay.config import Settings
-from magicplay.generators.base import BaseGenerator, GenerationContext, GenerationResult
+from magicplay.generators.base import (
+    BaseGenerator,
+    GenerationContext,
+    GenerationResult,
+)
 from magicplay.ports.services import IImageService, ILLMService, IVideoService
 
 # =============================================================================
@@ -32,9 +36,7 @@ class MockLLMService(ILLMService):
     name = "mock_llm"
 
     def __init__(self, config: Optional[Settings] = None):
-        self.config = config or Settings(
-            deepseek_api_key="test-key", dashscope_api_key="test-key"
-        )
+        self.config = config or Settings(deepseek_api_key="test-key", dashscope_api_key="test-key")
         self._healthy = True
         self.call_count = 0
         self.last_prompts: List[Dict[str, str]] = []
@@ -85,9 +87,7 @@ class MockImageService(IImageService):
     name = "mock_image"
 
     def __init__(self, config: Optional[Settings] = None):
-        self.config = config or Settings(
-            deepseek_api_key="test-key", dashscope_api_key="test-key"
-        )
+        self.config = config or Settings(deepseek_api_key="test-key", dashscope_api_key="test-key")
         self._healthy = True
         self.call_count = 0
         self.generated_images: List[Path] = []
@@ -144,9 +144,7 @@ class MockVideoService(IVideoService):
     name = "mock_video"
 
     def __init__(self, config: Optional[Settings] = None):
-        self.config = config or Settings(
-            deepseek_api_key="test-key", dashscope_api_key="test-key"
-        )
+        self.config = config or Settings(deepseek_api_key="test-key", dashscope_api_key="test-key")
         self._healthy = True
         self.call_count = 0
         self.generated_videos: List[Path] = []
@@ -168,9 +166,7 @@ class MockVideoService(IVideoService):
         self.generated_videos.append(output_path)
         return output_path
 
-    def extract_last_frame(
-        self, video_path: Union[str, Path], output_path: Union[str, Path]
-    ) -> Optional[Path]:
+    def extract_last_frame(self, video_path: Union[str, Path], output_path: Union[str, Path]) -> Optional[Path]:
         """Create placeholder frame file."""
         output_path = Path(output_path)
         output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -208,9 +204,7 @@ class MockScriptGenerator(BaseGenerator[str]):
         self.call_count += 1
 
         # Create mock script file
-        output_path = (
-            self.config.project_root / "data" / "test" / f"{context.scene_name}.md"
-        )
+        output_path = self.config.project_root / "data" / "test" / f"{context.scene_name}.md"
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
         content = f"# Mock Script: {context.scene_name}\n\nThis is a test script."

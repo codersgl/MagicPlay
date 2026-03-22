@@ -2,10 +2,6 @@
 Pytest tests for ScriptAnalyzer parameter adjustment.
 """
 
-import sys
-from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch
-
 import pytest
 
 from magicplay.analyzer.script_analyzer import SceneType, ScriptAnalyzer
@@ -47,21 +43,20 @@ Doctor! The containment field is collapsing!
         # Create analyzer with adjusted parameters
         class AdjustedScriptAnalyzer(ScriptAnalyzer):
             def _classify_scene_type(
-                self, dialogue_lines: int, action_density: float, total_words: int
+                self,
+                dialogue_lines: int,
+                action_density: float,
+                total_words: int,
             ) -> SceneType:
                 """Adjusted classification for better scene type detection."""
                 if total_words < 200:  # Increased from 100
                     return SceneType.TRANSITION
 
-                dialogue_ratio = dialogue_lines / max(
-                    1, total_words / 15
-                )  # Adjusted normalization
+                dialogue_ratio = dialogue_lines / max(1, total_words / 15)  # Adjusted normalization
 
                 if dialogue_ratio > 0.4 and action_density < 0.3:  # Adjusted thresholds
                     return SceneType.DIALOGUE
-                elif (
-                    action_density > 0.4 and dialogue_ratio < 0.4
-                ):  # Adjusted thresholds
+                elif action_density > 0.4 and dialogue_ratio < 0.4:  # Adjusted thresholds
                     return SceneType.ACTION
                 elif dialogue_ratio < 0.15 and action_density < 0.2:
                     return SceneType.TRANSITION
@@ -69,7 +64,10 @@ Doctor! The containment field is collapsing!
                     return SceneType.MIXED
 
             def _estimate_duration(
-                self, scene_type: SceneType, complexity_score: float, total_words: int
+                self,
+                scene_type: SceneType,
+                complexity_score: float,
+                total_words: int,
             ) -> int:
                 """Adjusted duration estimation with higher base durations."""
                 # Increased base ranges by scene type
@@ -86,9 +84,7 @@ Doctor! The containment field is collapsing!
                 duration = min_dur + (max_dur - min_dur) * complexity_score
 
                 # Adjust by word count with stronger factor
-                word_factor = min(
-                    2.0, total_words / 800
-                )  # Adjusted: 800 words = 2x duration
+                word_factor = min(2.0, total_words / 800)  # Adjusted: 800 words = 2x duration
                 duration *= word_factor
 
                 return int(round(duration))
@@ -104,7 +100,10 @@ Doctor! The containment field is collapsing!
         # Create analyzer with adjusted parameters
         class AdjustedScriptAnalyzer(ScriptAnalyzer):
             def _classify_scene_type(
-                self, dialogue_lines: int, action_density: float, total_words: int
+                self,
+                dialogue_lines: int,
+                action_density: float,
+                total_words: int,
             ) -> SceneType:
                 """Adjusted classification for better scene type detection."""
                 if total_words < 200:
@@ -126,19 +125,25 @@ Doctor! The containment field is collapsing!
         # Test each scene type classification
         test_cases = [
             (5, 0.1, 150, SceneType.TRANSITION),  # Few words, low action
-            (20, 0.2, 500, SceneType.DIALOGUE),  # High dialogue ratio, low action
+            (
+                20,
+                0.2,
+                500,
+                SceneType.DIALOGUE,
+            ),  # High dialogue ratio, low action
             (5, 0.5, 500, SceneType.ACTION),  # High action density
             (15, 0.3, 500, SceneType.MIXED),  # Balanced
             (10, 0.1, 800, SceneType.MIXED),  # Borderline case
         ]
 
-        for dialogue_lines, action_density, total_words, expected_type in test_cases:
-            scene_type = analyzer._classify_scene_type(
-                dialogue_lines, action_density, total_words
-            )
-            assert (
-                scene_type == expected_type
-            ), f"Failed for {dialogue_lines}, {action_density}, {total_words}"
+        for (
+            dialogue_lines,
+            action_density,
+            total_words,
+            expected_type,
+        ) in test_cases:
+            scene_type = analyzer._classify_scene_type(dialogue_lines, action_density, total_words)
+            assert scene_type == expected_type, f"Failed for {dialogue_lines}, {action_density}, {total_words}"
 
     def test_adjusted_duration_estimation(self):
         """Test adjusted duration estimation."""
@@ -146,7 +151,10 @@ Doctor! The containment field is collapsing!
         # Create analyzer with adjusted parameters
         class AdjustedScriptAnalyzer(ScriptAnalyzer):
             def _estimate_duration(
-                self, scene_type: SceneType, complexity_score: float, total_words: int
+                self,
+                scene_type: SceneType,
+                complexity_score: float,
+                total_words: int,
             ) -> int:
                 """Adjusted duration estimation with higher base durations."""
                 ranges = {
@@ -167,18 +175,38 @@ Doctor! The containment field is collapsing!
 
         # Test duration estimation for different parameters
         test_cases = [
-            (SceneType.TRANSITION, 0.0, 100, 1),  # Minimum duration with word factor
-            (SceneType.DIALOGUE, 0.5, 400, 7),  # Medium complexity with word factor
-            (SceneType.ACTION, 1.0, 800, 30),  # Maximum complexity and word factor
+            (
+                SceneType.TRANSITION,
+                0.0,
+                100,
+                1,
+            ),  # Minimum duration with word factor
+            (
+                SceneType.DIALOGUE,
+                0.5,
+                400,
+                7,
+            ),  # Medium complexity with word factor
+            (
+                SceneType.ACTION,
+                1.0,
+                800,
+                30,
+            ),  # Maximum complexity and word factor
             (SceneType.MIXED, 0.8, 1200, 34),  # High word count (capped at 2x)
         ]
 
-        for scene_type, complexity, total_words, expected_duration in test_cases:
+        for (
+            scene_type,
+            complexity,
+            total_words,
+            expected_duration,
+        ) in test_cases:
             duration = analyzer._estimate_duration(scene_type, complexity, total_words)
             # Allow some rounding tolerance
-            assert (
-                abs(duration - expected_duration) <= 2
-            ), f"Failed for {scene_type}, {complexity}, {total_words}: got {duration}, expected {expected_duration}"
+            assert abs(duration - expected_duration) <= 2, (
+                f"Failed for {scene_type}, {complexity}, {total_words}: got {duration}, expected {expected_duration}"
+            )
 
     def test_adjusted_analyzer_with_sample_script(self, sample_scene_script):
         """Test adjusted analyzer with a sample script."""
@@ -186,7 +214,10 @@ Doctor! The containment field is collapsing!
         # Create analyzer with adjusted parameters
         class AdjustedScriptAnalyzer(ScriptAnalyzer):
             def _classify_scene_type(
-                self, dialogue_lines: int, action_density: float, total_words: int
+                self,
+                dialogue_lines: int,
+                action_density: float,
+                total_words: int,
             ) -> SceneType:
                 """Adjusted classification."""
                 if total_words < 200:
@@ -215,9 +246,7 @@ Doctor! The containment field is collapsing!
         assert hasattr(result, "estimated_duration")
 
         # Duration should be within configured range
-        assert (
-            analyzer.min_duration <= result.estimated_duration <= analyzer.max_duration
-        )
+        assert analyzer.min_duration <= result.estimated_duration <= analyzer.max_duration
 
     def test_adjusted_analyzer_short_dialogue(self):
         """Test adjusted analyzer with short dialogue script."""
@@ -237,7 +266,10 @@ Morning. Ready for the meeting?
         # Create analyzer with adjusted parameters
         class AdjustedScriptAnalyzer(ScriptAnalyzer):
             def _classify_scene_type(
-                self, dialogue_lines: int, action_density: float, total_words: int
+                self,
+                dialogue_lines: int,
+                action_density: float,
+                total_words: int,
             ) -> SceneType:
                 """Adjusted classification."""
                 if total_words < 200:
@@ -262,9 +294,7 @@ Morning. Ready for the meeting?
         assert result.total_words < 200  # Should be few words
 
         # Duration should be reasonable
-        assert (
-            analyzer.min_duration <= result.estimated_duration <= analyzer.max_duration
-        )
+        assert analyzer.min_duration <= result.estimated_duration <= analyzer.max_duration
 
     def test_word_factor_capping(self):
         """Test that word factor is capped at 2.0."""
@@ -272,7 +302,10 @@ Morning. Ready for the meeting?
         # Create analyzer with adjusted parameters
         class AdjustedScriptAnalyzer(ScriptAnalyzer):
             def _estimate_duration(
-                self, scene_type: SceneType, complexity_score: float, total_words: int
+                self,
+                scene_type: SceneType,
+                complexity_score: float,
+                total_words: int,
             ) -> int:
                 """Adjusted duration estimation."""
                 ranges = {
@@ -307,7 +340,10 @@ Morning. Ready for the meeting?
         # Create analyzer with adjusted parameters
         class AdjustedScriptAnalyzer(ScriptAnalyzer):
             def _estimate_duration(
-                self, scene_type: SceneType, complexity_score: float, total_words: int
+                self,
+                scene_type: SceneType,
+                complexity_score: float,
+                total_words: int,
             ) -> int:
                 """Adjusted duration estimation."""
                 ranges = {

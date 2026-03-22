@@ -5,7 +5,7 @@ Pytest tests for MediaUtils.
 import os
 import tempfile
 from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -27,9 +27,7 @@ class TestMediaUtils:
 
         # Create mock chunks
         chunk_data = b"fake_video_data" * 100
-        mock_response.iter_content = Mock(
-            return_value=[chunk_data[:512], chunk_data[512:]]
-        )
+        mock_response.iter_content = Mock(return_value=[chunk_data[:512], chunk_data[512:]])
 
         with patch("magicplay.utils.media.requests.get") as mock_get:
             mock_get.return_value = mock_response
@@ -137,9 +135,7 @@ class TestMediaUtils:
 
                     # Should succeed
                     assert result is True
-                    mock_clip.save_frame.assert_called_once_with(
-                        str(output_path), t=9.9
-                    )
+                    mock_clip.save_frame.assert_called_once_with(str(output_path), t=9.9)
             else:
                 # Without moviepy, should return False
                 result = MediaUtils.extract_last_frame(video_path, output_path)
@@ -159,9 +155,7 @@ class TestMediaUtils:
                 mock_clip.__enter__ = Mock(return_value=mock_clip)
                 mock_clip.__exit__ = Mock(return_value=None)
                 mock_clip.duration = 10.0
-                mock_clip.save_frame = Mock(
-                    side_effect=Exception("Frame extraction failed")
-                )
+                mock_clip.save_frame = Mock(side_effect=Exception("Frame extraction failed"))
                 mock_clip_class.return_value = mock_clip
 
                 result = MediaUtils.extract_last_frame(video_path, output_path)
@@ -172,7 +166,10 @@ class TestMediaUtils:
     @pytest.mark.parametrize("moviepy_available", [True, False])
     def test_stitch_videos_moviepy_availability(self, tmp_path, moviepy_available):
         """Test stitch_videos with and without moviepy."""
-        video_files = [str(tmp_path / "video1.mp4"), str(tmp_path / "video2.mp4")]
+        video_files = [
+            str(tmp_path / "video1.mp4"),
+            str(tmp_path / "video2.mp4"),
+        ]
         output_path = tmp_path / "output.mp4"
 
         # Create dummy files
@@ -183,11 +180,8 @@ class TestMediaUtils:
             if moviepy_available:
                 with (
                     patch("magicplay.utils.media.VideoFileClip") as mock_clip_class,
-                    patch(
-                        "magicplay.utils.media.concatenate_videoclips"
-                    ) as mock_concatenate,
+                    patch("magicplay.utils.media.concatenate_videoclips") as mock_concatenate,
                 ):
-
                     # Setup mock clips
                     mock_clip1 = Mock()
                     mock_clip1.filename = video_files[0]
@@ -260,7 +254,10 @@ class TestMediaUtils:
 
     def test_stitch_videos_different_resolutions(self, tmp_path):
         """Test stitch_videos with clips of different resolutions."""
-        video_files = [str(tmp_path / "video1.mp4"), str(tmp_path / "video2.mp4")]
+        video_files = [
+            str(tmp_path / "video1.mp4"),
+            str(tmp_path / "video2.mp4"),
+        ]
         output_path = tmp_path / "output.mp4"
 
         # Create dummy files
@@ -270,11 +267,8 @@ class TestMediaUtils:
         with patch("magicplay.utils.media.MOVIEPY_AVAILABLE", True):
             with (
                 patch("magicplay.utils.media.VideoFileClip") as mock_clip_class,
-                patch(
-                    "magicplay.utils.media.concatenate_videoclips"
-                ) as mock_concatenate,
+                patch("magicplay.utils.media.concatenate_videoclips") as mock_concatenate,
             ):
-
                 # Setup mock clips with different resolutions
                 mock_clip1 = Mock()
                 mock_clip1.filename = video_files[0]
@@ -324,13 +318,9 @@ class TestMediaUtils:
                 mock_clip.close = Mock()
                 mock_clip_class.return_value = mock_clip
 
-                with patch(
-                    "magicplay.utils.media.concatenate_videoclips"
-                ) as mock_concatenate:
+                with patch("magicplay.utils.media.concatenate_videoclips") as mock_concatenate:
                     mock_final_clip = Mock()
-                    mock_final_clip.write_videofile = Mock(
-                        side_effect=Exception("Write failed")
-                    )
+                    mock_final_clip.write_videofile = Mock(side_effect=Exception("Write failed"))
                     mock_final_clip.close = Mock()
                     mock_concatenate.return_value = mock_final_clip
 

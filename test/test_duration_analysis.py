@@ -72,7 +72,8 @@ Rain-slicked streets, neon signs reflecting in puddles, fast-paced chase sequenc
 The car screeches around the corner, tires smoking. Rain pelts the windshield as the wipers struggle to keep up.
 
 **ACTION**
-A motorcycle emerges from an alley, cutting off the car's path. The rider wears black leather, face obscured by a helmet.
+A motorcycle emerges from an alley, cutting off the car's path.
+The rider wears black leather, face obscured by a helmet.
 
 **ACTION**
 The car swerves, narrowly avoiding a collision. It mounts the sidewalk, scattering trash cans and cardboard boxes.
@@ -159,9 +160,7 @@ It has to work! I won't lose another one!
     print()
 
     # Test with an existing script file
-    existing_scripts = list(
-        Path("data/story/MyStory/01_EpisodeOne/generated_scripts").glob("*.md")
-    )
+    existing_scripts = list(Path("data/story/MyStory/01_EpisodeOne/generated_scripts").glob("*.md"))
     if existing_scripts:
         print("Testing with existing script file:")
         script_path = existing_scripts[0]

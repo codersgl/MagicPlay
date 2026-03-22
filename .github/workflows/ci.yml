@@ -39,12 +39,10 @@ jobs:
     - name: Run static analysis and linting
       run: |
         source .venv/bin/activate
-        echo "=== Running black code formatting check ==="
-        black --check src test
-        echo "=== Running isort import sorting check ==="
-        isort --check-only src test
-        echo "=== Running flake8 linting ==="
-        flake8 src test
+        echo "=== Running ruff format check ==="
+        ruff format --check src test
+        echo "=== Running ruff linting ==="
+        ruff check src test
         echo "=== Running mypy type checking ==="
         mypy src
     

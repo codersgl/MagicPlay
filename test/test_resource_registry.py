@@ -3,10 +3,9 @@ Tests for Resource Registry module.
 """
 
 import json
-import tempfile
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -277,7 +276,7 @@ class TestResourceRegistry:
                 resource_type=ResourceType.CHARACTER_IMAGE,
                 metadata={"index": i},
                 quality_score=20.0 * (i + 1),  # 20, 40, 60, 80, 100
-                state=ResourceState.VALIDATED if i >= 2 else ResourceState.GENERATED,
+                state=(ResourceState.VALIDATED if i >= 2 else ResourceState.GENERATED),
             )
             resources.append(record)
 
@@ -306,7 +305,7 @@ class TestResourceRegistry:
     def test_search_with_tags(self, temp_db):
         """Test searching with tags."""
         # Register resources with different tags
-        hero_record = temp_db.register(
+        temp_db.register(
             resource_type=ResourceType.CHARACTER_IMAGE,
             metadata={"character": "hero"},
             tags=["hero", "male", "warrior"],
@@ -356,7 +355,7 @@ class TestResourceRegistry:
             "setting": "castle",
         }
 
-        base_record = temp_db.register(
+        temp_db.register(
             resource_type=ResourceType.CHARACTER_IMAGE,
             metadata=base_metadata,
             quality_score=90.0,
@@ -603,11 +602,7 @@ class TestResourceRegistryIntegration:
                 metadata=metadata,
                 quality_score=quality,
                 generation_cost=cost,
-                state=(
-                    ResourceState.VALIDATED
-                    if quality >= 70.0
-                    else ResourceState.GENERATED
-                ),
+                state=(ResourceState.VALIDATED if quality >= 70.0 else ResourceState.GENERATED),
                 tags=[f"type:{res_type.value}"] + list(metadata.keys()),
             )
             records.append(record)
@@ -670,8 +665,6 @@ class TestResourceRegistryIntegration:
                 break
 
         assert hero_record is not None
-
-        initial_usage = hero_record.usage_count
 
         # "Use" the resource multiple times by re-registering it
         # This simulates real usage where the same content is requested again

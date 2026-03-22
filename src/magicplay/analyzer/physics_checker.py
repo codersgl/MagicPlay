@@ -8,7 +8,7 @@ import re
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 
 class ViolationType(Enum):
@@ -113,8 +113,18 @@ class PhysicsChecker:
         self.scifi_patterns = {
             "hologram": [r"全息投影", r"全息", r"hologram", r"holo"],
             "ai_interface": [r"智能界面", r"AI 界面", r"virtual interface"],
-            "future_vehicle": [r"飞行器", r"悬浮车", r"flying car", r"hover vehicle"],
-            "energy_weapon": [r"能量武器", r"激光", r"energy weapon", r"blaster"],
+            "future_vehicle": [
+                r"飞行器",
+                r"悬浮车",
+                r"flying car",
+                r"hover vehicle",
+            ],
+            "energy_weapon": [
+                r"能量武器",
+                r"激光",
+                r"energy weapon",
+                r"blaster",
+            ],
             "neural_implant": [r"神经植入", r"脑机接口", r"neural implant"],
         }
 
@@ -192,9 +202,7 @@ class PhysicsChecker:
         for keyword in self.gravity_keywords:
             if keyword.lower() in line_lower:
                 # Check if it's an allowed exception
-                is_allowed = any(
-                    re.search(pattern, line) for pattern in self.allowed_exceptions
-                )
+                is_allowed = any(re.search(pattern, line) for pattern in self.allowed_exceptions)
 
                 if not is_allowed:
                     return PhysicsViolation(
@@ -215,9 +223,7 @@ class PhysicsChecker:
         for keyword in self.motion_keywords:
             if keyword.lower() in line_lower:
                 # Check if it's an allowed exception (e.g., established sci-fi tech)
-                is_allowed = any(
-                    re.search(pattern, line) for pattern in self.allowed_exceptions
-                )
+                is_allowed = any(re.search(pattern, line) for pattern in self.allowed_exceptions)
 
                 if not is_allowed:
                     return PhysicsViolation(
@@ -248,9 +254,7 @@ class PhysicsChecker:
 
         return None
 
-    def _track_scifi_element(
-        self, line: str, line_num: int, elements: Dict[str, SciFiElement]
-    ) -> None:
+    def _track_scifi_element(self, line: str, line_num: int, elements: Dict[str, SciFiElement]) -> None:
         """Track science-fiction elements for consistency checking."""
         line_lower = line.lower()
 
@@ -266,14 +270,10 @@ class PhysicsChecker:
                         )
                     else:
                         # Record this occurrence
-                        elements[element_type].occurrences.append(
-                            (line_num, line.strip()[:100])
-                        )
+                        elements[element_type].occurrences.append((line_num, line.strip()[:100]))
                     break
 
-    def _check_scifi_consistency(
-        self, elements: Dict[str, SciFiElement]
-    ) -> List[PhysicsViolation]:
+    def _check_scifi_consistency(self, elements: Dict[str, SciFiElement]) -> List[PhysicsViolation]:
         """Check for sci-fi element consistency across the script."""
         violations = []
 
@@ -284,17 +284,23 @@ class PhysicsChecker:
                 descriptions = [desc for _, desc in element.occurrences]
 
                 # Simple heuristic: check for contradictory keywords
-                positive_terms = ["强大", "有效", "working", "active", "功能正常"]
-                negative_terms = ["失效", "损坏", "broken", "malfunction", "无法使用"]
+                positive_terms = [
+                    "强大",
+                    "有效",
+                    "working",
+                    "active",
+                    "功能正常",
+                ]
+                negative_terms = [
+                    "失效",
+                    "损坏",
+                    "broken",
+                    "malfunction",
+                    "无法使用",
+                ]
 
-                has_positive = any(
-                    any(term in desc.lower() for term in positive_terms)
-                    for desc in descriptions
-                )
-                has_negative = any(
-                    any(term in desc.lower() for term in negative_terms)
-                    for desc in descriptions
-                )
+                has_positive = any(any(term in desc.lower() for term in positive_terms) for desc in descriptions)
+                has_negative = any(any(term in desc.lower() for term in negative_terms) for desc in descriptions)
 
                 if has_positive and has_negative:
                     # Check if there's an explanation for the change
@@ -313,7 +319,9 @@ class PhysicsChecker:
         return violations
 
     def generate_report(
-        self, violations: List[PhysicsViolation], output_path: Optional[Path] = None
+        self,
+        violations: List[PhysicsViolation],
+        output_path: Optional[Path] = None,
     ) -> str:
         """
         Generate a human-readable report of physics violations.
@@ -340,9 +348,7 @@ class PhysicsChecker:
             for vtype, vlist in by_type.items():
                 report += f"\n## {vtype.value.upper()} ({len(vlist)} issues)\n\n"
                 for v in vlist:
-                    report += (
-                        f"### 行 {v.line_number} (严重程度：{'⭐' * v.severity})\n"
-                    )
+                    report += f"### 行 {v.line_number} (严重程度：{'⭐' * v.severity})\n"
                     report += f"> {v.line_content}\n\n"
                     report += f"**问题**: {v.description}\n\n"
                     if v.suggestion:
@@ -355,6 +361,3 @@ class PhysicsChecker:
             print(f"Physics check report saved to: {output_path}")
 
         return report
-
-
-from typing import Union

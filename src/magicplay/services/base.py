@@ -4,7 +4,6 @@ MagicPlay Base Service
 Abstract base class for all external service integrations.
 """
 
-from abc import ABC
 from typing import Optional
 
 from loguru import logger
@@ -13,9 +12,9 @@ from magicplay.config import Settings
 from magicplay.exceptions import APIError
 
 
-class BaseService(ABC):
+class BaseService:
     """
-    Abstract base class for all external services.
+    Base class for all external services.
 
     Provides common functionality:
     - Configuration access
@@ -114,9 +113,7 @@ class BaseService(ABC):
             status: Response status code
             data: Response data (sanitized)
         """
-        self.logger.debug(
-            f"Response from {endpoint} [{status}]: {self._sanitize_payload(data)}"
-        )
+        self.logger.debug(f"Response from {endpoint} [{status}]: {self._sanitize_payload(data)}")
 
     def _sanitize_payload(self, payload: dict) -> dict:
         """
@@ -128,7 +125,14 @@ class BaseService(ABC):
         Returns:
             Sanitized dictionary
         """
-        sensitive_keys = {"api_key", "key", "token", "secret", "password", "auth"}
+        sensitive_keys = {
+            "api_key",
+            "key",
+            "token",
+            "secret",
+            "password",
+            "auth",
+        }
         result = {}
 
         for key, value in payload.items():

@@ -5,7 +5,19 @@
       "Bash(isort --apply src/magicplay/generators/comic_panel_gen.py src/magicplay/generators/dynamic_panel_selector.py src/magicplay/core/comic_orchestrator.py scripts/run_comic.py)",
       "Bash(black src/magicplay/generators/comic_panel_gen.py src/magicplay/generators/dynamic_panel_selector.py src/magicplay/core/comic_orchestrator.py scripts/run_comic.py)",
       "Bash(git merge:*)",
-      "Bash(git fetch:*)"
+      "Bash(git fetch:*)",
+      "Bash(flake8 --version)",
+      "Bash(flake8 --show-config)",
+      "Bash(flake8 --config pyproject.toml src/magicplay/analyzer/physics_checker.py)",
+      "Bash(flake8 --ignore=E501,F401 src/magicplay/analyzer/physics_checker.py)",
+      "Bash(python -c \"import tomllib; print\\(tomllib.load\\(open\\(''pyproject.toml'', ''rb''\\)\\)[''tool''][''flake8'']\\)\")",
+      "Bash(flake8 --statistics src/magicplay/analyzer/physics_checker.py)",
+      "Bash(flake8 --max-line-length 88 --extend-ignore \"E203,W503\" --exclude \".git,__pycache__,.venv,dist,build\" src/magicplay/analyzer/physics_checker.py)",
+      "Bash(flake8 src/magicplay/analyzer/physics_checker.py)",
+      "Bash(python -c \"import flake8; print\\(flake8.__file__\\)\")",
+      "Bash(find . -name *.flake8* -o -name .flake8*)",
+      "Bash(.venv/bin/flake8 --version)",
+      "Bash(.venv/bin/flake8 src/magicplay/analyzer/physics_checker.py)"
     ]
   }
 }

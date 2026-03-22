@@ -59,9 +59,7 @@ class ComicPanelGenerator:
 
         prompts_dir = Path(__file__).parent.parent / "prompts"
         try:
-            self.prompt_template = (prompts_dir / "comic_panel.md").read_text(
-                encoding="utf-8"
-            )
+            self.prompt_template = (prompts_dir / "comic_panel.md").read_text(encoding="utf-8")
         except FileNotFoundError:
             self.prompt_template = "Create a comic panel: {panel_description}"
 
@@ -84,19 +82,13 @@ class ComicPanelGenerator:
         """
         # Build character description string
         char_desc_str = (
-            "\n".join(
-                f"- {name}: {desc}" for name, desc in character_descriptions.items()
-            )
+            "\n".join(f"- {name}: {desc}" for name, desc in character_descriptions.items())
             if character_descriptions
             else "No specific characters"
         )
 
         # Build dialogue text if present
-        dialogue_section = (
-            f"Dialogue/Text: {panel_info.dialogue}"
-            if panel_info.dialogue
-            else "No dialogue"
-        )
+        dialogue_section = f"Dialogue/Text: {panel_info.dialogue}" if panel_info.dialogue else "No dialogue"
 
         # Create prompt
         prompt = self._build_prompt(
@@ -119,10 +111,7 @@ class ComicPanelGenerator:
                 prompt=prompt,
                 output_path=str(output_path),
                 size=size,
-                negative_prompt=(
-                    "low quality, blurry, distorted, deformed, "
-                    "bad anatomy, watermark"
-                ),
+                negative_prompt=("low quality, blurry, distorted, deformed, bad anatomy, watermark"),
                 n=1,
             )
 

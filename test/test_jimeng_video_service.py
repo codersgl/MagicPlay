@@ -2,9 +2,7 @@
 Pytest tests for JimengVideoService.
 """
 
-import json
-from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -53,7 +51,8 @@ class TestJimengVideoService:
         mock_settings_no_keys.jimeng_default_aspect_ratio = "16:9"
 
         with pytest.raises(
-            ValueError, match="JIMENG_ACCESS_KEY and JIMENG_SECRET_KEY are required"
+            ValueError,
+            match="JIMENG_ACCESS_KEY and JIMENG_SECRET_KEY are required",
         ):
             with patch("magicplay.services.jimeng_video_api.VisualService"):
                 JimengVideoService(config=mock_settings_no_keys)
@@ -94,7 +93,10 @@ class TestJimengVideoService:
         mock_response = Mock()
         mock_response.json.return_value = {
             "code": 10000,
-            "data": {"status": "done", "video_url": "https://example.com/video.mp4"},
+            "data": {
+                "status": "done",
+                "video_url": "https://example.com/video.mp4",
+            },
         }
         service.service.cv_sync2async_get_result.return_value = mock_response
 
@@ -130,7 +132,10 @@ class TestJimengVideoService:
         mock_response = Mock()
         mock_response.json.return_value = {
             "code": 10000,
-            "data": {"status": "done", "video_url": "https://example.com/video.mp4"},
+            "data": {
+                "status": "done",
+                "video_url": "https://example.com/video.mp4",
+            },
         }
         service.service.cv_sync2async_get_result.return_value = mock_response
 

@@ -2,10 +2,9 @@
 Tests for SceneSegmentGenerator module.
 """
 
-import logging
 import tempfile
 from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -34,9 +33,7 @@ class TestSceneSegmentGenerator:
         with patch("magicplay.generators.scene_segment_gen.DataManager") as mock_dm:
             mock_dm.get_scene_segments_path.return_value = temp_dir
 
-            with patch(
-                "magicplay.generators.scene_segment_gen.get_settings"
-            ) as mock_settings:
+            with patch("magicplay.generators.scene_segment_gen.get_settings") as mock_settings:
                 mock_settings.return_value = MagicMock()
 
                 with patch(
@@ -58,9 +55,7 @@ class TestSceneSegmentGenerator:
         assert scene_segment_generator.output_dir == temp_dir
         assert scene_segment_generator.MAX_SEGMENT_DURATION == 10
 
-    def test_generate_scene_segments_single_segment(
-        self, scene_segment_generator, temp_dir
-    ):
+    def test_generate_scene_segments_single_segment(self, scene_segment_generator, temp_dir):
         """Test generating a single segment for short scene."""
         video_path = temp_dir / "scene_1_segment_0.mp4"
         video_path.touch()  # Create actual file
@@ -77,9 +72,7 @@ class TestSceneSegmentGenerator:
         assert len(result) == 1
         assert scene_segment_generator.video_gen.generate_video.called
 
-    def test_generate_scene_segments_multi_frame(
-        self, scene_segment_generator, temp_dir
-    ):
+    def test_generate_scene_segments_multi_frame(self, scene_segment_generator, temp_dir):
         """Test generating multiple segments for long scene."""
         video_path = temp_dir / "scene_long_segment_0.mp4"
         video_path2 = temp_dir / "scene_long_segment_1.mp4"
@@ -102,9 +95,7 @@ class TestSceneSegmentGenerator:
         assert len(result) == 2
         assert scene_segment_generator.video_gen.generate_video.call_count == 2
 
-    def test_generate_scene_segments_no_multi_frame(
-        self, scene_segment_generator, temp_dir
-    ):
+    def test_generate_scene_segments_no_multi_frame(self, scene_segment_generator, temp_dir):
         """Test generating single segment when multi_frame is disabled."""
         video_path = temp_dir / "scene_no_mf_segment_0.mp4"
         video_path.touch()
@@ -121,9 +112,7 @@ class TestSceneSegmentGenerator:
         assert len(result) == 1
         assert scene_segment_generator.video_gen.generate_video.call_count == 1
 
-    def test_generate_scene_segments_with_segment_index(
-        self, scene_segment_generator, temp_dir
-    ):
+    def test_generate_scene_segments_with_segment_index(self, scene_segment_generator, temp_dir):
         """Test that segment index is passed correctly."""
         video_path = temp_dir / "scene_idx_segment_0.mp4"
         video_path.touch()
@@ -181,34 +170,26 @@ class TestSceneSegmentStitching:
         with patch("magicplay.generators.scene_segment_gen.DataManager") as mock_dm:
             mock_dm.get_scene_segments_path.return_value = temp_dir
 
-            with patch(
-                "magicplay.generators.scene_segment_gen.get_settings"
-            ) as mock_settings:
+            with patch("magicplay.generators.scene_segment_gen.get_settings") as mock_settings:
                 mock_settings.return_value = MagicMock()
 
                 with patch(
                     "magicplay.generators.scene_segment_gen.VideoGenerator",
                     return_value=mock_video_generator,
                 ):
-                    yield SceneSegmentGenerator(
-                        story_name="TestStory", episode_name="Episode1"
-                    )
+                    yield SceneSegmentGenerator(story_name="TestStory", episode_name="Episode1")
 
     def test_stitch_segments_single(self, scene_segment_generator, temp_dir):
         """Test stitching with only one segment returns that segment."""
         single_segment = temp_dir / "single.mp4"
 
-        result = scene_segment_generator.stitch_segments(
-            scene_name="test_scene", segments=[single_segment]
-        )
+        result = scene_segment_generator.stitch_segments(scene_name="test_scene", segments=[single_segment])
 
         assert result == single_segment
 
     def test_stitch_segments_empty_list(self, scene_segment_generator):
         """Test stitching with empty list returns None."""
-        result = scene_segment_generator.stitch_segments(
-            scene_name="test_scene", segments=[]
-        )
+        result = scene_segment_generator.stitch_segments(scene_name="test_scene", segments=[])
 
         assert result is None
 
@@ -226,16 +207,12 @@ class TestSceneSegmentStitching:
             for seg in segments:
                 seg.touch()
 
-            result = scene_segment_generator.stitch_segments(
-                scene_name="multi_scene", segments=segments
-            )
+            result = scene_segment_generator.stitch_segments(scene_name="multi_scene", segments=segments)
 
             assert result == temp_dir / "multi_scene_stitched.mp4"
             mock_media.stitch_videos.assert_called_once()
 
-    def test_stitch_segments_media_utils_failure(
-        self, scene_segment_generator, temp_dir
-    ):
+    def test_stitch_segments_media_utils_failure(self, scene_segment_generator, temp_dir):
         """Test handling of MediaUtils failure."""
         with patch("magicplay.generators.scene_segment_gen.MediaUtils") as mock_media:
             mock_media.stitch_videos.return_value = False
@@ -245,9 +222,7 @@ class TestSceneSegmentStitching:
             for seg in segments:
                 seg.touch()
 
-            result = scene_segment_generator.stitch_segments(
-                scene_name="fail_scene", segments=segments
-            )
+            result = scene_segment_generator.stitch_segments(scene_name="fail_scene", segments=segments)
 
             assert result is None
 
@@ -279,9 +254,7 @@ class TestGenerateWithTimeline:
         with patch("magicplay.generators.scene_segment_gen.DataManager") as mock_dm:
             mock_dm.get_scene_segments_path.return_value = temp_dir
 
-            with patch(
-                "magicplay.generators.scene_segment_gen.get_settings"
-            ) as mock_settings:
+            with patch("magicplay.generators.scene_segment_gen.get_settings") as mock_settings:
                 mock_settings.return_value = MagicMock()
 
                 with patch(
@@ -294,18 +267,22 @@ class TestGenerateWithTimeline:
                         timeline_analyzer=mock_timeline_analyzer,
                     )
 
-    def test_generate_with_timeline_calls_analyzer(
-        self, generator, temp_dir, mock_timeline_analyzer
-    ):
+    def test_generate_with_timeline_calls_analyzer(self, generator, temp_dir, mock_timeline_analyzer):
         """Test that generate_with_timeline uses TimelineAnalyzer."""
-        from magicplay.analyzer.timeline_analyzer import TimelineResult, TimelineSegment
+        from magicplay.analyzer.timeline_analyzer import (
+            TimelineResult,
+            TimelineSegment,
+        )
 
         video_path = temp_dir / "scene_timeline_segment_0.mp4"
         video_path2 = temp_dir / "scene_timeline_segment_1.mp4"
         video_path.touch()
         video_path2.touch()
 
-        generator.video_gen.generate_video.side_effect = [video_path, video_path2]
+        generator.video_gen.generate_video.side_effect = [
+            video_path,
+            video_path2,
+        ]
 
         # Mock TimelineAnalyzer result
         mock_timeline_result = TimelineResult(
@@ -338,7 +315,8 @@ class TestGenerateWithTimeline:
 
         # Verify TimelineAnalyzer was called
         mock_timeline_analyzer.analyze.assert_called_once_with(
-            scene_script="A hero enters a castle and battles a dragon", duration=10
+            scene_script="A hero enters a castle and battles a dragon",
+            duration=10,
         )
 
         # Verify video generation was called with timeline-based prompts
@@ -354,9 +332,7 @@ class TestGenerateWithTimeline:
 
         assert len(result) == 2
 
-    def test_generate_with_timeline_fallback(
-        self, generator, temp_dir, mock_timeline_analyzer
-    ):
+    def test_generate_with_timeline_fallback(self, generator, temp_dir, mock_timeline_analyzer):
         """Test fallback when timeline analysis returns empty segments."""
         from magicplay.analyzer.timeline_analyzer import TimelineResult
 
@@ -364,7 +340,10 @@ class TestGenerateWithTimeline:
         video_path2 = temp_dir / "fallback_segment_1.mp4"
         video_path.touch()
         video_path2.touch()
-        generator.video_gen.generate_video.side_effect = [video_path, video_path2]
+        generator.video_gen.generate_video.side_effect = [
+            video_path,
+            video_path2,
+        ]
 
         # Mock TimelineAnalyzer returning empty segments
         mock_timeline_result = TimelineResult(
@@ -375,7 +354,7 @@ class TestGenerateWithTimeline:
 
         mock_timeline_analyzer.analyze.return_value = mock_timeline_result
 
-        result = generator.generate_with_timeline(
+        generator.generate_with_timeline(
             scene_name="fallback_scene",
             scene_script="A hero walks",
             segment_duration=15,  # Over MAX_SEGMENT_DURATION to trigger multi-frame
@@ -391,15 +370,16 @@ class TestGenerateWithTimeline:
         assert "A hero walks" in visual_prompt
         assert "Part 1 of 2" in visual_prompt
 
-    def test_generate_with_timeline_logs_segment_info(
-        self, generator, temp_dir, mock_timeline_analyzer
-    ):
+    def test_generate_with_timeline_logs_segment_info(self, generator, temp_dir, mock_timeline_analyzer):
         """Test that generate_with_timeline logs segment info.
 
         Note: Loguru output is captured by pytest's internal mechanism,
         visible in 'Captured stderr call' section of test output.
         """
-        from magicplay.analyzer.timeline_analyzer import TimelineResult, TimelineSegment
+        from magicplay.analyzer.timeline_analyzer import (
+            TimelineResult,
+            TimelineSegment,
+        )
 
         video_path = temp_dir / "log_scene_segment_0.mp4"
         video_path.touch()
@@ -439,9 +419,7 @@ class TestGenerateWithTimeline:
         with patch("magicplay.generators.scene_segment_gen.DataManager") as mock_dm:
             mock_dm.get_scene_segments_path.return_value = temp_dir
 
-            with patch(
-                "magicplay.generators.scene_segment_gen.get_settings"
-            ) as mock_settings:
+            with patch("magicplay.generators.scene_segment_gen.get_settings") as mock_settings:
                 mock_settings.return_value = MagicMock()
 
                 with patch(
@@ -481,18 +459,14 @@ class TestSceneSegmentGeneratorEdgeCases:
         with patch("magicplay.generators.scene_segment_gen.DataManager") as mock_dm:
             mock_dm.get_scene_segments_path.return_value = temp_dir
 
-            with patch(
-                "magicplay.generators.scene_segment_gen.get_settings"
-            ) as mock_settings:
+            with patch("magicplay.generators.scene_segment_gen.get_settings") as mock_settings:
                 mock_settings.return_value = MagicMock()
 
                 with patch(
                     "magicplay.generators.scene_segment_gen.VideoGenerator",
                     return_value=mock_video_generator,
                 ):
-                    yield SceneSegmentGenerator(
-                        story_name="TestStory", episode_name="Episode1"
-                    )
+                    yield SceneSegmentGenerator(story_name="TestStory", episode_name="Episode1")
 
     def test_generate_with_video_failure(self, generator, temp_dir):
         """Test handling of video generation failure."""
@@ -546,8 +520,6 @@ class TestSceneSegmentGeneratorEdgeCases:
             for seg in segments:
                 seg.touch()
 
-            result = generator.stitch_segments(
-                scene_name="stitch_error", segments=segments
-            )
+            result = generator.stitch_segments(scene_name="stitch_error", segments=segments)
 
             assert result is None

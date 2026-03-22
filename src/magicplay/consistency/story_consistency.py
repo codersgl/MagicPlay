@@ -1,7 +1,7 @@
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional
 
 
 @dataclass
@@ -125,11 +125,6 @@ class StoryConsistencyManager:
             "性格特征",
             "ai演员锚点",
             "appearance",
-            "身份",
-            "人设类型",
-            "性格特征",
-            "ai演员锚点",
-            "appearance",
         }
 
         for line in lines:
@@ -152,7 +147,10 @@ class StoryConsistencyManager:
                     "Pattern 2: * **角色名 (描述)**: or * **角色名**:",
                 ),
                 (r"\*\*\[([^\]]+)\]\*\*", "Pattern 3: **[角色名]**"),
-                (r"\*\*\[?([^\]\*]+)\]?\*\*", "Pattern 4: **[角色名]** or **角色名**"),
+                (
+                    r"\*\*\[?([^\]\*]+)\]?\*\*",
+                    "Pattern 4: **[角色名]** or **角色名**",
+                ),
                 (r"\*\s*\[?([^\]\:]+)\]?\s*:", "Pattern 5: * [角色名]:"),
                 (r"###\s*\[?([^\]\*]+)\]?", "Pattern 6: ### [角色名]"),
                 (r"\[?([^\]\:]+)\]?\s*:", "Pattern 7: [角色名]:"),
@@ -172,15 +170,11 @@ class StoryConsistencyManager:
                     # Allow longer names (Chinese 2-6 characters, English 2-30 characters)
                     if len(potential_name) >= 2 and len(potential_name) <= 30:
                         # Common character name patterns (Chinese names, English names)
-                        if re.match(
-                            r"^[\u4e00-\u9fff]{2,6}$", potential_name
-                        ):  # Chinese characters
+                        if re.match(r"^[\u4e00-\u9fff]{2,6}$", potential_name):  # Chinese characters
                             is_character = True
                             character_name = potential_name
                             break
-                        elif re.match(
-                            r"^[A-Za-z\s]{2,30}$", potential_name
-                        ):  # English names
+                        elif re.match(r"^[A-Za-z\s]{2,30}$", potential_name):  # English names
                             is_character = True
                             character_name = potential_name
                             break
@@ -256,7 +250,12 @@ class StoryConsistencyManager:
 
         # Extract visual tags from appearance description
         # 尝试多种可能的键名
-        appearance_keys = ["ai演员锚点", "ai演员锚点：", "appearance", "ai演员"]
+        appearance_keys = [
+            "ai演员锚点",
+            "ai演员锚点：",
+            "appearance",
+            "ai演员",
+        ]
         appearance_text = ""
         for key in appearance_keys:
             if key in cleaned_data:
@@ -276,12 +275,8 @@ class StoryConsistencyManager:
         appearance = {
             "hair": self._extract_feature(appearance_text, ["hair", "发"]),
             "eyes": self._extract_feature(appearance_text, ["eyes", "眼"]),
-            "clothing": self._extract_feature(
-                appearance_text, ["clothing", "服装", "wear"]
-            ),
-            "special_features": self._extract_feature(
-                appearance_text, ["scar", "疤痕", "tattoo", "纹身"]
-            ),
+            "clothing": self._extract_feature(appearance_text, ["clothing", "服装", "wear"]),
+            "special_features": self._extract_feature(appearance_text, ["scar", "疤痕", "tattoo", "纹身"]),
         }
 
         # Personality traits
@@ -424,13 +419,14 @@ class StoryConsistencyManager:
                 # Extract context around the keyword (up to 50 characters)
                 start = max(0, match.start() - 30)
                 end = min(len(text), match.end() + 50)
-                context = text[start:end]
+                text[start:end]
 
                 # Try to extract descriptive phrase after the keyword
                 after_keyword = text[match.end() :]
                 # Look for descriptive words (Chinese characters, adjectives, etc.)
                 descriptive_match = re.search(
-                    r"([\u4e00-\u9fff]+(?:\s*[\u4e00-\u9fff]+)*)", after_keyword
+                    r"([\u4e00-\u9fff]+(?:\s*[\u4e00-\u9fff]+)*)",
+                    after_keyword,
                 )
                 if descriptive_match:
                     description = descriptive_match.group(1).strip()
@@ -453,11 +449,7 @@ class StoryConsistencyManager:
                 style_data[key] = value
 
         # Create visual style object
-        color_palette = (
-            style_data.get("色彩基调", "").split(",")
-            if "色彩基调" in style_data
-            else []
-        )
+        color_palette = style_data.get("色彩基调", "").split(",") if "色彩基调" in style_data else []
         lighting = style_data.get("光影氛围", "natural")
         cinematic = style_data.get("场景风格", "cinematic")
         mood = style_data.get("情感基调", "neutral")
@@ -528,9 +520,7 @@ class StoryConsistencyManager:
                 for emotion, keywords in emotional_keywords.items():
                     for keyword in keywords:
                         if keyword in scene_content and char_name in scene_content:
-                            self.story_state.character_states[char_name][
-                                "emotion"
-                            ] = emotion
+                            self.story_state.character_states[char_name]["emotion"] = emotion
                             break
 
     def _update_timeline_location(self, scene_content: str) -> None:
@@ -544,18 +534,14 @@ class StoryConsistencyManager:
         if scene_header_match:
             header = scene_header_match.group(1)
             # Extract location from header (e.g., INT. LOCATION - TIME)
-            location_match = re.search(
-                r"(?:INT\.|EXT\.)\s+(.*?)(?:-|$)", header, re.IGNORECASE
-            )
+            location_match = re.search(r"(?:INT\.|EXT\.)\s+(.*?)(?:-|$)", header, re.IGNORECASE)
             if location_match:
                 self.story_state.location = location_match.group(1).strip()
 
     def _add_to_memory_bank(self, scene_content: str) -> None:
         """Add key information to memory bank."""
         # Extract first 100 characters as summary (simplified)
-        summary = (
-            scene_content[:100] + "..." if len(scene_content) > 100 else scene_content
-        )
+        summary = scene_content[:100] + "..." if len(scene_content) > 100 else scene_content
         self.memory_bank.append(summary)
 
         # Keep only recent memories (last 5 scenes)
@@ -575,9 +561,7 @@ class StoryConsistencyManager:
         # Visual style consistency
         if self.visual_style:
             prompt_parts.append("\n## Visual Style:")
-            prompt_parts.append(
-                f"- Color Palette: {', '.join(self.visual_style.color_palette)}"
-            )
+            prompt_parts.append(f"- Color Palette: {', '.join(self.visual_style.color_palette)}")
             prompt_parts.append(f"- Lighting: {self.visual_style.lighting_style}")
             prompt_parts.append(f"- Style: {self.visual_style.cinematic_style}")
             prompt_parts.append(f"- Mood: {self.visual_style.mood}")
@@ -599,7 +583,7 @@ class StoryConsistencyManager:
 
         # Memory bank
         if self.memory_bank:
-            prompt_parts.append(f"\n## Recent Story Memory:")
+            prompt_parts.append("\n## Recent Story Memory:")
             for i, memory in enumerate(self.memory_bank[-3:], 1):
                 prompt_parts.append(f"{i}. {memory}")
 
@@ -737,10 +721,8 @@ class StoryConsistencyManager:
         from dataclasses import asdict
 
         state = {
-            "characters": {
-                name: asdict(char) for name, char in self.characters.items()
-            },
-            "visual_style": asdict(self.visual_style) if self.visual_style else None,
+            "characters": {name: asdict(char) for name, char in self.characters.items()},
+            "visual_style": (asdict(self.visual_style) if self.visual_style else None),
             "story_state": asdict(self.story_state),
             "memory_bank": self.memory_bank,
         }

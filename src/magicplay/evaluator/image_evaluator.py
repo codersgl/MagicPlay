@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
-from PIL import Image, ImageFilter, ImageStat
+from PIL import Image, ImageStat
 
 from .base import BaseEvaluator, EvaluationResult, QualityLevel
 
@@ -28,9 +28,7 @@ class ImageQualityEvaluator(BaseEvaluator):
             "blur_detection": 0.15,  # 模糊检测（负向）
         }
 
-    def evaluate(
-        self, input_data: Union[str, Path, Image.Image], **kwargs
-    ) -> EvaluationResult:
+    def evaluate(self, input_data: Union[str, Path, Image.Image], **kwargs) -> EvaluationResult:
         """
         Evaluate image quality.
 
@@ -256,9 +254,7 @@ class ImageQualityEvaluator(BaseEvaluator):
 
         return signal.convolve2d(image, kernel, mode="same", boundary="symm")
 
-    def _identify_issues(
-        self, metrics: Dict[str, float], overall_score: float
-    ) -> List[str]:
+    def _identify_issues(self, metrics: Dict[str, float], overall_score: float) -> List[str]:
         """Identify specific issues based on metrics."""
         issues = []
 
@@ -292,9 +288,7 @@ class ImageQualityEvaluator(BaseEvaluator):
 
         return issues
 
-    def _generate_recommendations(
-        self, metrics: Dict[str, float], issues: List[str]
-    ) -> List[str]:
+    def _generate_recommendations(self, metrics: Dict[str, float], issues: List[str]) -> List[str]:
         """Generate recommendations for improvement."""
         recommendations = []
 
@@ -334,9 +328,7 @@ class ImageQualityEvaluator(BaseEvaluator):
             recommendations=["检查图像文件格式和完整性"],
         )
 
-    def validate_input(
-        self, input_data: Union[str, Path, Image.Image]
-    ) -> Tuple[bool, Optional[str]]:
+    def validate_input(self, input_data: Union[str, Path, Image.Image]) -> Tuple[bool, Optional[str]]:
         """Validate input for image evaluation."""
         if isinstance(input_data, Image.Image):
             return True, None

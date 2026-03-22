@@ -10,7 +10,9 @@ from typing import List, Optional
 
 from loguru import logger
 
-from magicplay.analyzer.timeline_analyzer import TimelineAnalyzer, TimelineResult
+from magicplay.analyzer.timeline_analyzer import (
+    TimelineAnalyzer,
+)
 from magicplay.config import get_settings
 from magicplay.generators.video_gen import VideoGenerator
 from magicplay.utils.media import MediaUtils
@@ -60,9 +62,7 @@ class SceneSegmentGenerator:
         # Initialize timeline analyzer (injectable for testing)
         self._timeline_analyzer = timeline_analyzer or TimelineAnalyzer()
 
-        logger.info(
-            f"SceneSegmentGenerator initialized for " f"{story_name}/{episode_name}"
-        )
+        logger.info(f"SceneSegmentGenerator initialized for {story_name}/{episode_name}")
 
     def generate_scene_segments(
         self,
@@ -102,15 +102,10 @@ class SceneSegmentGenerator:
             return segments
 
         # Multi-frame generation: split into multiple segments
-        num_segments = (
-            segment_duration + self.MAX_SEGMENT_DURATION - 1
-        ) // self.MAX_SEGMENT_DURATION
+        num_segments = (segment_duration + self.MAX_SEGMENT_DURATION - 1) // self.MAX_SEGMENT_DURATION
         actual_segment_duration = segment_duration // num_segments
 
-        logger.info(
-            f"Generating {num_segments} segments for scene {scene_name} "
-            f"({actual_segment_duration}s each)"
-        )
+        logger.info(f"Generating {num_segments} segments for scene {scene_name} ({actual_segment_duration}s each)")
 
         for i in range(num_segments):
             # Create segment-specific prompt
@@ -160,15 +155,12 @@ class SceneSegmentGenerator:
         segments: List[Path] = []
 
         # Use TimelineAnalyzer to get precise segment prompts
-        timeline_result = self._timeline_analyzer.analyze(
-            scene_script=scene_script, duration=segment_duration
-        )
+        timeline_result = self._timeline_analyzer.analyze(scene_script=scene_script, duration=segment_duration)
 
         # Fallback to old behavior if timeline analysis returns empty segments
         if not timeline_result.segments:
             logger.info(
-                f"Timeline analysis returned no segments for {scene_name}, "
-                f"falling back to generate_scene_segments"
+                f"Timeline analysis returned no segments for {scene_name}, falling back to generate_scene_segments"
             )
             return self.generate_scene_segments(
                 scene_name=scene_name,
@@ -193,9 +185,7 @@ class SceneSegmentGenerator:
             if segment:
                 segments.append(segment)
             else:
-                logger.warning(
-                    f"Failed to generate segment {idx} for scene {scene_name}"
-                )
+                logger.warning(f"Failed to generate segment {idx} for scene {scene_name}")
 
         return segments
 

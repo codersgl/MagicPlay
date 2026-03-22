@@ -62,46 +62,36 @@ class Settings(BaseSettings):
     )
 
     # API Keys (from environment variables only - never put in config.yaml)
-    deepseek_api_key: str = Field(
-        default="", description="DeepSeek API key for LLM services"
-    )
-    dashscope_api_key: str = Field(
-        default="", description="DashScope API key for image/video generation"
-    )
+    deepseek_api_key: str = Field(default="", description="DeepSeek API key for LLM services")
+    dashscope_api_key: str = Field(default="", description="DashScope API key for image/video generation")
 
     # API Endpoints
-    deepseek_base_url: str = Field(
-        default="https://api.deepseek.com", description="DeepSeek API base URL"
-    )
+    deepseek_base_url: str = Field(default="https://api.deepseek.com", description="DeepSeek API base URL")
     dashscope_base_url: Optional[str] = Field(
-        default=None, description="DashScope API base URL (uses SDK default if not set)"
+        default=None,
+        description="DashScope API base URL (uses SDK default if not set)",
     )
 
     # Jimeng (即梦) API Configuration
-    jimeng_access_key: str = Field(
-        default="", description="Jimeng AI Access Key (Volcengine)"
-    )
-    jimeng_secret_key: str = Field(
-        default="", description="Jimeng AI Secret Key (Volcengine)"
-    )
+    jimeng_access_key: str = Field(default="", description="Jimeng AI Access Key (Volcengine)")
+    jimeng_secret_key: str = Field(default="", description="Jimeng AI Secret Key (Volcengine)")
     jimeng_api_base_url: str = Field(
-        default="https://visual.volcengineapi.com", description="Jimeng API base URL"
+        default="https://visual.volcengineapi.com",
+        description="Jimeng API base URL",
     )
-    jimeng_default_aspect_ratio: str = Field(
-        default="16:9", description="Default Jimeng video aspect ratio"
-    )
+    jimeng_default_aspect_ratio: str = Field(default="16:9", description="Default Jimeng video aspect ratio")
 
     # Model Configuration
-    deepseek_model: str = Field(
-        default="deepseek-chat", description="DeepSeek model to use"
-    )
+    deepseek_model: str = Field(default="deepseek-chat", description="DeepSeek model to use")
 
     # Provider Configuration
     default_video_provider: str = Field(
-        default="qwen", description="Default video generation provider (qwen or jimeng)"
+        default="qwen",
+        description="Default video generation provider (qwen or jimeng)",
     )
     default_image_provider: str = Field(
-        default="qwen", description="Default image generation provider (qwen or jimeng)"
+        default="qwen",
+        description="Default image generation provider (qwen or jimeng)",
     )
     default_temperature: float = Field(
         default=0.7,
@@ -111,18 +101,10 @@ class Settings(BaseSettings):
     )
 
     # Generation Settings
-    max_retry_attempts: int = Field(
-        default=3, ge=1, description="Maximum retry attempts for API calls"
-    )
-    default_video_duration: int = Field(
-        default=8, ge=1, le=60, description="Default video duration in seconds"
-    )
-    min_video_duration: int = Field(
-        default=2, ge=1, description="Minimum video duration in seconds"
-    )
-    max_video_duration: int = Field(
-        default=15, ge=1, description="Maximum video duration in seconds"
-    )
+    max_retry_attempts: int = Field(default=3, ge=1, description="Maximum retry attempts for API calls")
+    default_video_duration: int = Field(default=8, ge=1, le=60, description="Default video duration in seconds")
+    min_video_duration: int = Field(default=2, ge=1, description="Minimum video duration in seconds")
+    max_video_duration: int = Field(default=15, ge=1, description="Maximum video duration in seconds")
 
     # Quality Settings
     default_quality_threshold: float = Field(
@@ -132,19 +114,16 @@ class Settings(BaseSettings):
         description="Default quality threshold for generated content",
     )
     enable_quality_check: bool = Field(
-        default=True, description="Enable quality evaluation for generated content"
+        default=True,
+        description="Enable quality evaluation for generated content",
     )
 
     # Caching Settings
     enable_caching: bool = Field(default=True, description="Enable resource caching")
-    cache_max_age_days: int = Field(
-        default=30, ge=1, description="Maximum age of cached resources in days"
-    )
+    cache_max_age_days: int = Field(default=30, ge=1, description="Maximum age of cached resources in days")
 
     # Parallel Processing
-    max_parallel_tasks: int = Field(
-        default=3, ge=1, description="Maximum number of parallel tasks"
-    )
+    max_parallel_tasks: int = Field(default=3, ge=1, description="Maximum number of parallel tasks")
 
     # Logging
     log_level: str = Field(
@@ -155,25 +134,18 @@ class Settings(BaseSettings):
         default="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         description="Logging format string",
     )
-    log_file: Optional[Path] = Field(
-        default=None, description="Path to log file (None for console only)"
-    )
+    log_file: Optional[Path] = Field(default=None, description="Path to log file (None for console only)")
 
     # Experiment Tracking
-    enable_experiments: bool = Field(
-        default=False, description="Enable experiment tracking"
-    )
+    enable_experiments: bool = Field(default=False, description="Enable experiment tracking")
 
     # Comic Generation Settings
-    comic_style: str = Field(
-        default="anime", description="Comic style: anime, comic, webtoon, ink"
-    )
+    comic_style: str = Field(default="anime", description="Comic style: anime, comic, webtoon, ink")
     comic_panel_style: str = Field(
-        default="manga", description="Panel layout style: manga, western, webtoon"
+        default="manga",
+        description="Panel layout style: manga, western, webtoon",
     )
-    default_panel_count: int = Field(
-        default=4, ge=1, le=6, description="Default number of panels per scene"
-    )
+    default_panel_count: int = Field(default=4, ge=1, le=6, description="Default number of panels per scene")
     comic_image_resolution: str = Field(
         default="1024*1024",
         description="Comic panel image resolution as WIDTH*HEIGHT string",
@@ -204,8 +176,8 @@ class Settings(BaseSettings):
             import warnings
 
             warnings.warn(
-                "DASHSCOPE_API_KEY environment variable is not set. "
-                "Image and video generation will fail."
+                "DASHSCOPE_API_KEY environment variable is not set. Image and video generation will fail.",
+                stacklevel=2,
             )
         return v
 

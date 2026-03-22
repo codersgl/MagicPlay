@@ -32,10 +32,7 @@ class TimelineSegment:
     def __post_init__(self):
         """Validate segment data."""
         if self.end_second <= self.start_second:
-            raise ValueError(
-                f"end_second ({self.end_second}) must be greater than "
-                f"start_second ({self.start_second})"
-            )
+            raise ValueError(f"end_second ({self.end_second}) must be greater than start_second ({self.start_second})")
         if self.end_second - self.start_second < self.MIN_SEGMENT_DURATION:
             raise ValueError(
                 f"Segment duration ({self.end_second - self.start_second}s) "
@@ -105,14 +102,10 @@ class TimelineAnalyzer:
         prompt_template = self._load_prompt_template()
 
         # Construct user prompt with scene script and duration
-        user_prompt = prompt_template.format(
-            scene_script=scene_script, duration=duration
-        )
+        user_prompt = prompt_template.format(scene_script=scene_script, duration=duration)
 
         # System prompt for the LLM
-        system_prompt = (
-            "你是一个专业的视频分镜专家，擅长将场景脚本分割成精确的时间片段。"
-        )
+        system_prompt = "你是一个专业的视频分镜专家，擅长将场景脚本分割成精确的时间片段。"
 
         # Call LLM
         try:
@@ -216,7 +209,9 @@ class TimelineAnalyzer:
         except Exception as e:
             logger.error(f"Unexpected error parsing response: {e}")
             return TimelineResult(
-                segments=[], total_duration=duration, reasoning=f"Parse error: {str(e)}"
+                segments=[],
+                total_duration=duration,
+                reasoning=f"Parse error: {str(e)}",
             )
 
     def _extract_json(self, text: str) -> str:

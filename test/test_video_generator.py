@@ -3,7 +3,7 @@ Pytest tests for VideoGenerator.
 """
 
 from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -36,9 +36,7 @@ class TestVideoGenerator:
     def test_video_generator_invalid_provider(self):
         """Test VideoGenerator initialization with invalid provider."""
         with pytest.raises(ValueError, match="Unsupported provider"):
-            VideoGenerator(
-                api_provider="invalid_provider", size=(1920, 1080), duration=10
-            )
+            VideoGenerator(api_provider="invalid_provider", size=(1920, 1080), duration=10)
 
     def test_generate_video_without_reference(self, video_generator, tmp_path):
         """Test video generation without reference image."""
@@ -47,9 +45,7 @@ class TestVideoGenerator:
 
         # Mock the service and MediaUtils
         with (
-            patch.object(
-                video_generator.service, "generate_video_url"
-            ) as mock_generate_url,
+            patch.object(video_generator.service, "generate_video_url") as mock_generate_url,
             patch("magicplay.generators.video_gen.MediaUtils") as mock_media_utils,
         ):
             # Setup mocks
@@ -57,9 +53,7 @@ class TestVideoGenerator:
             mock_media_utils.download_video.return_value = True
 
             # Call the method
-            result_path = video_generator.generate_video(
-                visual_prompt=visual_prompt, output_path=output_path
-            )
+            result_path = video_generator.generate_video(visual_prompt=visual_prompt, output_path=output_path)
 
             # Verify calls
             mock_generate_url.assert_called_once()
@@ -72,9 +66,7 @@ class TestVideoGenerator:
             assert call_args.kwargs["ref_img_path"] is None
 
             # Check MediaUtils.download_video was called
-            mock_media_utils.download_video.assert_called_once_with(
-                "http://test.com/video.mp4", output_path
-            )
+            mock_media_utils.download_video.assert_called_once_with("http://test.com/video.mp4", output_path)
 
             assert result_path == output_path
 
@@ -86,15 +78,13 @@ class TestVideoGenerator:
         ref_img_path.write_text("dummy image content")  # Create dummy file
 
         with (
-            patch.object(
-                video_generator.service, "generate_video_url"
-            ) as mock_generate_url,
+            patch.object(video_generator.service, "generate_video_url") as mock_generate_url,
             patch("magicplay.generators.video_gen.MediaUtils") as mock_media_utils,
         ):
             mock_generate_url.return_value = "http://test.com/video2.mp4"
             mock_media_utils.download_video.return_value = True
 
-            result_path = video_generator.generate_video(
+            video_generator.generate_video(
                 visual_prompt=visual_prompt,
                 output_path=output_path,
                 ref_img_path=ref_img_path,
@@ -112,15 +102,13 @@ class TestVideoGenerator:
         custom_duration = 8
 
         with (
-            patch.object(
-                video_generator.service, "generate_video_url"
-            ) as mock_generate_url,
+            patch.object(video_generator.service, "generate_video_url") as mock_generate_url,
             patch("magicplay.generators.video_gen.MediaUtils") as mock_media_utils,
         ):
             mock_generate_url.return_value = "http://test.com/video.mp4"
             mock_media_utils.download_video.return_value = True
 
-            result_path = video_generator.generate_video(
+            video_generator.generate_video(
                 visual_prompt=visual_prompt,
                 output_path=output_path,
                 duration=custom_duration,
@@ -137,39 +125,27 @@ class TestVideoGenerator:
         output_path = tmp_path / "test_video.mp4"
 
         with (
-            patch.object(
-                video_generator.service, "generate_video_url"
-            ) as mock_generate_url,
+            patch.object(video_generator.service, "generate_video_url") as mock_generate_url,
             patch("magicplay.generators.video_gen.MediaUtils") as mock_media_utils,
         ):
             mock_generate_url.return_value = "http://test.com/video.mp4"
             mock_media_utils.download_video.return_value = False
 
             # Should raise RuntimeError
-            with pytest.raises(
-                RuntimeError, match="Failed to download generated video"
-            ):
-                video_generator.generate_video(
-                    visual_prompt=visual_prompt, output_path=output_path
-                )
+            with pytest.raises(RuntimeError, match="Failed to download generated video"):
+                video_generator.generate_video(visual_prompt=visual_prompt, output_path=output_path)
 
     def test_generate_video_service_exception(self, video_generator, tmp_path):
         """Test video generation when service raises exception."""
         visual_prompt = "Test prompt"
         output_path = tmp_path / "test_video.mp4"
 
-        with patch.object(
-            video_generator.service, "generate_video_url"
-        ) as mock_generate_url:
+        with patch.object(video_generator.service, "generate_video_url") as mock_generate_url:
             mock_generate_url.side_effect = Exception("API error")
 
             # Should raise RuntimeError with original exception message
-            with pytest.raises(
-                RuntimeError, match="Video generation failed: API error"
-            ):
-                video_generator.generate_video(
-                    visual_prompt=visual_prompt, output_path=output_path
-                )
+            with pytest.raises(RuntimeError, match="Video generation failed: API error"):
+                video_generator.generate_video(visual_prompt=visual_prompt, output_path=output_path)
 
     def test_generate_video_creates_output_directory(self, video_generator, tmp_path):
         """Test that output directory is created if it doesn't exist."""
@@ -181,17 +157,13 @@ class TestVideoGenerator:
         assert not output_dir.exists()
 
         with (
-            patch.object(
-                video_generator.service, "generate_video_url"
-            ) as mock_generate_url,
+            patch.object(video_generator.service, "generate_video_url") as mock_generate_url,
             patch("magicplay.generators.video_gen.MediaUtils") as mock_media_utils,
         ):
             mock_generate_url.return_value = "http://test.com/video.mp4"
             mock_media_utils.download_video.return_value = True
 
-            result_path = video_generator.generate_video(
-                visual_prompt=visual_prompt, output_path=output_path
-            )
+            result_path = video_generator.generate_video(visual_prompt=visual_prompt, output_path=output_path)
 
             # Directory should have been created
             assert output_dir.exists()
@@ -203,18 +175,14 @@ class TestVideoGenerator:
         output_path = tmp_path / "test_video.mp4"
 
         with (
-            patch.object(
-                video_generator.service, "generate_video_url"
-            ) as mock_generate_url,
+            patch.object(video_generator.service, "generate_video_url") as mock_generate_url,
             patch("magicplay.generators.video_gen.MediaUtils") as mock_media_utils,
         ):
             mock_generate_url.return_value = "http://test.com/video.mp4"
             mock_media_utils.download_video.return_value = True
 
             # Pass string path instead of Path object
-            result_path = video_generator.generate_video(
-                visual_prompt=visual_prompt, output_path=str(output_path)
-            )
+            result_path = video_generator.generate_video(visual_prompt=visual_prompt, output_path=str(output_path))
 
             assert isinstance(result_path, Path)
             assert result_path == output_path
@@ -222,9 +190,7 @@ class TestVideoGenerator:
     @pytest.mark.parametrize("duration_param", [None, 5, 12, 20])
     def test_duration_parameter_handling(self, duration_param, tmp_path):
         """Test various duration parameter scenarios."""
-        generator = VideoGenerator(
-            api_provider="qwen", duration=15
-        )  # Default duration 15
+        generator = VideoGenerator(api_provider="qwen", duration=15)  # Default duration 15
 
         visual_prompt = "Test prompt"
         output_path = tmp_path / "test_video.mp4"
@@ -243,8 +209,6 @@ class TestVideoGenerator:
             )
 
             # Check which duration was used
-            expected_duration = (
-                duration_param if duration_param is not None else generator.duration
-            )
+            expected_duration = duration_param if duration_param is not None else generator.duration
             call_args = mock_generate_url.call_args
             assert call_args.kwargs["duration"] == expected_duration

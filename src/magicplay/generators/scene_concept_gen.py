@@ -48,9 +48,7 @@ class SceneConceptGenerator:
         # Initialize image service
         self.image_service = ImageService()
 
-        logger.info(
-            f"SceneConceptGenerator initialized for {story_name}/{episode_name}"
-        )
+        logger.info(f"SceneConceptGenerator initialized for {story_name}/{episode_name}")
 
     def get_or_create_scene_concept_image(
         self,
@@ -113,9 +111,7 @@ class SceneConceptGenerator:
                 logger.info(f"Scene concept image saved: {result_path}")
                 return Path(result_path)
             else:
-                logger.error(
-                    f"Failed to generate concept image for scene: {scene_name}"
-                )
+                logger.error(f"Failed to generate concept image for scene: {scene_name}")
                 return None
 
         except Exception as e:
@@ -164,9 +160,7 @@ class SceneConceptGenerator:
         # Augment with character Visual Tags for consistency anchoring
         if character_profiles:
             char_tags_str = "; ".join(character_profiles.values())
-            visual_prompt = (
-                f"{visual_prompt}\n\n角色 Visual Tags (严格遵守): {char_tags_str}"
-            )
+            visual_prompt = f"{visual_prompt}\n\n角色 Visual Tags (严格遵守): {char_tags_str}"
 
         # Prepend cinematic style guide extracted from story context
         style_prefix = ""
@@ -237,11 +231,7 @@ class SceneConceptGenerator:
 
         # Fallback: first meaningful non-heading lines of the script
         lines = scene_script.strip().split("\n")
-        visual_lines = [
-            line.strip()
-            for line in lines[:10]
-            if line.strip() and not line.lstrip().startswith("#")
-        ]
+        visual_lines = [line.strip() for line in lines[:10] if line.strip() and not line.lstrip().startswith("#")]
         return " ".join(visual_lines) if visual_lines else scene_script[:200]
 
     def _extract_style_guide(self, story_context: str) -> str:
@@ -274,10 +264,7 @@ class SceneConceptGenerator:
             Enhanced prompt string
         """
         # Prepend quality tags only if not already present
-        quality_tags = (
-            "Anime style, cel shaded, vibrant colors, clean lineart, soft shading, "
-            "masterpiece, best quality"
-        )
+        quality_tags = "Anime style, cel shaded, vibrant colors, clean lineart, soft shading, masterpiece, best quality"
         if "anime" not in visual_prompt.lower():
             enhanced_prompt = f"{quality_tags}. {visual_prompt}"
         else:

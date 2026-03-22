@@ -6,7 +6,7 @@ Provides validation functions for common data types and formats.
 
 import re
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Union
 
 
 class ValidationError(Exception):
@@ -62,8 +62,7 @@ def validate_path(
 
     if allowed_extensions and path.suffix.lower() not in allowed_extensions:
         raise ValidationError(
-            f"Invalid file extension: {path.suffix}. "
-            f"Allowed: {', '.join(allowed_extensions)}",
+            f"Invalid file extension: {path.suffix}. Allowed: {', '.join(allowed_extensions)}",
             field_name,
         )
 
@@ -123,18 +122,18 @@ def validate_non_empty_string(
         ValidationError: If validation fails
     """
     if not isinstance(value, str):
-        raise ValidationError(
-            f"Expected string, got {type(value).__name__}", field_name
-        )
+        raise ValidationError(f"Expected string, got {type(value).__name__}", field_name)
 
     if len(value) < min_length:
         raise ValidationError(
-            f"String too short (min {min_length} chars): '{value[:50]}'...", field_name
+            f"String too short (min {min_length} chars): '{value[:50]}'...",
+            field_name,
         )
 
     if max_length and len(value) > max_length:
         raise ValidationError(
-            f"String too long (max {max_length} chars): '{value[:50]}'...", field_name
+            f"String too long (max {max_length} chars): '{value[:50]}'...",
+            field_name,
         )
 
     return value
@@ -162,19 +161,13 @@ def validate_positive_number(
         ValidationError: If validation fails
     """
     if not isinstance(value, (int, float)):
-        raise ValidationError(
-            f"Expected number, got {type(value).__name__}", field_name
-        )
+        raise ValidationError(f"Expected number, got {type(value).__name__}", field_name)
 
     if min_value is not None and value < min_value:
-        raise ValidationError(
-            f"Value {value} is less than minimum {min_value}", field_name
-        )
+        raise ValidationError(f"Value {value} is less than minimum {min_value}", field_name)
 
     if max_value is not None and value > max_value:
-        raise ValidationError(
-            f"Value {value} is greater than maximum {max_value}", field_name
-        )
+        raise ValidationError(f"Value {value} is greater than maximum {max_value}", field_name)
 
     return value
 
@@ -205,9 +198,7 @@ def validate_dict_keys(
 
     missing_keys = [k for k in required_keys if k not in data]
     if missing_keys:
-        raise ValidationError(
-            f"Missing required keys: {', '.join(missing_keys)}", field_name
-        )
+        raise ValidationError(f"Missing required keys: {', '.join(missing_keys)}", field_name)
 
     return data
 
@@ -234,20 +225,20 @@ def validate_video_duration(
         ValidationError: If validation fails
     """
     if not isinstance(duration, (int, float)):
-        raise ValidationError(
-            f"Expected number, got {type(duration).__name__}", field_name
-        )
+        raise ValidationError(f"Expected number, got {type(duration).__name__}", field_name)
 
     duration = int(duration)
 
     if duration < min_duration:
         raise ValidationError(
-            f"Duration {duration}s is less than minimum {min_duration}s", field_name
+            f"Duration {duration}s is less than minimum {min_duration}s",
+            field_name,
         )
 
     if duration > max_duration:
         raise ValidationError(
-            f"Duration {duration}s is greater than maximum {max_duration}s", field_name
+            f"Duration {duration}s is greater than maximum {max_duration}s",
+            field_name,
         )
 
     return duration

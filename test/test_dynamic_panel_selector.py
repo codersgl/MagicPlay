@@ -1,6 +1,7 @@
-import pytest
-
-from magicplay.generators.dynamic_panel_selector import DynamicPanelSelector, PanelInfo
+from magicplay.generators.dynamic_panel_selector import (
+    DynamicPanelSelector,
+    PanelInfo,
+)
 
 
 def test_dynamic_panel_selector_init():

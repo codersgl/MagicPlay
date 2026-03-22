@@ -46,9 +46,7 @@ class DynamicPanelSelector:
 
         prompts_dir = Path(__file__).parent.parent / "prompts"
         try:
-            self.prompt_template = (
-                prompts_dir / "dynamic_panel_selector.md"
-            ).read_text(encoding="utf-8")
+            self.prompt_template = (prompts_dir / "dynamic_panel_selector.md").read_text(encoding="utf-8")
         except FileNotFoundError:
             self.prompt_template = "Analyze the scene and determine panel breakdown."
 
@@ -70,9 +68,7 @@ class DynamicPanelSelector:
             List of PanelInfo objects describing each panel
         """
         # Build prompt
-        character_list = (
-            ", ".join(characters) if characters else "No specific characters"
-        )
+        character_list = ", ".join(characters) if characters else "No specific characters"
         prompt = self.prompt_template.format(
             scene_script=scene_script,
             character_list=character_list,
@@ -82,9 +78,7 @@ class DynamicPanelSelector:
 
         # Call LLM (use generate_content which takes system + user prompts)
         # For JSON response, instruct LLM clearly in prompt
-        system_prompt = (
-            "You are a professional comic panel designer. Return ONLY valid JSON array."
-        )
+        system_prompt = "You are a professional comic panel designer. Return ONLY valid JSON array."
         response = self.llm.generate_content(
             system_prompt=system_prompt,
             user_prompt=prompt,

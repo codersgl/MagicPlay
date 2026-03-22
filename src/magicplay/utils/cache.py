@@ -8,12 +8,9 @@ import hashlib
 import json
 from datetime import datetime, timedelta
 from functools import lru_cache, wraps
-from pathlib import Path
-from typing import Any, Callable, Dict, Optional, TypeVar, Union
+from typing import Any, Callable, Dict, Optional, TypeVar
 
 from loguru import logger
-
-from magicplay.config import Settings
 
 T = TypeVar("T")
 
@@ -118,11 +115,7 @@ class SimpleCache:
             Number of entries removed
         """
         now = datetime.now()
-        expired_keys = [
-            k
-            for k, v in self._cache.items()
-            if v.get("expires_at") and now > v["expires_at"]
-        ]
+        expired_keys = [k for k, v in self._cache.items() if v.get("expires_at") and now > v["expires_at"]]
 
         for key in expired_keys:
             del self._cache[key]
@@ -132,19 +125,13 @@ class SimpleCache:
     def get_stats(self) -> Dict[str, Any]:
         """Get cache statistics."""
         now = datetime.now()
-        expired_count = sum(
-            1
-            for v in self._cache.values()
-            if v.get("expires_at") and now > v["expires_at"]
-        )
+        expired_count = sum(1 for v in self._cache.values() if v.get("expires_at") and now > v["expires_at"])
 
         return {
             "total_items": len(self._cache),
             "max_size": self._max_size,
             "expired_items": expired_count,
-            "utilization": (
-                len(self._cache) / self._max_size if self._max_size > 0 else 0
-            ),
+            "utilization": (len(self._cache) / self._max_size if self._max_size > 0 else 0),
         }
 
 

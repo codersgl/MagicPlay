@@ -14,7 +14,7 @@ import sqlite3
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Union
 
 from ..utils.paths import DataManager
 
@@ -73,14 +73,12 @@ class ResourceRecord:
         return {
             "resource_id": self.resource_id,
             "resource_type": self.resource_type.value,
-            "storage_path": str(self.storage_path) if self.storage_path else None,
+            "storage_path": (str(self.storage_path) if self.storage_path else None),
             "metadata": self.metadata,
             "quality_score": self.quality_score,
             "generation_cost": self.generation_cost,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
-            "last_used_at": (
-                self.last_used_at.isoformat() if self.last_used_at else None
-            ),
+            "created_at": (self.created_at.isoformat() if self.created_at else None),
+            "last_used_at": (self.last_used_at.isoformat() if self.last_used_at else None),
             "usage_count": self.usage_count,
             "state": self.state.value,
         }
@@ -99,9 +97,7 @@ class ResourceRecord:
         return cls(
             resource_id=data["resource_id"],
             resource_type=ResourceType(data["resource_type"]),
-            storage_path=(
-                Path(data["storage_path"]) if data.get("storage_path") else None
-            ),
+            storage_path=(Path(data["storage_path"]) if data.get("storage_path") else None),
             metadata=data.get("metadata", {}),
             quality_score=data.get("quality_score", 0.0),
             generation_cost=data.get("generation_cost", 0.0),
@@ -149,11 +145,7 @@ class ResourceRegistry:
             data_dir = DataManager.DATA_DIR
             db_path = data_dir / "resource_registry.db"
 
-        self.db_path = (
-            Path(db_path)
-            if db_path
-            else Path(DataManager.DATA_DIR) / "resource_registry.db"
-        )
+        self.db_path = Path(db_path) if db_path else Path(DataManager.DATA_DIR) / "resource_registry.db"
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._init_database()
 
@@ -182,31 +174,29 @@ class ResourceRegistry:
 
             # Create indexes for common queries
             cursor.execute("""
-                CREATE INDEX IF NOT EXISTS idx_resource_type 
+                CREATE INDEX IF NOT EXISTS idx_resource_type
                 ON resources(resource_type)
             """)
             cursor.execute("""
-                CREATE INDEX IF NOT EXISTS idx_quality_score 
+                CREATE INDEX IF NOT EXISTS idx_quality_score
                 ON resources(quality_score)
             """)
             cursor.execute("""
-                CREATE INDEX IF NOT EXISTS idx_state 
+                CREATE INDEX IF NOT EXISTS idx_state
                 ON resources(state)
             """)
             cursor.execute("""
-                CREATE INDEX IF NOT EXISTS idx_content_hash 
+                CREATE INDEX IF NOT EXISTS idx_content_hash
                 ON resources(content_hash)
             """)
             cursor.execute("""
-                CREATE INDEX IF NOT EXISTS idx_created_at 
+                CREATE INDEX IF NOT EXISTS idx_created_at
                 ON resources(created_at)
             """)
 
             conn.commit()
 
-    def _generate_id(
-        self, content: Optional[bytes] = None, metadata: Optional[Dict] = None
-    ) -> str:
+    def _generate_id(self, content: Optional[bytes] = None, metadata: Optional[Dict] = None) -> str:
         """Generate a unique resource ID."""
         if content:
             # Use content hash as ID for deduplication
@@ -287,8 +277,8 @@ class ResourceRegistry:
             cursor = conn.cursor()
             cursor.execute(
                 """
-                INSERT INTO resources 
-                (resource_id, resource_type, storage_path, metadata, 
+                INSERT INTO resources
+                (resource_id, resource_type, storage_path, metadata,
                  quality_score, generation_cost, state, content_hash, tags, created_at)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
@@ -314,9 +304,7 @@ class ResourceRegistry:
         with sqlite3.connect(self.db_path) as conn:
             conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
-            cursor.execute(
-                "SELECT * FROM resources WHERE resource_id = ?", (resource_id,)
-            )
+            cursor.execute("SELECT * FROM resources WHERE resource_id = ?", (resource_id,))
             row = cursor.fetchone()
 
             if not row:
@@ -327,28 +315,19 @@ class ResourceRegistry:
             if row["metadata"]:
                 metadata = json.loads(row["metadata"])
 
-            tags = []
             if row["tags"]:
-                tags = json.loads(row["tags"])
+                json.loads(row["tags"])
 
             # Create record
             record = ResourceRecord(
                 resource_id=row["resource_id"],
                 resource_type=ResourceType(row["resource_type"]),
-                storage_path=Path(row["storage_path"]) if row["storage_path"] else None,
+                storage_path=(Path(row["storage_path"]) if row["storage_path"] else None),
                 metadata=metadata,
                 quality_score=row["quality_score"],
                 generation_cost=row["generation_cost"],
-                created_at=(
-                    datetime.fromisoformat(row["created_at"])
-                    if row["created_at"]
-                    else None
-                ),
-                last_used_at=(
-                    datetime.fromisoformat(row["last_used_at"])
-                    if row["last_used_at"]
-                    else None
-                ),
+                created_at=(datetime.fromisoformat(row["created_at"]) if row["created_at"] else None),
+                last_used_at=(datetime.fromisoformat(row["last_used_at"]) if row["last_used_at"] else None),
                 usage_count=row["usage_count"],
                 state=ResourceState(row["state"]),
             )
@@ -405,22 +384,12 @@ class ResourceRegistry:
                 record = ResourceRecord(
                     resource_id=row["resource_id"],
                     resource_type=ResourceType(row["resource_type"]),
-                    storage_path=(
-                        Path(row["storage_path"]) if row["storage_path"] else None
-                    ),
+                    storage_path=(Path(row["storage_path"]) if row["storage_path"] else None),
                     metadata=metadata,
                     quality_score=row["quality_score"],
                     generation_cost=row["generation_cost"],
-                    created_at=(
-                        datetime.fromisoformat(row["created_at"])
-                        if row["created_at"]
-                        else None
-                    ),
-                    last_used_at=(
-                        datetime.fromisoformat(row["last_used_at"])
-                        if row["last_used_at"]
-                        else None
-                    ),
+                    created_at=(datetime.fromisoformat(row["created_at"]) if row["created_at"] else None),
+                    last_used_at=(datetime.fromisoformat(row["last_used_at"]) if row["last_used_at"] else None),
                     usage_count=row["usage_count"],
                     state=ResourceState(row["state"]),
                 )
@@ -441,13 +410,11 @@ class ResourceRegistry:
         Simple implementation: looks for resources with matching key metadata fields.
         """
         # Convert metadata to searchable format
-        metadata_str = json.dumps(metadata, sort_keys=True)
+        json.dumps(metadata, sort_keys=True)
         metadata_dict = metadata
 
         # Search for resources with overlapping metadata
-        all_resources = self.search(
-            resource_type=resource_type, min_quality=min_quality
-        )
+        all_resources = self.search(resource_type=resource_type, min_quality=min_quality)
 
         similar = []
         for resource in all_resources:
@@ -519,7 +486,7 @@ class ResourceRegistry:
             cursor = conn.cursor()
             cursor.execute(
                 """
-                UPDATE resources 
+                UPDATE resources
                 SET usage_count = usage_count + 1, last_used_at = ?
                 WHERE resource_id = ?
             """,
@@ -531,9 +498,7 @@ class ResourceRegistry:
         """Delete a resource from registry (does not delete actual files)."""
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
-            cursor.execute(
-                "DELETE FROM resources WHERE resource_id = ?", (resource_id,)
-            )
+            cursor.execute("DELETE FROM resources WHERE resource_id = ?", (resource_id,))
             conn.commit()
             return cursor.rowcount > 0
 
@@ -548,10 +513,10 @@ class ResourceRegistry:
 
             # Resources by type
             cursor.execute("""
-                SELECT resource_type, COUNT(*) as count, 
+                SELECT resource_type, COUNT(*) as count,
                        AVG(quality_score) as avg_quality,
                        SUM(generation_cost) as total_cost
-                FROM resources 
+                FROM resources
                 GROUP BY resource_type
             """)
             by_type = {}
@@ -602,8 +567,8 @@ class ResourceRegistry:
             cursor = conn.cursor()
             cursor.execute(
                 """
-                DELETE FROM resources 
-                WHERE created_at < ? 
+                DELETE FROM resources
+                WHERE created_at < ?
                   AND quality_score < ?
                   AND usage_count = 0
             """,

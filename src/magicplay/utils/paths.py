@@ -54,30 +54,18 @@ class DataManager:
     @classmethod
     def ensure_comic_structure(cls, story_name: str, episode_name: str):
         """Creates necessary directories for comic generation."""
-        cls.get_comic_panels_path(story_name, episode_name).mkdir(
-            parents=True, exist_ok=True
-        )
+        cls.get_comic_panels_path(story_name, episode_name).mkdir(parents=True, exist_ok=True)
 
     @classmethod
     def ensure_structure(cls, story_name: str, episode_name: str):
         """Creates necessary directories for scenes and output videos."""
         cls.get_scenes_path(story_name, episode_name).mkdir(parents=True, exist_ok=True)
-        cls.get_generated_scripts_path(story_name, episode_name).mkdir(
-            parents=True, exist_ok=True
-        )
-        cls.get_video_output_path(story_name, episode_name).mkdir(
-            parents=True, exist_ok=True
-        )
+        cls.get_generated_scripts_path(story_name, episode_name).mkdir(parents=True, exist_ok=True)
+        cls.get_video_output_path(story_name, episode_name).mkdir(parents=True, exist_ok=True)
         cls.get_character_anchors_path(story_name).mkdir(parents=True, exist_ok=True)
-        cls.get_scene_concepts_path(story_name, episode_name).mkdir(
-            parents=True, exist_ok=True
-        )
-        cls.get_scene_segments_path(story_name, episode_name).mkdir(
-            parents=True, exist_ok=True
-        )
-        cls.get_comic_panels_path(story_name, episode_name).mkdir(
-            parents=True, exist_ok=True
-        )
+        cls.get_scene_concepts_path(story_name, episode_name).mkdir(parents=True, exist_ok=True)
+        cls.get_scene_segments_path(story_name, episode_name).mkdir(parents=True, exist_ok=True)
+        cls.get_comic_panels_path(story_name, episode_name).mkdir(parents=True, exist_ok=True)
 
     @classmethod
     def get_stories(cls) -> list[Path]:
@@ -97,9 +85,7 @@ class DataManager:
             return []
 
         # Only directories are considered episodes
-        episodes = [
-            p for p in story_path.iterdir() if p.is_dir() and p.name != "scenes"
-        ]
+        episodes = [p for p in story_path.iterdir() if p.is_dir() and p.name != "scenes"]
         return sorted(episodes, key=lambda p: p.name)
 
     @classmethod
@@ -132,4 +118,4 @@ class DataManager:
             with open(file_to_read, "r", encoding="utf-8") as f:
                 return f.read()
         except Exception as e:
-            raise RuntimeError(f"Failed to read prompt file {file_to_read}: {e}")
+            raise RuntimeError(f"Failed to read prompt file {file_to_read}: {e}") from e

@@ -5,7 +5,6 @@ Tests for ScriptGenerator module.
 import tempfile
 from pathlib import Path
 from test.mocks import MockLLMService
-from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
@@ -125,22 +124,19 @@ class TestScriptGenerator:
         content = result.read_text()
         assert "Generated script content" in content
 
-    def test_generate_scene_script_with_character_profiles(
-        self, script_generator, mock_llm, temp_output_dir
-    ):
+    def test_generate_scene_script_with_character_profiles(self, script_generator, mock_llm, temp_output_dir):
         """Test scene script generation includes character profiles."""
         character_profiles = {
             "Zhang Wei": "Zhang Wei [Visual Tags: black hair, scar on cheek]",
             "Mei Ling": "Mei Ling [Visual Tags: long black hair, elegant]",
         }
         result = script_generator.generate_scene_script(
-            scene_name="scene_with_chars", character_profiles=character_profiles
+            scene_name="scene_with_chars",
+            character_profiles=character_profiles,
         )
         assert result.exists()
 
-    def test_generate_scene_script_creates_directory(
-        self, script_generator, mock_llm, temp_output_dir
-    ):
+    def test_generate_scene_script_creates_directory(self, script_generator, mock_llm, temp_output_dir):
         """Test that scene script creates nested directories."""
         nested_scene = "episode1/scene1"
         result = script_generator.generate_scene_script(
@@ -166,13 +162,9 @@ class TestScriptGenerator:
     def test_generate_visual_prompt_file_not_found(self, script_generator):
         """Test visual prompt generation with non-existent file."""
         with pytest.raises(FileNotFoundError):
-            script_generator.generate_visual_prompt(
-                script_path="/nonexistent/path/script.md"
-            )
+            script_generator.generate_visual_prompt(script_path="/nonexistent/path/script.md")
 
-    def test_generate_with_empty_result_raises_error(
-        self, script_generator, mock_llm, temp_output_dir
-    ):
+    def test_generate_with_empty_result_raises_error(self, script_generator, mock_llm, temp_output_dir):
         """Test that empty LLM result raises RuntimeError."""
         mock_llm.set_mock_response("")  # Empty response
 
@@ -234,9 +226,7 @@ class TestScriptGeneratorContext:
         assert result.data is not None
         assert mock_llm.call_count >= 1
 
-    def test_generate_with_empty_scene_name_uses_default(
-        self, script_generator, mock_llm, temp_output_dir
-    ):
+    def test_generate_with_empty_scene_name_uses_default(self, script_generator, mock_llm, temp_output_dir):
         """Test that empty scene_name uses default 'scene_1'."""
         from magicplay.generators.base import GenerationContext
 

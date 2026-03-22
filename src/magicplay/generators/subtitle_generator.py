@@ -6,7 +6,7 @@ Generates SRT subtitles from script content and timing data.
 
 import re
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 from loguru import logger
 
@@ -23,7 +23,6 @@ class SubtitleGenerator:
 
     def __init__(self):
         """Initialize subtitle generator."""
-        pass
 
     def generate_subtitles(
         self,
@@ -51,13 +50,11 @@ class SubtitleGenerator:
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
         cues = []
-        for i, (dialogue, timing) in enumerate(zip(dialogue_lines, timing_data)):
+        for i, (dialogue, timing) in enumerate(zip(dialogue_lines, timing_data, strict=False)):
             cue = SubtitleCue(
                 index=i + 1,
                 start_time=float(timing.get("start_second", 0)),
-                end_time=float(
-                    timing.get("end_second", timing.get("start_second", 0) + 3)
-                ),
+                end_time=float(timing.get("end_second", timing.get("start_second", 0) + 3)),
                 text=dialogue.get("text", ""),
                 character=dialogue.get("character", ""),
             )
@@ -127,7 +124,14 @@ class SubtitleGenerator:
             if match:
                 char_name = match.group(1).strip()
                 # Skip if it's a heading
-                skip_words = {"SCENE", "INT", "EXT", "ACTION", "DIALOGUE", "SUMMARY"}
+                skip_words = {
+                    "SCENE",
+                    "INT",
+                    "EXT",
+                    "ACTION",
+                    "DIALOGUE",
+                    "SUMMARY",
+                }
                 if char_name.upper() not in skip_words and len(char_name) > 1:
                     # Check next line for dialogue
                     if i + 1 < len(lines):
@@ -137,7 +141,10 @@ class SubtitleGenerator:
                             clean_text = self._clean_dialogue_text(next_line)
                             if clean_text:
                                 dialogue_lines.append(
-                                    {"character": char_name, "text": clean_text}
+                                    {
+                                        "character": char_name,
+                                        "text": clean_text,
+                                    }
                                 )
             i += 1
 

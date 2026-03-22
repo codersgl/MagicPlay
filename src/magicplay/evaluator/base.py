@@ -101,7 +101,6 @@ class BaseEvaluator(ABC):
         Returns:
             EvaluationResult with quality assessment
         """
-        pass
 
     def _determine_quality_level(self, score: float) -> QualityLevel:
         """Determine quality level based on score."""
@@ -116,9 +115,7 @@ class BaseEvaluator(ABC):
         else:
             return QualityLevel.UNUSABLE
 
-    def _calculate_score(
-        self, metrics: Dict[str, float], weights: Dict[str, float]
-    ) -> float:
+    def _calculate_score(self, metrics: Dict[str, float], weights: Dict[str, float]) -> float:
         """
         Calculate overall score from weighted metrics.
 
@@ -146,9 +143,7 @@ class BaseEvaluator(ABC):
             return weighted_sum / total_weight
         return 0.0
 
-    def validate_input(
-        self, input_data: Union[str, Path, Any]
-    ) -> Tuple[bool, Optional[str]]:
+    def validate_input(self, input_data: Union[str, Path, Any]) -> Tuple[bool, Optional[str]]:
         """
         Validate input data before evaluation.
 

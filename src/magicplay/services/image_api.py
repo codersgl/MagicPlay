@@ -1,6 +1,5 @@
 import os
 import ssl
-import time
 from http import HTTPStatus
 from pathlib import Path
 from typing import Any, List, Optional, Tuple
@@ -31,14 +30,14 @@ def retry_on_network_error(func):
             )
         ),
         stop=tenacity.stop_after_attempt(5),  # Max 5 attempts
-        wait=tenacity.wait_exponential(
-            multiplier=1, min=2, max=30
-        ),  # Exponential backoff: 2, 4, 8, 16, 30 seconds
+        wait=tenacity.wait_exponential(multiplier=1, min=2, max=30),  # Exponential backoff: 2, 4, 8, 16, 30 seconds
         before_sleep=lambda retry_state: (
             print(
                 f"Retrying {func.__name__} due to network error, "
                 f"attempt {retry_state.attempt_number}/{5}, "
-                f"waiting {retry_state.next_action.sleep if hasattr(retry_state.next_action, 'sleep') else 2} seconds..."
+                f"waiting "
+                f"{retry_state.next_action.sleep if hasattr(retry_state.next_action, 'sleep') else 2} "
+                f"seconds..."
             )
             if retry_state.attempt_number > 0
             else None
@@ -64,10 +63,7 @@ class ImageService:
             api_provider = settings.default_image_provider
 
         if api_provider not in self.SUPPORTED_PROVIDERS:
-            raise ValueError(
-                f"Unsupported image provider: {api_provider}. "
-                f"Supported: {self.SUPPORTED_PROVIDERS}"
-            )
+            raise ValueError(f"Unsupported image provider: {api_provider}. Supported: {self.SUPPORTED_PROVIDERS}")
 
         self.api_provider = api_provider
         self.config = config
@@ -99,8 +95,8 @@ class ImageService:
             try:
                 # Get the first (and typically only) response from the generator
                 return next(rsp)
-            except StopIteration:
-                raise RuntimeError("Image generation API returned empty generator")
+            except StopIteration as e:
+                raise RuntimeError("Image generation API returned empty generator") from e
         # Otherwise, assume it's a direct response object
         return rsp
 
@@ -141,7 +137,10 @@ class ImageService:
 
             try:
                 api_result = ImageGeneration.call(
-                    api_key=self.api_key, model=model_name, messages=[message], **params
+                    api_key=self.api_key,
+                    model=model_name,
+                    messages=[message],
+                    **params,
                 )
 
                 # Handle the response (could be generator or direct response)
@@ -149,30 +148,16 @@ class ImageService:
 
                 if rsp.status_code == HTTPStatus.OK:
                     # Extract the first image URL from the response
-                    if (
-                        hasattr(rsp, "output")
-                        and rsp.output
-                        and hasattr(rsp.output, "choices")
-                    ):
+                    if hasattr(rsp, "output") and rsp.output and hasattr(rsp.output, "choices"):
                         choice = rsp.output.choices[0]
-                        if (
-                            hasattr(choice, "message")
-                            and choice.message
-                            and hasattr(choice.message, "content")
-                        ):
+                        if hasattr(choice, "message") and choice.message and hasattr(choice.message, "content"):
                             for content_item in choice.message.content:
-                                if (
-                                    isinstance(content_item, dict)
-                                    and content_item.get("type") == "image"
-                                ):
+                                if isinstance(content_item, dict) and content_item.get("type") == "image":
                                     return content_item.get("image", "")
 
                     raise RuntimeError("No image URL found in API response")
                 else:
-                    if (
-                        hasattr(rsp, "code")
-                        and rsp.code == "AllocationQuota.FreeTierOnly"
-                    ):
+                    if hasattr(rsp, "code") and rsp.code == "AllocationQuota.FreeTierOnly":
                         raise RuntimeError(
                             "Aliyun Dashscope Quota Error: Your free tier quota for this model is exhausted. "
                             "Please go to the Aliyun Dashscope Console -> Model Plaza or API Keys management, "
@@ -196,7 +181,7 @@ class ImageService:
                 ):
                     raise
                 # For other exceptions (API errors, quota errors), don't retry
-                raise RuntimeError(f"Image generation API error: {e}")
+                raise RuntimeError(f"Image generation API error: {e}") from e
         else:
             raise ValueError(f"Unsupported provider: {self.api_provider}")
 
@@ -256,7 +241,7 @@ class ImageService:
             print(f"Image downloaded to: {output_path_obj}")
             return str(output_path_obj)
         except Exception as e:
-            raise RuntimeError(f"Failed to download image: {e}")
+            raise RuntimeError(f"Failed to download image: {e}") from e
 
     def generate_image_i2i(
         self,

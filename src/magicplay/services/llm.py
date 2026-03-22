@@ -48,9 +48,7 @@ class LLMService(BaseService, ILLMService):
 
         # Validate configuration
         if not config.deepseek_api_key:
-            raise ConfigurationError(
-                "DeepSeek API key is required", setting_name="deepseek_api_key"
-            )
+            raise ConfigurationError("DeepSeek API key is required", setting_name="deepseek_api_key")
 
         # Initialize OpenAI-compatible client
         self.client = OpenAI(
@@ -150,9 +148,7 @@ class LLMService(BaseService, ILLMService):
             raise
         except Exception as e:
             self.logger.error(f"DeepSeek API call failed: {e}")
-            self._raise_api_error(
-                message=f"DeepSeek API call failed: {e}", response_body=str(e)
-            )
+            self._raise_api_error(message=f"DeepSeek API call failed: {e}", response_body=str(e))
 
     def health_check(self) -> bool:
         """

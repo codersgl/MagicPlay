@@ -29,11 +29,13 @@ class IRepository(ABC, Generic[T]):
         Returns:
             The item if found, None otherwise
         """
-        pass
 
     @abstractmethod
     def save(
-        self, identifier: str, item: T, metadata: Optional[Dict[str, Any]] = None
+        self,
+        identifier: str,
+        item: T,
+        metadata: Optional[Dict[str, Any]] = None,
     ) -> bool:
         """
         Save an item.
@@ -46,7 +48,6 @@ class IRepository(ABC, Generic[T]):
         Returns:
             True if saved successfully, False otherwise
         """
-        pass
 
     @abstractmethod
     def delete(self, identifier: str) -> bool:
@@ -59,7 +60,6 @@ class IRepository(ABC, Generic[T]):
         Returns:
             True if deleted successfully, False otherwise
         """
-        pass
 
     @abstractmethod
     def exists(self, identifier: str) -> bool:
@@ -72,12 +72,9 @@ class IRepository(ABC, Generic[T]):
         Returns:
             True if item exists, False otherwise
         """
-        pass
 
     @abstractmethod
-    def search(
-        self, criteria: Dict[str, Any], limit: int = 100, offset: int = 0
-    ) -> List[T]:
+    def search(self, criteria: Dict[str, Any], limit: int = 100, offset: int = 0) -> List[T]:
         """
         Search for items matching criteria.
 
@@ -89,7 +86,6 @@ class IRepository(ABC, Generic[T]):
         Returns:
             List of matching items
         """
-        pass
 
 
 class FileRepository(IRepository[T]):
@@ -119,7 +115,10 @@ class FileRepository(IRepository[T]):
         return None  # type: ignore
 
     def save(
-        self, identifier: str, item: T, metadata: Optional[Dict[str, Any]] = None
+        self,
+        identifier: str,
+        item: T,
+        metadata: Optional[Dict[str, Any]] = None,
     ) -> bool:
         # Subclasses should override to serialize
         return True
@@ -134,9 +133,7 @@ class FileRepository(IRepository[T]):
     def exists(self, identifier: str) -> bool:
         return self._get_file_path(identifier).exists()
 
-    def search(
-        self, criteria: Dict[str, Any], limit: int = 100, offset: int = 0
-    ) -> List[T]:
+    def search(self, criteria: Dict[str, Any], limit: int = 100, offset: int = 0) -> List[T]:
         # Default implementation returns empty list
         # Subclasses should override
         return []

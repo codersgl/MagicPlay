@@ -3,7 +3,7 @@ Pytest tests for LLMService.
 """
 
 import os
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -17,16 +17,17 @@ class TestLLMService:
     def test_llm_service_initialization_missing_api_key(self):
         """Test LLMService initialization without API key."""
         with patch.dict(os.environ, {}, clear=True):
-            with patch("magicplay.config.settings.load_dotenv") as mock_load_dotenv:
+            with patch("magicplay.config.settings.load_dotenv"):
                 with pytest.raises(
-                    ValueError, match="DEEPSEEK_API_KEY environment variable is not set"
+                    ValueError,
+                    match="DEEPSEEK_API_KEY environment variable is not set",
                 ):
                     LLMService()
 
     def test_llm_service_initialization_with_api_key(self):
         """Test LLMService initialization with API key."""
         with patch.dict(os.environ, {"DEEPSEEK_API_KEY": "test_key"}):
-            with patch("magicplay.config.settings.load_dotenv") as mock_load_dotenv:
+            with patch("magicplay.config.settings.load_dotenv"):
                 service = LLMService()
                 assert service.client is not None
 
@@ -52,7 +53,9 @@ class TestLLMService:
             mock_create.return_value = mock_response
 
             result = llm_service.generate_content(
-                system_prompt=system_prompt, user_prompt=user_prompt, temperature=1.3
+                system_prompt=system_prompt,
+                user_prompt=user_prompt,
+                temperature=1.3,
             )
 
             # Verify API call
@@ -85,8 +88,10 @@ class TestLLMService:
         with patch.object(llm_service.client.chat.completions, "create") as mock_create:
             mock_create.return_value = mock_response
 
-            result = llm_service.generate_content(
-                system_prompt="Test system", user_prompt="Test user", temperature=0.8
+            llm_service.generate_content(
+                system_prompt="Test system",
+                user_prompt="Test user",
+                temperature=0.8,
             )
 
             call_args = mock_create.call_args
@@ -114,9 +119,7 @@ class TestLLMService:
         with patch.object(llm_service.client.chat.completions, "create") as mock_create:
             mock_create.return_value = mock_response
 
-            result = llm_service.generate_content(
-                system_prompt="Test", user_prompt="Test"
-            )
+            result = llm_service.generate_content(system_prompt="Test", user_prompt="Test")
 
             assert result == ""  # Should handle empty string response
 
@@ -135,7 +138,10 @@ class TestLLMService:
         """Test content generation with various prompt lengths."""
         test_cases = [
             ("Short system", "Short user"),
-            ("Long system prompt with multiple sentences and details", "Short user"),
+            (
+                "Long system prompt with multiple sentences and details",
+                "Short user",
+            ),
             (
                 "Short system",
                 "Long user prompt with many words and complex instructions",
@@ -154,9 +160,7 @@ class TestLLMService:
             mock_create.return_value = mock_response
 
             for system_prompt, user_prompt in test_cases:
-                result = llm_service.generate_content(
-                    system_prompt=system_prompt, user_prompt=user_prompt
-                )
+                result = llm_service.generate_content(system_prompt=system_prompt, user_prompt=user_prompt)
 
                 # Should not raise any exception
                 assert result == "Response"

@@ -2,14 +2,10 @@
 End-to-end tests for optimization architecture in MagicPlay.
 """
 
-import os
-import tempfile
-from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 
-from magicplay.analyzer.script_analyzer import ScriptAnalyzer
 from magicplay.core.optimized_orchestrator import OptimizedOrchestrator
 from magicplay.evaluator.base import EvaluationResult, QualityLevel
 from magicplay.evaluator.image_evaluator import ImageQualityEvaluator
@@ -27,8 +23,6 @@ from magicplay.resource_registry.registry import (
     ResourceState,
     ResourceType,
 )
-from magicplay.services.image_api import ImageService
-from magicplay.services.video_api import VideoService
 from magicplay.workflow.optimization_workflow import OptimizationWorkflow
 
 
@@ -132,9 +126,7 @@ class TestOptimizationArchitecture:
         )
 
         # Create experiment
-        experiment_id = tracker.create_experiment(
-            experiment_config, status=ExperimentStatus.RUNNING
-        )
+        experiment_id = tracker.create_experiment(experiment_config, status=ExperimentStatus.RUNNING)
         assert experiment_id is not None
 
         # Create evaluation result
@@ -193,9 +185,7 @@ class TestOptimizationArchitecture:
         assert config_data["avg_quality"] > 80.0
 
         # Test configuration recommendation
-        recommended_config = tracker.recommend_configuration(
-            target_quality=85.0, max_cost=5.0, strategy="balanced"
-        )
+        recommended_config = tracker.recommend_configuration(target_quality=85.0, max_cost=5.0, strategy="balanced")
         # Recommendation might be None if not enough data, which is okay for integration test
         if recommended_config is not None:
             assert recommended_config.name is not None
@@ -283,14 +273,22 @@ class TestOptimizationArchitecture:
         test_configs = [
             ExperimentConfig(
                 name="Config A",
-                parameters={"model": "model-a", "steps": 30, "quality": "medium"},
+                parameters={
+                    "model": "model-a",
+                    "steps": 30,
+                    "quality": "medium",
+                },
                 tags=["test", "config-a"],
                 min_quality_threshold=70.0,
                 max_cost_limit=2.5,
             ),
             ExperimentConfig(
                 name="Config B",
-                parameters={"model": "model-b", "steps": 50, "quality": "high"},
+                parameters={
+                    "model": "model-b",
+                    "steps": 50,
+                    "quality": "high",
+                },
                 tags=["test", "config-b"],
                 min_quality_threshold=85.0,
                 max_cost_limit=4.0,
@@ -320,11 +318,7 @@ class TestOptimizationArchitecture:
 
                 evaluation = EvaluationResult(
                     score=quality,
-                    quality_level=(
-                        QualityLevel.GOOD
-                        if quality >= 70.0
-                        else QualityLevel.ACCEPTABLE
-                    ),
+                    quality_level=(QualityLevel.GOOD if quality >= 70.0 else QualityLevel.ACCEPTABLE),
                     metrics={"test": quality},
                     issues=[],
                     recommendations=[],
@@ -353,8 +347,8 @@ class TestOptimizationArchitecture:
     def test_optimized_orchestrator_integration(self, tmp_path):
         """Test optimized orchestrator integration with optimization components."""
         # Initialize registry and tracker
-        registry = ResourceRegistry(db_path=tmp_path / "orchestrator_registry.db")
-        tracker = ExperimentTracker(db_path=tmp_path / "orchestrator_tracker.db")
+        ResourceRegistry(db_path=tmp_path / "orchestrator_registry.db")
+        ExperimentTracker(db_path=tmp_path / "orchestrator_tracker.db")
 
         # Mock image and video generation, and other dependencies
         with (
@@ -366,16 +360,11 @@ class TestOptimizationArchitecture:
             patch(
                 "magicplay.core.optimized_orchestrator.OptimizedOrchestrator._generate_script_optimized"
             ) as mock_script_gen,
-            patch(
-                "magicplay.analyzer.script_analyzer.ScriptAnalyzer"
-            ) as mock_script_analyzer,
+            patch("magicplay.analyzer.script_analyzer.ScriptAnalyzer") as mock_script_analyzer,
         ):
-
             # Setup mocks
             mock_image = Mock()
-            mock_image.generate_image_and_download.return_value = str(
-                tmp_path / "test_image.png"
-            )
+            mock_image.generate_image_and_download.return_value = str(tmp_path / "test_image.png")
             mock_image_service.return_value = mock_image
 
             mock_video = Mock()
@@ -462,9 +451,7 @@ class TestOptimizationArchitecture:
         # Step 1: Generate resource (mock image generation)
         with patch("magicplay.services.image_api.ImageService") as mock_image_service:
             mock_image = Mock()
-            mock_image.generate_image_and_download.return_value = str(
-                tmp_path / "generated_image.png"
-            )
+            mock_image.generate_image_and_download.return_value = str(tmp_path / "generated_image.png")
             mock_image_service.return_value = mock_image
 
             # Step 2: Create resource record (use SCENE_CONCEPT instead of SCENE_IMAGE)
@@ -552,9 +539,7 @@ class TestOptimizationArchitecture:
                 )
 
                 tracker.record_result(experiment_id, experiment_result)
-                tracker.update_experiment_status(
-                    experiment_id, ExperimentStatus.COMPLETED
-                )
+                tracker.update_experiment_status(experiment_id, ExperimentStatus.COMPLETED)
 
                 # Step 6: Verify data flow across components
                 # Check registry
@@ -580,9 +565,7 @@ class TestOptimizationArchitecture:
                     min_quality=85.0,
                 )
                 # Our resource has 88.0 quality, should be included
-                assert (
-                    len(high_quality_resources) >= 0
-                )  # At least 0, maybe our resource
+                assert len(high_quality_resources) >= 0  # At least 0, maybe our resource
 
                 # Analyze experiment data
                 analysis = tracker.analyze_experiments()
@@ -607,10 +590,20 @@ class TestOptimizationArchitecture:
 
         # Create multiple experiment configurations with different cost/quality profiles
         experiment_profiles = [
-            ("High Quality Config", {"steps": 100, "cfg_scale": 9.0}, 95.0, 8.0),
+            (
+                "High Quality Config",
+                {"steps": 100, "cfg_scale": 9.0},
+                95.0,
+                8.0,
+            ),
             ("Balanced Config", {"steps": 50, "cfg_scale": 7.5}, 85.0, 4.0),
             ("Low Cost Config", {"steps": 25, "cfg_scale": 6.0}, 70.0, 1.5),
-            ("Very Low Cost Config", {"steps": 15, "cfg_scale": 5.0}, 60.0, 0.8),
+            (
+                "Very Low Cost Config",
+                {"steps": 15, "cfg_scale": 5.0},
+                60.0,
+                0.8,
+            ),
         ]
 
         # Run experiments for each profile
@@ -651,9 +644,7 @@ class TestOptimizationArchitecture:
             # Create evaluation
             evaluation = EvaluationResult(
                 score=quality,
-                quality_level=(
-                    QualityLevel.EXCELLENT if quality >= 85.0 else QualityLevel.GOOD
-                ),
+                quality_level=(QualityLevel.EXCELLENT if quality >= 85.0 else QualityLevel.GOOD),
                 metrics={
                     "test_score": quality,
                     "cost_efficiency": quality / cost if cost > 0 else 0,
@@ -690,30 +681,20 @@ class TestOptimizationArchitecture:
         )
         # Could be None if no config meets the quality threshold, but we should have at least one
         if quality_config is not None:
-            assert (
-                "High Quality Config" in quality_config.name
-                or "Balanced Config" in quality_config.name
-            )
+            assert "High Quality Config" in quality_config.name or "Balanced Config" in quality_config.name
         # If None, that's okay - it means no config meets the strict quality-first criteria
 
         # Test cost-optimized recommendation with budget
-        cost_config = tracker.recommend_configuration(
-            target_quality=65.0, max_cost=2.0, strategy="cost_optimized"
-        )
+        cost_config = tracker.recommend_configuration(target_quality=65.0, max_cost=2.0, strategy="cost_optimized")
         # Could be None if no config meets both quality and cost constraints
         if cost_config is not None:
             # Should recommend "Low Cost Config" (cost 1.5) or "Very Low Cost Config" (cost 0.8)
             # Both meet cost constraint, "Very Low Cost Config" has lower cost
-            assert any(
-                name in cost_config.name
-                for name in ["Low Cost Config", "Very Low Cost Config"]
-            )
+            assert any(name in cost_config.name for name in ["Low Cost Config", "Very Low Cost Config"])
         # If None, that's okay for test purposes
 
         # Test balanced recommendation
-        balanced_config = tracker.recommend_configuration(
-            target_quality=75.0, strategy="balanced"
-        )
+        balanced_config = tracker.recommend_configuration(target_quality=75.0, strategy="balanced")
         # Could be None if insufficient data or no config meets criteria
         if balanced_config is not None:
             # Should consider both quality and cost-effectiveness
@@ -722,20 +703,14 @@ class TestOptimizationArchitecture:
         # If None, that's acceptable for this test
 
         # Test cost-effectiveness calculation
-        for config_id, data in analysis["configurations"].items():
+        for _config_id, data in analysis["configurations"].items():
             if data["successful_runs"] > 0:
                 # Calculate cost per quality point
-                cost_per_quality = (
-                    data["avg_cost"] / data["avg_quality"]
-                    if data["avg_quality"] > 0
-                    else float("inf")
-                )
+                cost_per_quality = data["avg_cost"] / data["avg_quality"] if data["avg_quality"] > 0 else float("inf")
 
                 # Verify cost-effectiveness metrics
                 assert "avg_cost_per_quality" in data
-                assert data["avg_cost_per_quality"] == pytest.approx(
-                    cost_per_quality, rel=0.1
-                )
+                assert data["avg_cost_per_quality"] == pytest.approx(cost_per_quality, rel=0.1)
 
                 # Different configs should have different cost-effectiveness
                 # We'll check each config type with appropriate ranges
@@ -794,9 +769,7 @@ class TestOptimizationArchitecture:
         assert len(empty_results) == 0
 
         # Update status of non-existent experiment
-        success = tracker.update_experiment_status(
-            "non-existent-id", ExperimentStatus.COMPLETED
-        )
+        success = tracker.update_experiment_status("non-existent-id", ExperimentStatus.COMPLETED)
         assert success is False
 
         # Test 3: Experiment with failures
@@ -830,9 +803,7 @@ class TestOptimizationArchitecture:
         assert "timeout" in results[0].error_message
 
         # Test 4: Partial success scenario
-        config2 = ExperimentConfig(
-            name="Partial Success Test", parameters={"test": "partial"}
-        )
+        config2 = ExperimentConfig(name="Partial Success Test", parameters={"test": "partial"})
         exp_id2 = tracker.create_experiment(config2, status=ExperimentStatus.RUNNING)
 
         # Record multiple results with mixed success

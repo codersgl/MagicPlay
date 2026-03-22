@@ -54,7 +54,7 @@ class GenerationContext:
             "episode_context": self.episode_context,
             "memory": self.memory,
             "scene_prompt": self.scene_prompt,
-            "previous_frame": str(self.previous_frame) if self.previous_frame else None,
+            "previous_frame": (str(self.previous_frame) if self.previous_frame else None),
             "character_images": {k: str(v) for k, v in self.character_images.items()},
             "temperature": self.temperature,
             "max_tokens": self.max_tokens,
@@ -94,7 +94,7 @@ class GenerationResult(Generic[T]):
         """Convert result to dictionary."""
         return {
             "success": self.success,
-            "data": str(self.data) if isinstance(self.data, Path) else self.data,
+            "data": (str(self.data) if isinstance(self.data, Path) else self.data),
             "error": self.error,
             "warnings": self.warnings,
             "metadata": self.metadata,
@@ -147,7 +147,6 @@ class IGenerator(ABC, Generic[T]):
         Returns:
             GenerationResult containing generated content or error
         """
-        pass
 
     def validate(self, result: GenerationResult[T]) -> ValidationResult:
         """
@@ -163,9 +162,7 @@ class IGenerator(ABC, Generic[T]):
             ValidationResult with validation details
         """
         if not result.success:
-            return ValidationResult(
-                is_valid=False, issues=[f"Generation failed: {result.error}"]
-            )
+            return ValidationResult(is_valid=False, issues=[f"Generation failed: {result.error}"])
 
         if result.data is None:
             return ValidationResult(is_valid=False, issues=["Generated data is None"])
@@ -181,11 +178,8 @@ class IGenerator(ABC, Generic[T]):
         Args:
             context: Generation context
         """
-        pass
 
-    def post_generate_hook(
-        self, context: GenerationContext, result: GenerationResult[T]
-    ) -> None:
+    def post_generate_hook(self, context: GenerationContext, result: GenerationResult[T]) -> None:
         """
         Hook called after generation.
 
@@ -195,4 +189,3 @@ class IGenerator(ABC, Generic[T]):
             context: Generation context
             result: Generation result
         """
-        pass

@@ -19,7 +19,10 @@ from loguru import logger
 from magicplay.consistency.story_consistency import StoryConsistencyManager
 from magicplay.core.orchestrator import Orchestrator  # Reuse some methods
 from magicplay.generators.character_gen import CharacterImageGenerator
-from magicplay.generators.comic_panel_gen import ComicPanelGenerator, PanelOutput
+from magicplay.generators.comic_panel_gen import (
+    ComicPanelGenerator,
+    PanelOutput,
+)
 from magicplay.generators.dynamic_panel_selector import DynamicPanelSelector
 from magicplay.generators.script_gen import ScriptGenerator
 from magicplay.utils.paths import DataManager
@@ -60,9 +63,7 @@ class ComicOrchestrator:
         DataManager.ensure_comic_structure(story_name, episode_name)
 
         # Initialize generators
-        self.scripts_dir = DataManager.get_generated_scripts_path(
-            story_name, episode_name
-        )
+        self.scripts_dir = DataManager.get_generated_scripts_path(story_name, episode_name)
         self.scenes_dir = DataManager.get_scenes_path(story_name, episode_name)
 
         self.script_gen = ScriptGenerator(
@@ -109,7 +110,7 @@ class ComicOrchestrator:
             scene_name = scene_info["name"]
             scene_script = scene_info["script"]
 
-            logger.info(f"Processing scene {i+1}: {scene_name}")
+            logger.info(f"Processing scene {i + 1}: {scene_name}")
 
             # Dynamic panel selection
             characters_in_scene = self._get_characters_in_scene(scene_script)
@@ -130,7 +131,7 @@ class ComicOrchestrator:
             )
 
             all_results.append(scene_results)
-            logger.info(f"Scene {i+1} complete: {len(scene_results)} panels generated")
+            logger.info(f"Scene {i + 1} complete: {len(scene_results)} panels generated")
 
         logger.info(f"Comic generation complete: {len(all_results)} scenes processed")
         return all_results
@@ -157,9 +158,7 @@ class ComicOrchestrator:
             self.consistency_manager = StoryConsistencyManager(self.story_name)
             self.consistency_manager.load_from_story_bible()
 
-        return self.character_gen.ensure_character_images(
-            self.consistency_manager
-        )
+        return self.character_gen.ensure_character_images(self.consistency_manager)
 
     def _get_scene_scripts(self) -> List[Dict[str, str]]:
         """Get all scene scripts for the episode."""
@@ -187,7 +186,7 @@ class ComicOrchestrator:
 
         # Generate scene outlines
         for i in range(self.max_scenes):
-            scene_name = f"scene_{i+1:03d}"
+            scene_name = f"scene_{i + 1:03d}"
             try:
                 scene_script = self.script_gen.generate_scene_script(
                     episode_outline=episode_ctx,
@@ -217,11 +216,7 @@ class ComicOrchestrator:
             if char_name.lower() in script_lower:
                 characters.append(char_name)
 
-        return (
-            characters
-            if characters
-            else list(self.consistency_manager.characters.keys())[:2]
-        )
+        return characters if characters else list(self.consistency_manager.characters.keys())[:2]
 
     def _get_character_descriptions(self, characters: List[str]) -> Dict[str, str]:
         """Get character descriptions for prompt building."""
@@ -233,9 +228,7 @@ class ComicOrchestrator:
         for char_name in characters:
             if char_name in self.consistency_manager.characters:
                 char = self.consistency_manager.characters[char_name]
-                visual_tags = (
-                    ", ".join(char.visual_tags) if char.visual_tags else char.name
-                )
+                visual_tags = ", ".join(char.visual_tags) if char.visual_tags else char.name
                 descriptions[char_name] = visual_tags
 
         return descriptions

@@ -37,7 +37,6 @@ class MusicGenerator:
 
     def __init__(self):
         """Initialize music generator."""
-        pass
 
     def generate_or_select_music(
         self,
@@ -236,7 +235,7 @@ This is a placeholder. To generate actual background music:
                     return music_path
 
                 # Loop to fill duration
-                loops_needed = int(target_duration / audio_duration) + 1
+                int(target_duration / audio_duration) + 1
 
                 # Create looped audio (simplified - actual implementation
                 # would use moviepy's loop or concatenate)
@@ -248,10 +247,7 @@ This is a placeholder. To generate actual background music:
 
                 shutil.copy(music_path, output_path)
 
-                logger.info(
-                    f"Music extended to {target_duration}s "
-                    f"(original: {audio_duration:.1f}s)"
-                )
+                logger.info(f"Music extended to {target_duration}s (original: {audio_duration:.1f}s)")
                 return output_path
 
         except ImportError:

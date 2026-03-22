@@ -14,7 +14,7 @@ import sqlite3
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 from ..evaluator.base import EvaluationResult
 from ..resource_registry.registry import ResourceRecord
@@ -194,12 +194,8 @@ class ExperimentResult:
         return {
             "experiment_id": self.experiment_id,
             "config": self.config.to_dict(),
-            "resource_record": (
-                self.resource_record.to_dict() if self.resource_record else None
-            ),
-            "evaluation_result": (
-                self.evaluation_result.to_dict() if self.evaluation_result else None
-            ),
+            "resource_record": (self.resource_record.to_dict() if self.resource_record else None),
+            "evaluation_result": (self.evaluation_result.to_dict() if self.evaluation_result else None),
             "total_cost": self.total_cost,
             "total_time": self.total_time,
             "attempts": self.attempts,
@@ -245,7 +241,10 @@ class ExperimentResult:
 
     def __str__(self) -> str:
         status = "✓" if self.success else "✗"
-        return f"{status} {self.config.name}: quality={self.quality_score:.1f}, cost={self.total_cost:.3f}, time={self.total_time:.1f}s"
+        return (
+            f"{status} {self.config.name}: quality={self.quality_score:.1f}, "
+            f"cost={self.total_cost:.3f}, time={self.total_time:.1f}s"
+        )
 
 
 class ExperimentTracker:
@@ -306,19 +305,19 @@ class ExperimentTracker:
 
             # Create indexes
             cursor.execute("""
-                CREATE INDEX IF NOT EXISTS idx_experiment_status 
+                CREATE INDEX IF NOT EXISTS idx_experiment_status
                 ON experiments(status)
             """)
             cursor.execute("""
-                CREATE INDEX IF NOT EXISTS idx_experiment_config 
+                CREATE INDEX IF NOT EXISTS idx_experiment_config
                 ON experiments(config_id)
             """)
             cursor.execute("""
-                CREATE INDEX IF NOT EXISTS idx_experiment_tags 
+                CREATE INDEX IF NOT EXISTS idx_experiment_tags
                 ON experiments(tags)
             """)
             cursor.execute("""
-                CREATE INDEX IF NOT EXISTS idx_result_experiment 
+                CREATE INDEX IF NOT EXISTS idx_result_experiment
                 ON experiment_results(experiment_id)
             """)
 
@@ -337,7 +336,7 @@ class ExperimentTracker:
             cursor = conn.cursor()
             cursor.execute(
                 """
-                INSERT INTO experiments 
+                INSERT INTO experiments
                 (experiment_id, config_id, config_name, config_data, status, tags, created_at)
                 VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
@@ -405,7 +404,7 @@ class ExperimentTracker:
             cursor = conn.cursor()
             cursor.execute(
                 """
-                INSERT INTO experiment_results 
+                INSERT INTO experiment_results
                 (experiment_id, run_number, result_data, created_at)
                 VALUES (?, ?, ?, ?)
             """,
@@ -426,7 +425,8 @@ class ExperimentTracker:
             conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
             cursor.execute(
-                "SELECT * FROM experiments WHERE experiment_id = ?", (experiment_id,)
+                "SELECT * FROM experiments WHERE experiment_id = ?",
+                (experiment_id,),
             )
             row = cursor.fetchone()
 
@@ -463,8 +463,8 @@ class ExperimentTracker:
             cursor = conn.cursor()
             cursor.execute(
                 """
-                SELECT * FROM experiment_results 
-                WHERE experiment_id = ? 
+                SELECT * FROM experiment_results
+                WHERE experiment_id = ?
                 ORDER BY run_number DESC
                 LIMIT ?
             """,
@@ -568,9 +568,7 @@ class ExperimentTracker:
             if not results:
                 continue
 
-            config = results[
-                0
-            ].config  # All results for same experiment have same config
+            config = results[0].config  # All results for same experiment have same config
 
             # Initialize config data if not exists
             if config.config_id not in analysis["configurations"]:
@@ -630,14 +628,10 @@ class ExperimentTracker:
                         }
 
         # Calculate averages for each configuration
-        for config_id, data in analysis["configurations"].items():
+        for _config_id, data in analysis["configurations"].items():
             if data["successful_runs"] > 0:
-                data["avg_quality"] = (
-                    sum(data["quality_scores"]) / data["successful_runs"]
-                )
-                data["avg_cost_per_quality"] = (
-                    sum(data["cost_per_quality"]) / data["successful_runs"]
-                )
+                data["avg_quality"] = sum(data["quality_scores"]) / data["successful_runs"]
+                data["avg_cost_per_quality"] = sum(data["cost_per_quality"]) / data["successful_runs"]
                 data["avg_cost"] = data["total_cost"] / data["successful_runs"]
                 data["avg_time"] = data["total_time"] / data["successful_runs"]
             else:
@@ -702,9 +696,7 @@ class ExperimentTracker:
                     if exp["config_id"] == config_id:
                         config_data = self.get_experiment(exp["experiment_id"])
                         if config_data:
-                            best_config = ExperimentConfig.from_dict(
-                                config_data["config_data"]
-                            )
+                            best_config = ExperimentConfig.from_dict(config_data["config_data"])
                         break
 
         return best_config
@@ -754,8 +746,8 @@ class ExperimentTracker:
             # Delete old experiments
             cursor.execute(
                 """
-                DELETE FROM experiments 
-                WHERE created_at < ? 
+                DELETE FROM experiments
+                WHERE created_at < ?
                   AND status IN ('completed', 'failed', 'cancelled')
             """,
                 (cutoff_date.isoformat(),),
@@ -764,7 +756,7 @@ class ExperimentTracker:
 
             # Delete orphaned results
             cursor.execute("""
-                DELETE FROM experiment_results 
+                DELETE FROM experiment_results
                 WHERE experiment_id NOT IN (SELECT experiment_id FROM experiments)
             """)
             deleted_results = cursor.rowcount
@@ -775,6 +767,8 @@ class ExperimentTracker:
 
 
 # Factory function for easy tracker creation
-def create_experiment_tracker(db_path: Optional[Path] = None) -> ExperimentTracker:
+def create_experiment_tracker(
+    db_path: Optional[Path] = None,
+) -> ExperimentTracker:
     """Create and configure an experiment tracker."""
     return ExperimentTracker(db_path=db_path)

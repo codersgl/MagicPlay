@@ -8,7 +8,11 @@ from pathlib import Path
 from typing import Dict, Optional, Union
 
 from magicplay.config import Settings
-from magicplay.generators.base import BaseGenerator, GenerationContext, GenerationResult
+from magicplay.generators.base import (
+    BaseGenerator,
+    GenerationContext,
+    GenerationResult,
+)
 from magicplay.ports.services import ILLMService
 
 
@@ -86,23 +90,17 @@ class ScriptGenerator(BaseGenerator[str]):
         )
 
         try:
-            self.story_prompt_template = (self.prompts_dir / "gen_story.md").read_text(
-                encoding="utf-8"
-            )
+            self.story_prompt_template = (self.prompts_dir / "gen_story.md").read_text(encoding="utf-8")
         except FileNotFoundError:
             self.story_prompt_template = fallback
 
         try:
-            self.episode_prompt_template = (
-                self.prompts_dir / "gen_episode.md"
-            ).read_text(encoding="utf-8")
+            self.episode_prompt_template = (self.prompts_dir / "gen_episode.md").read_text(encoding="utf-8")
         except FileNotFoundError:
             self.episode_prompt_template = fallback
 
         try:
-            self.scene_prompt_template = (self.prompts_dir / "gen_scene.md").read_text(
-                encoding="utf-8"
-            )
+            self.scene_prompt_template = (self.prompts_dir / "gen_scene.md").read_text(encoding="utf-8")
         except FileNotFoundError:
             self.scene_prompt_template = fallback
 
@@ -133,9 +131,7 @@ class ScriptGenerator(BaseGenerator[str]):
                 scene_prompt=context.scene_prompt,
             )
 
-            self.post_generate_hook(
-                context, GenerationResult(success=True, data=result)
-            )
+            self.post_generate_hook(context, GenerationResult(success=True, data=result))
             return self._wrap_success(result, context)
 
         except Exception as e:
@@ -174,10 +170,7 @@ class ScriptGenerator(BaseGenerator[str]):
             Generated episode outline content
         """
         system_prompt = self.episode_prompt_template
-        user_prompt = (
-            f"Story Context (Bible):\n{story_context}\n\n"
-            f"Episode Idea/Summary:\n{episode_idea}"
-        )
+        user_prompt = f"Story Context (Bible):\n{story_context}\n\nEpisode Idea/Summary:\n{episode_idea}"
 
         if self.genre:
             user_prompt += f"\n\nGenre Focus: {self.genre}"
@@ -205,7 +198,9 @@ class ScriptGenerator(BaseGenerator[str]):
             "---SCENE_BREAK---\n\n"
             "Ensure ALL scenes mentioned in the outline are extracted. Do NOT invent new scenes."
         )
-        user_prompt = f"Here is the episode outline:\n\n{episode_outline}\n\nPlease split it into individual scene prompts."
+        user_prompt = (
+            f"Here is the episode outline:\n\n{episode_outline}\n\nPlease split it into individual scene prompts."
+        )
         result = self.llm.generate_content(system_prompt, user_prompt)
 
         if not result:
@@ -248,20 +243,19 @@ class ScriptGenerator(BaseGenerator[str]):
         user_prompt = f"请生成一个原创真人短剧剧本，字数限制{self.min_scene_length}~{self.max_scene_length}。"
 
         if self.genre:
-            user_prompt += (
-                f"\n\n【风格要求 (Genre)】\n请严格遵循【{self.genre}】的风格进行创作。"
-            )
+            user_prompt += f"\n\n【风格要求 (Genre)】\n请严格遵循【{self.genre}】的风格进行创作。"
         if self.reference_story:
             user_prompt += (
-                f"\n\n【模仿参考 (Reference)】\n"
-                f"请模仿【{self.reference_story}】的叙事风格、对话语气和剧情节奏。"
+                f"\n\n【模仿参考 (Reference)】\n请模仿【{self.reference_story}】的叙事风格、对话语气和剧情节奏。"
             )
 
         # Inject character profiles with Visual Tags (强制注入角色视觉档案)
         if character_profiles:
             character_section = "\n\n【角色档案 - Visual Tags 锚定 - 必须遵守】\n"
-            character_section += "以下角色的 Visual Tags 必须在剧本中首次出场时**完整复述**，格式为：`角色名 [Visual Tags: ...]`\n\n"
-            for char_name, visual_tags in character_profiles.items():
+            character_section += (
+                "以下角色的 Visual Tags 必须在剧本中首次出场时**完整复述**，格式为：`角色名 [Visual Tags: ...]`\n\n"
+            )
+            for _char_name, visual_tags in character_profiles.items():
                 character_section += f"- {visual_tags}\n"
             character_section += "\n**重要**：任何角色首次出场时，必须使用上述 Visual Tags 格式描述外貌特征！"
             user_prompt += character_section
@@ -374,7 +368,7 @@ class ScriptGenerator(BaseGenerator[str]):
         character_section = ""
         if character_profiles:
             character_section = "\n\n【角色 Visual Tags - 必须保持一致】\n"
-            for char_name, visual_tags in character_profiles.items():
+            for _char_name, visual_tags in character_profiles.items():
                 character_section += f"- {visual_tags}\n"
             character_section += "\n**重要**：在视觉提示词中必须明确描述上述角色特征，确保生成视频中角色形象一致！"
 
@@ -395,12 +389,15 @@ class ScriptGenerator(BaseGenerator[str]):
             f"{character_section}"
             f"{style_guidance}\n\n"
             f"## 任务要求 (Task Requirements)\n"
-            f"1. **风格锁定**：开头必须包含明确的高质量动漫风格词（如：'Anime style, cel shaded, vibrant colors, clean lineart, soft shading, masterpiece'）。\n"
-            f"2. **角色锚定**：必须提取并锁定角色的核心 Visual Tags（如发色、瞳色、具体服装细节），并在提示词中强调这些特征以确保一致性。\n"
+            f"1. **风格锁定**：开头必须包含明确的高质量动漫风格词（如：\n"
+            f"   'Anime style, cel shaded, vibrant colors, clean lineart, soft shading, masterpiece'）。\n"
+            f"2. **角色锚定**：必须提取并锁定角色的核心 Visual Tags（如发色、瞳色、\n"
+            f"   具体服装细节），并在提示词中强调这些特征以确保一致性。\n"
             f"3. **场景细节**：详细描述环境、光影和氛围，确保背景与之前的场景一致。悬疑科幻类型善用冷色调、光影对比。\n"
             f"4. **动态描述**：描述清晰、连贯的动作，符合动漫物理规律，避免产生歧义导致画面变形。\n"
             f"5. **负面提示 (Implicit)**：提示词应避免暗示写实风格、低质量或不稳定的元素。\n"
-            f"6. **格式**：输出一段描述性极强的自然语言提示词（Prompt），字数控制在 400 字左右，中英混合便于 AI 理解。\n\n"
+            f"6. **格式**：输出一段描述性极强的自然语言提示词（Prompt），\n"
+            f"   字数控制在 400 字左右，中英混合便于 AI 理解。\n\n"
             f"## 待处理剧本内容：\n{script_content}"
         )
 
@@ -410,8 +407,7 @@ class ScriptGenerator(BaseGenerator[str]):
             self.logger.info("VISUAL KEY extracted from script (skipping LLM call)")
             # Prepend quality standard tags so the video API always gets them
             quality_prefix = (
-                "Anime style, cel shaded, vibrant colors, clean lineart, soft shading, "
-                "masterpiece, best quality. "
+                "Anime style, cel shaded, vibrant colors, clean lineart, soft shading, masterpiece, best quality. "
             )
 
             # Add visual continuity instruction if previous scene's visual key is provided
@@ -426,18 +422,13 @@ class ScriptGenerator(BaseGenerator[str]):
             # Append character Visual Tags for consistency anchoring
             if character_profiles:
                 char_tags = "; ".join(character_profiles.values())
-                visual_key = (
-                    f"{quality_prefix}{visual_key}{continuity_instruction}\n\n"
-                    f"角色 Visual Tags: {char_tags}"
-                )
+                visual_key = f"{quality_prefix}{visual_key}{continuity_instruction}\n\n角色 Visual Tags: {char_tags}"
             else:
                 visual_key = f"{quality_prefix}{visual_key}{continuity_instruction}"
             return visual_key
 
         # R1 fallback: VISUAL KEY not found in script, call LLM to generate visual prompt
-        self.logger.info(
-            "VISUAL KEY not found in script, falling back to LLM generation"
-        )
+        self.logger.info("VISUAL KEY not found in script, falling back to LLM generation")
 
         # Add visual continuity instruction if previous scene's visual key is provided
         if previous_visual_key:
@@ -448,16 +439,14 @@ class ScriptGenerator(BaseGenerator[str]):
             )
             user_prompt += continuity_block
 
-        visual_prompt = self.llm.generate_content(
-            system_prompt, user_prompt, temperature=0.7
-        )
+        visual_prompt = self.llm.generate_content(system_prompt, user_prompt, temperature=0.7)
         return visual_prompt
 
 
-import re as _re
+import re as _re  # noqa: E402
 
 # Import here to avoid circular dependency
-from magicplay.services.llm import LLMService
+from magicplay.services.llm import LLMService  # noqa: E402
 
 
 def _extract_visual_key_from_script(script_content: str) -> Optional[str]:
@@ -556,9 +545,7 @@ def extract_scene_exit_state(script_content: str) -> str:
     body_lines = [
         ln.strip()
         for ln in script_content.splitlines()
-        if ln.strip()
-        and not ln.lstrip().startswith("#")
-        and not ln.lstrip().startswith("```")
+        if ln.strip() and not ln.lstrip().startswith("#") and not ln.lstrip().startswith("```")
     ]
     if body_lines:
         parts.append(f"[末尾动作] {body_lines[-1][:120]}")

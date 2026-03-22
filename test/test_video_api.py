@@ -4,8 +4,7 @@ Pytest tests for VideoService.
 
 import os
 from http import HTTPStatus
-from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import dashscope
 import pytest
@@ -20,7 +19,8 @@ class TestVideoService:
         """Test VideoService initialization without API key."""
         with patch.dict(os.environ, {}, clear=True):
             with pytest.raises(
-                ValueError, match="DASHSCOPE_API_KEY environment variable is not set"
+                ValueError,
+                match="DASHSCOPE_API_KEY environment variable is not set",
             ):
                 VideoService()
 
@@ -49,23 +49,17 @@ class TestVideoService:
         """Create a mock video response for successful video generation."""
         response = Mock()
         response.status_code = HTTPStatus.OK
-        response.output.video_url = (
-            "https://dashscope-result-sh.oss-cn-shanghai.aliyuncs.com/test_video.mp4"
-        )
+        response.output.video_url = "https://dashscope-result-sh.oss-cn-shanghai.aliyuncs.com/test_video.mp4"
         return response
 
-    def test_generate_video_url_text_to_video_success(
-        self, video_service, mock_video_response
-    ):
+    def test_generate_video_url_text_to_video_success(self, video_service, mock_video_response):
         """Test successful text-to-video URL generation."""
         test_prompt = "A beautiful sunset over mountains"
 
         with patch("magicplay.services.video_api.VideoSynthesis.call") as mock_call:
             mock_call.return_value = mock_video_response
 
-            video_url = video_service.generate_video_url(
-                prompt=test_prompt, size=(1280, 720), duration=5
-            )
+            video_url = video_service.generate_video_url(prompt=test_prompt, size=(1280, 720), duration=5)
 
             # Verify API was called with correct parameters
             mock_call.assert_called_once()
@@ -76,19 +70,14 @@ class TestVideoService:
             assert call_kwargs["prompt"] == test_prompt
             assert call_kwargs["size"] == "1280*720"
             assert call_kwargs["duration"] == 5
-            assert call_kwargs["prompt_extend"] == True
-            assert call_kwargs["watermark"] == False
+            assert call_kwargs["prompt_extend"]
+            assert not call_kwargs["watermark"]
             assert "negative_prompt" in call_kwargs
 
             # Verify returned URL
-            assert (
-                video_url
-                == "https://dashscope-result-sh.oss-cn-shanghai.aliyuncs.com/test_video.mp4"
-            )
+            assert video_url == "https://dashscope-result-sh.oss-cn-shanghai.aliyuncs.com/test_video.mp4"
 
-    def test_generate_video_url_image_to_video_success(
-        self, video_service, mock_video_response, tmp_path
-    ):
+    def test_generate_video_url_image_to_video_success(self, video_service, mock_video_response, tmp_path):
         """Test successful image-to-video URL generation with reference image."""
         test_prompt = "A continuation of previous scene"
         ref_img_path = tmp_path / "reference.jpg"
@@ -97,7 +86,7 @@ class TestVideoService:
         with patch("magicplay.services.video_api.VideoSynthesis.call") as mock_call:
             mock_call.return_value = mock_video_response
 
-            video_url = video_service.generate_video_url(
+            video_service.generate_video_url(
                 prompt=test_prompt,
                 size=(1280, 720),
                 duration=5,
@@ -111,12 +100,10 @@ class TestVideoService:
             assert call_kwargs["model"] == "wan2.6-i2v"
             assert call_kwargs["img_url"] == f"file://{os.path.abspath(ref_img_path)}"
             assert call_kwargs["shot_type"] == "multi"
-            assert call_kwargs["prompt_extend"] == True
-            assert call_kwargs["watermark"] == False
+            assert call_kwargs["prompt_extend"]
+            assert not call_kwargs["watermark"]
 
-    def test_generate_video_url_image_to_video_nonexistent_file(
-        self, video_service, tmp_path
-    ):
+    def test_generate_video_url_image_to_video_nonexistent_file(self, video_service, tmp_path):
         """Test image-to-video with non-existent reference file falls back to text-to-video."""
         test_prompt = "Test prompt"
         non_existent_path = tmp_path / "nonexistent.jpg"
@@ -127,9 +114,7 @@ class TestVideoService:
             mock_response.output.video_url = "test_url"
             mock_call.return_value = mock_response
 
-            video_url = video_service.generate_video_url(
-                prompt=test_prompt, ref_img_path=str(non_existent_path)
-            )
+            video_service.generate_video_url(prompt=test_prompt, ref_img_path=str(non_existent_path))
 
             # Should fall back to text-to-video model
             call_kwargs = mock_call.call_args.kwargs
@@ -174,9 +159,7 @@ class TestVideoService:
             with pytest.raises(ValueError, match="Unsupported provider"):
                 service.generate_video_url("Test prompt")
 
-    def test_generate_video_url_default_parameters(
-        self, video_service, mock_video_response
-    ):
+    def test_generate_video_url_default_parameters(self, video_service, mock_video_response):
         """Test video URL generation with default parameters."""
         test_prompt = "Default test"
 
@@ -191,50 +174,40 @@ class TestVideoService:
             # Verify default values (updated to 1080p for higher quality)
             assert call_kwargs["size"] == "1920*1080"
             assert call_kwargs["duration"] == 5
-            assert call_kwargs["prompt_extend"] == True
-            assert call_kwargs["watermark"] == False
+            assert call_kwargs["prompt_extend"]
+            assert not call_kwargs["watermark"]
 
             assert video_url.startswith("https://")
 
     @pytest.mark.parametrize("size_param", [(640, 480), (1920, 1080), (1024, 768)])
-    def test_different_video_sizes(
-        self, size_param, video_service, mock_video_response
-    ):
+    def test_different_video_sizes(self, size_param, video_service, mock_video_response):
         """Test video generation with different sizes."""
         test_prompt = f"Test size {size_param}"
 
         with patch("magicplay.services.video_api.VideoSynthesis.call") as mock_call:
             mock_call.return_value = mock_video_response
 
-            video_url = video_service.generate_video_url(
-                prompt=test_prompt, size=size_param
-            )
+            video_service.generate_video_url(prompt=test_prompt, size=size_param)
 
             mock_call.assert_called_once()
             call_kwargs = mock_call.call_args.kwargs
             assert call_kwargs["size"] == f"{size_param[0]}*{size_param[1]}"
 
     @pytest.mark.parametrize("duration_param", [3, 5, 10, 15])
-    def test_different_video_durations(
-        self, duration_param, video_service, mock_video_response
-    ):
+    def test_different_video_durations(self, duration_param, video_service, mock_video_response):
         """Test video generation with different durations."""
         test_prompt = f"Test duration {duration_param}"
 
         with patch("magicplay.services.video_api.VideoSynthesis.call") as mock_call:
             mock_call.return_value = mock_video_response
 
-            video_url = video_service.generate_video_url(
-                prompt=test_prompt, duration=duration_param
-            )
+            video_service.generate_video_url(prompt=test_prompt, duration=duration_param)
 
             mock_call.assert_called_once()
             call_kwargs = mock_call.call_args.kwargs
             assert call_kwargs["duration"] == duration_param
 
-    def test_generate_video_url_with_negative_prompt_text_to_video(
-        self, video_service, mock_video_response
-    ):
+    def test_generate_video_url_with_negative_prompt_text_to_video(self, video_service, mock_video_response):
         """Test text-to-video generation includes negative prompt."""
         test_prompt = "Test prompt"
 
@@ -249,9 +222,7 @@ class TestVideoService:
             assert "blurry" in call_kwargs["negative_prompt"]
             assert "low quality" in call_kwargs["negative_prompt"]
 
-    def test_generate_video_url_no_negative_prompt_image_to_video(
-        self, video_service, mock_video_response, tmp_path
-    ):
+    def test_generate_video_url_no_negative_prompt_image_to_video(self, video_service, mock_video_response, tmp_path):
         """Test image-to-video generation includes negative prompt (updated behavior)."""
         test_prompt = "Test prompt"
         ref_img_path = tmp_path / "reference.jpg"
@@ -260,9 +231,7 @@ class TestVideoService:
         with patch("magicplay.services.video_api.VideoSynthesis.call") as mock_call:
             mock_call.return_value = mock_video_response
 
-            video_service.generate_video_url(
-                prompt=test_prompt, ref_img_path=str(ref_img_path)
-            )
+            video_service.generate_video_url(prompt=test_prompt, ref_img_path=str(ref_img_path))
 
             call_kwargs = mock_call.call_args.kwargs
             # Image-to-video should also have negative_prompt (updated behavior for better quality)
@@ -273,15 +242,10 @@ class TestVideoService:
     def test_dashscope_base_url_set(self):
         """Test that dashscope base URL is set correctly."""
         with patch.dict(os.environ, {"DASHSCOPE_API_KEY": "test_key"}):
-            with patch(
-                "magicplay.services.video_api.dashscope.base_http_api_url", ""
-            ) as mock_base_url:
+            with patch("magicplay.services.video_api.dashscope.base_http_api_url", ""):
                 VideoService()
                 # Should be set to Aliyun URL
-                assert (
-                    dashscope.base_http_api_url
-                    == "https://dashscope.aliyuncs.com/api/v1"
-                )
+                assert dashscope.base_http_api_url == "https://dashscope.aliyuncs.com/api/v1"
 
     def test_generate_video_url_empty_prompt(self, video_service, mock_video_response):
         """Test video generation with empty prompt."""
@@ -300,14 +264,12 @@ class TestVideoService:
         with patch("magicplay.services.video_api.VideoSynthesis.call") as mock_call:
             mock_call.return_value = mock_video_response
 
-            video_url = video_service.generate_video_url(prompt=long_prompt)
+            video_service.generate_video_url(prompt=long_prompt)
 
             call_kwargs = mock_call.call_args.kwargs
             assert call_kwargs["prompt"] == long_prompt
 
-    def test_generate_video_url_with_shot_type(
-        self, video_service, mock_video_response, tmp_path
-    ):
+    def test_generate_video_url_with_shot_type(self, video_service, mock_video_response, tmp_path):
         """Test image-to-video generation includes shot_type parameter."""
         test_prompt = "Test prompt"
         ref_img_path = tmp_path / "reference.jpg"
@@ -316,18 +278,14 @@ class TestVideoService:
         with patch("magicplay.services.video_api.VideoSynthesis.call") as mock_call:
             mock_call.return_value = mock_video_response
 
-            video_service.generate_video_url(
-                prompt=test_prompt, ref_img_path=str(ref_img_path)
-            )
+            video_service.generate_video_url(prompt=test_prompt, ref_img_path=str(ref_img_path))
 
             call_kwargs = mock_call.call_args.kwargs
             # Image-to-video should have shot_type parameter
             assert "shot_type" in call_kwargs
             assert call_kwargs["shot_type"] == "multi"
 
-    def test_generate_video_url_error_handling_various_status_codes(
-        self, video_service
-    ):
+    def test_generate_video_url_error_handling_various_status_codes(self, video_service):
         """Test video generation error handling for various status codes."""
         test_cases = [
             (403, "Forbidden", "Access denied"),
@@ -348,9 +306,7 @@ class TestVideoService:
                 with pytest.raises(RuntimeError, match="Video generation failed"):
                     video_service.generate_video_url("Test prompt")
 
-    def test_generate_video_url_special_characters_in_prompt(
-        self, video_service, mock_video_response
-    ):
+    def test_generate_video_url_special_characters_in_prompt(self, video_service, mock_video_response):
         """Test video generation with special characters in prompt."""
         special_prompt = "Test with special chars: © ® ™ ∞ ≈ ≠ ≤ ≥ α β γ δ ε ζ η θ"
 

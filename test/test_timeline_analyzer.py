@@ -2,14 +2,13 @@
 Pytest tests for TimelineAnalyzer.
 """
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
 from magicplay.analyzer.timeline_analyzer import (
     TimelineAnalyzer,
     TimelineResult,
-    TimelineSegment,
 )
 
 
@@ -46,8 +45,12 @@ VISUAL KEY:
         # Set up mock response
         mock_response = """{
             "segments": [
-                {"start_second": 0, "end_second": 5, "visual_prompt": "角色行走在森林小径上", "description": "角色从左侧进入画面"},
-                {"start_second": 5, "end_second": 10, "visual_prompt": "角色突然停下，怪兽出现", "description": "怪兽从树后出现"}
+                {"start_second": 0, "end_second": 5,
+                 "visual_prompt": "角色行走在森林小径上",
+                 "description": "角色从左侧进入画面"},
+                {"start_second": 5, "end_second": 10,
+                 "visual_prompt": "角色突然停下，怪兽出现",
+                 "description": "怪兽从树后出现"}
             ],
             "reasoning": "将10秒视频分为两个5秒片段"
         }"""

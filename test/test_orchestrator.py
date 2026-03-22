@@ -2,15 +2,11 @@
 Tests for the core Orchestrator module.
 """
 
-import tempfile
 from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch
-
-import pytest
+from unittest.mock import Mock, patch
 
 from magicplay.core.orchestrator import Orchestrator, StoryOrchestrator
 from magicplay.generators.script_gen import ScriptGenerator
-from magicplay.utils.paths import DataManager
 
 
 class TestOrchestrator:
@@ -63,12 +59,8 @@ class TestOrchestrator:
         episode_file.write_text("# Episode Outline\nTest episode content")
 
         with (
-            patch(
-                "magicplay.core.orchestrator.DataManager.get_story_path"
-            ) as mock_story_path,
-            patch(
-                "magicplay.core.orchestrator.DataManager.get_episode_path"
-            ) as mock_episode_path,
+            patch("magicplay.core.orchestrator.DataManager.get_story_path") as mock_story_path,
+            patch("magicplay.core.orchestrator.DataManager.get_episode_path") as mock_episode_path,
         ):
             mock_story_path.return_value = story_path
             mock_episode_path.return_value = episode_path
@@ -92,15 +84,9 @@ class TestOrchestrator:
         story_file.write_text("# Story Bible\nTest story content")
 
         with (
-            patch(
-                "magicplay.core.orchestrator.DataManager.get_story_path"
-            ) as mock_story_path,
-            patch(
-                "magicplay.core.orchestrator.DataManager.get_episode_path"
-            ) as mock_episode_path,
-            patch(
-                "magicplay.core.orchestrator.ScriptGenerator.generate_episode_outline"
-            ) as mock_generate,
+            patch("magicplay.core.orchestrator.DataManager.get_story_path") as mock_story_path,
+            patch("magicplay.core.orchestrator.DataManager.get_episode_path") as mock_episode_path,
+            patch("magicplay.core.orchestrator.ScriptGenerator.generate_episode_outline") as mock_generate,
         ):
             mock_story_path.return_value = story_path
             mock_episode_path.return_value = episode_path
@@ -121,12 +107,8 @@ class TestOrchestrator:
         episode_path.mkdir(parents=True)
 
         with (
-            patch(
-                "magicplay.core.orchestrator.DataManager.get_story_path"
-            ) as mock_story_path,
-            patch(
-                "magicplay.core.orchestrator.DataManager.get_episode_path"
-            ) as mock_episode_path,
+            patch("magicplay.core.orchestrator.DataManager.get_story_path") as mock_story_path,
+            patch("magicplay.core.orchestrator.DataManager.get_episode_path") as mock_episode_path,
             patch.object(ScriptGenerator, "generate_story_outline") as mock_generate,
         ):
             mock_story_path.return_value = story_path
@@ -137,9 +119,7 @@ class TestOrchestrator:
             story_ctx, episode_ctx = orchestrator.load_context()
 
             # When no files exist, auto-generation may occur
-            assert (
-                story_ctx != "" or story_ctx == ""
-            )  # Either generated or empty is acceptable
+            assert story_ctx != "" or story_ctx == ""  # Either generated or empty is acceptable
 
     def test_ensure_character_images_with_story_context(self):
         """Test character image generation with story context."""
@@ -153,12 +133,8 @@ class TestOrchestrator:
         orchestrator = Orchestrator("test_story", "episode1")
 
         with (
-            patch(
-                "magicplay.core.orchestrator.StoryConsistencyManager"
-            ) as mock_manager_class,
-            patch(
-                "magicplay.core.orchestrator.CharacterImageGenerator"
-            ) as mock_gen_class,
+            patch("magicplay.core.orchestrator.StoryConsistencyManager") as mock_manager_class,
+            patch("magicplay.core.orchestrator.CharacterImageGenerator") as mock_gen_class,
         ):
             mock_manager = Mock()
             mock_manager.has_character_images.return_value = False
@@ -189,9 +165,7 @@ class TestOrchestrator:
 
                 # Verify methods were called
                 mock_manager_class.assert_called_once_with("test_story")
-                mock_manager.load_from_story_bible.assert_called_once_with(
-                    test_story_context
-                )
+                mock_manager.load_from_story_bible.assert_called_once_with(test_story_context)
                 # CharacterImageGenerator should be called
                 mock_gen_class.assert_called_once_with("test_story")
                 mock_gen.ensure_character_images.assert_called_once_with(mock_manager)
@@ -213,9 +187,7 @@ class TestOrchestrator:
         orchestrator = Orchestrator("test_story", "episode1")
 
         with (
-            patch(
-                "magicplay.core.orchestrator.StoryConsistencyManager"
-            ) as mock_manager_class,
+            patch("magicplay.core.orchestrator.StoryConsistencyManager") as mock_manager_class,
             patch("pathlib.Path.exists", return_value=False),
             patch("pathlib.Path.glob", return_value=[]),
             patch("builtins.print"),
@@ -226,9 +198,7 @@ class TestOrchestrator:
             mock_character.get_image_path.return_value = "/path/to/image.png"
             mock_manager.characters = {"Test": mock_character}
             # Mock get_all_character_images to return existing images
-            mock_manager.get_all_character_images.return_value = {
-                "Test": "/path/to/image.png"
-            }
+            mock_manager.get_all_character_images.return_value = {"Test": "/path/to/image.png"}
             mock_manager_class.return_value = mock_manager
 
             orchestrator._ensure_character_images(test_story_context)
@@ -236,9 +206,7 @@ class TestOrchestrator:
             # Should check for existing images via get_all_character_images
             mock_manager.get_all_character_images.assert_called_once()
             # load_from_story_bible should be called with story context
-            mock_manager.load_from_story_bible.assert_called_once_with(
-                test_story_context
-            )
+            mock_manager.load_from_story_bible.assert_called_once_with(test_story_context)
 
     @patch("magicplay.core.orchestrator.DataManager.get_scenes_prompts")
     @patch("magicplay.core.orchestrator.ScriptGenerator.generate_scene_script")
@@ -395,7 +363,9 @@ class TestOrchestrator:
         # Mock all dependencies to ensure exception only comes from load_context
         with (
             patch.object(
-                orchestrator, "load_context", side_effect=Exception("Test error")
+                orchestrator,
+                "load_context",
+                side_effect=Exception("Test error"),
             ),
             patch.object(orchestrator, "_ensure_character_images", return_value=None),
             patch(
@@ -436,9 +406,7 @@ class TestStoryOrchestrator:
     @patch("magicplay.core.orchestrator.DataManager.get_episodes")
     @patch("magicplay.core.orchestrator.Orchestrator")
     @patch("magicplay.core.orchestrator.MediaUtils.stitch_videos")
-    def test_run_with_episodes(
-        self, mock_stitch, mock_orchestrator_class, mock_get_episodes, tmp_path
-    ):
+    def test_run_with_episodes(self, mock_stitch, mock_orchestrator_class, mock_get_episodes, tmp_path):
         """Test StoryOrchestrator.run() with episodes."""
         # Create mock episode directories
         episode1 = tmp_path / "episode1"
@@ -450,13 +418,22 @@ class TestStoryOrchestrator:
 
         # Mock Orchestrator instances
         mock_orchestrator1 = Mock()
-        mock_orchestrator1.run.return_value = (Path("/fake/ep1.mp4"), "memory1")
+        mock_orchestrator1.run.return_value = (
+            Path("/fake/ep1.mp4"),
+            "memory1",
+        )
 
         mock_orchestrator2 = Mock()
-        mock_orchestrator2.run.return_value = (Path("/fake/ep2.mp4"), "memory2")
+        mock_orchestrator2.run.return_value = (
+            Path("/fake/ep2.mp4"),
+            "memory2",
+        )
 
         # Make mock_orchestrator_class return different instances
-        mock_orchestrator_class.side_effect = [mock_orchestrator1, mock_orchestrator2]
+        mock_orchestrator_class.side_effect = [
+            mock_orchestrator1,
+            mock_orchestrator2,
+        ]
 
         orchestrator = StoryOrchestrator("test_story")
 
@@ -484,9 +461,7 @@ class TestStoryOrchestrator:
 
     @patch("magicplay.core.orchestrator.DataManager.get_episodes")
     @patch("magicplay.core.orchestrator.Orchestrator")
-    def test_run_with_orchestrator_exception(
-        self, mock_orchestrator_class, mock_get_episodes, tmp_path
-    ):
+    def test_run_with_orchestrator_exception(self, mock_orchestrator_class, mock_get_episodes, tmp_path):
         """Test StoryOrchestrator.run() when orchestrator raises an exception."""
         episode = tmp_path / "episode1"
         episode.mkdir()

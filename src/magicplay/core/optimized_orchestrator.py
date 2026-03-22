@@ -5,31 +5,28 @@ Integrates quality evaluation, resource caching, intelligent workflow engine,
 and experiment tracking to improve video quality and reduce costs.
 """
 
-import asyncio
 import hashlib
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 from loguru import logger
 
-from ..evaluator.base import QualityLevel
 from ..evaluator.image_evaluator import ImageQualityEvaluator
 from ..experiment.tracker import (
-    ExperimentConfig,
-    ExperimentResult,
-    ExperimentStatus,
     ExperimentTracker,
 )
-from ..resource_registry.registry import ResourceRegistry, ResourceState, ResourceType
+from ..resource_registry.registry import (
+    ResourceRegistry,
+    ResourceState,
+    ResourceType,
+)
 from ..workflow.engine import (
-    GenerationRequest,
-    GenerationResult,
     GenerationStrategy,
-    WorkflowEngine,
-    WorkflowStep,
     create_workflow_engine,
 )
 from .orchestrator import Orchestrator as BaseOrchestrator
+from ..generators.character_gen import CharacterImageGenerator
+from ..consistency.story_consistency import StoryConsistencyManager
 
 
 class OptimizedOrchestrator(BaseOrchestrator):
@@ -103,16 +100,10 @@ class OptimizedOrchestrator(BaseOrchestrator):
         self.image_evaluator = ImageQualityEvaluator()
 
         # Register evaluators with workflow engine
-        self.workflow_engine.register_evaluator(
-            ResourceType.CHARACTER_IMAGE, self.image_evaluator
-        )
-        self.workflow_engine.register_evaluator(
-            ResourceType.SCENE_CONCEPT, self.image_evaluator
-        )
+        self.workflow_engine.register_evaluator(ResourceType.CHARACTER_IMAGE, self.image_evaluator)
+        self.workflow_engine.register_evaluator(ResourceType.SCENE_CONCEPT, self.image_evaluator)
 
-    async def _ensure_character_images_optimized(
-        self, story_context: str
-    ) -> Dict[str, Path]:
+    async def _ensure_character_images_optimized(self, story_context: str) -> Dict[str, Path]:
         """
         Optimized version of character image generation with quality control.
 
@@ -129,9 +120,7 @@ class OptimizedOrchestrator(BaseOrchestrator):
             # Load characters from story context
             if story_context:
                 consistency_manager.load_from_story_bible(story_context)
-                self.logger.info(
-                    f"Loaded {len(consistency_manager.characters)} characters from story bible"
-                )
+                self.logger.info(f"Loaded {len(consistency_manager.characters)} characters from story bible")
 
             if not consistency_manager.characters:
                 self.logger.warning("No characters found in story context")
@@ -148,9 +137,7 @@ class OptimizedOrchestrator(BaseOrchestrator):
                 self.logger.info(f"Processing character: {character_name}")
 
                 # Check cache first
-                cached_image = await self._try_get_cached_character_image(
-                    character_name, character_desc
-                )
+                cached_image = await self._try_get_cached_character_image(character_name, character_desc)
                 if cached_image:
                     character_images[character_name] = cached_image
                     self.generation_stats["cache_hits"] += 1
@@ -160,16 +147,17 @@ class OptimizedOrchestrator(BaseOrchestrator):
 
                 # Generate with quality control
                 image_path = await self._generate_character_with_quality(
-                    character_name, character_desc, character_gen, consistency_manager
+                    character_name,
+                    character_desc,
+                    character_gen,
+                    consistency_manager,
                 )
 
                 if image_path:
                     character_images[character_name] = image_path
 
                     # Cache the generated image
-                    await self._cache_character_image(
-                        character_name, character_desc, image_path
-                    )
+                    await self._cache_character_image(character_name, character_desc, image_path)
 
             self.logger.info(f"Generated {len(character_images)} character images")
             return character_images
@@ -178,9 +166,7 @@ class OptimizedOrchestrator(BaseOrchestrator):
             self.logger.error(f"Character image generation failed: {e}")
             return {}
 
-    async def _try_get_cached_character_image(
-        self, character_name: str, character_desc: str
-    ) -> Optional[Path]:
+    async def _try_get_cached_character_image(self, character_name: str, character_desc: str) -> Optional[Path]:
         """Try to get character image from cache."""
         if not self.enable_caching:
             return None
@@ -189,9 +175,7 @@ class OptimizedOrchestrator(BaseOrchestrator):
             # Search for similar character images in cache
             metadata = {
                 "character_name": character_name,
-                "character_description": character_desc[
-                    :500
-                ],  # Limit description length
+                "character_description": character_desc[:500],  # Limit description length
                 "story_name": self.story_name,
                 "resource_type": "character_image",
             }
@@ -232,15 +216,11 @@ class OptimizedOrchestrator(BaseOrchestrator):
         best_quality = 0.0
 
         for attempt in range(max_attempts):
-            self.logger.info(
-                f"Attempt {attempt + 1}/{max_attempts} for {character_name}"
-            )
+            self.logger.info(f"Attempt {attempt + 1}/{max_attempts} for {character_name}")
 
             try:
                 # Generate image
-                image_path = character_gen.generate_character_image(
-                    character_name, character_desc, consistency_manager
-                )
+                image_path = character_gen.generate_character_image(character_name, character_desc, consistency_manager)
 
                 if not image_path or not Path(image_path).exists():
                     self.logger.warning(f"Image generation failed for {character_name}")
@@ -250,9 +230,7 @@ class OptimizedOrchestrator(BaseOrchestrator):
                 quality_result = self.image_evaluator.evaluate(image_path)
                 quality_score = quality_result.score
 
-                self.logger.info(
-                    f"Quality score for {character_name}: {quality_score:.1f}"
-                )
+                self.logger.info(f"Quality score for {character_name}: {quality_score:.1f}")
                 self.generation_stats["quality_scores"].append(quality_score)
 
                 # Update best image
@@ -262,9 +240,7 @@ class OptimizedOrchestrator(BaseOrchestrator):
 
                 # Check if quality is acceptable
                 if quality_result.is_acceptable:
-                    self.logger.info(
-                        f"Character image quality acceptable: {quality_score:.1f}"
-                    )
+                    self.logger.info(f"Character image quality acceptable: {quality_score:.1f}")
                     break
                 else:
                     self.logger.warning(
@@ -272,9 +248,7 @@ class OptimizedOrchestrator(BaseOrchestrator):
                     )
 
             except Exception as e:
-                self.logger.error(
-                    f"Attempt {attempt + 1} failed for {character_name}: {e}"
-                )
+                self.logger.error(f"Attempt {attempt + 1} failed for {character_name}: {e}")
 
         if best_image and best_image.exists():
             self.logger.info(f"Best quality for {character_name}: {best_quality:.1f}")
@@ -314,11 +288,7 @@ class OptimizedOrchestrator(BaseOrchestrator):
                 },
                 quality_score=quality_result.score,
                 generation_cost=0.1,  # Estimated cost (can be configured)
-                state=(
-                    ResourceState.VALIDATED
-                    if quality_result.is_acceptable
-                    else ResourceState.GENERATED
-                ),
+                state=(ResourceState.VALIDATED if quality_result.is_acceptable else ResourceState.GENERATED),
                 tags=[
                     f"character:{character_name}",
                     f"story:{self.story_name}",
@@ -329,9 +299,7 @@ class OptimizedOrchestrator(BaseOrchestrator):
             self.logger.info(f"Cached character image: {character_name}")
 
         except Exception as e:
-            self.logger.warning(
-                f"Failed to cache character image {character_name}: {e}"
-            )
+            self.logger.warning(f"Failed to cache character image {character_name}: {e}")
 
     async def _generate_scene_optimized(
         self,
@@ -351,7 +319,11 @@ class OptimizedOrchestrator(BaseOrchestrator):
         try:
             # Step 1: Generate script with quality control
             script_path, script_content = await self._generate_script_optimized(
-                scene_name, story_ctx, episode_ctx, memory, scene_prompt_content
+                scene_name,
+                story_ctx,
+                episode_ctx,
+                memory,
+                scene_prompt_content,
             )
 
             if not script_path or not script_path.exists():
@@ -362,9 +334,7 @@ class OptimizedOrchestrator(BaseOrchestrator):
             memory = script_content
 
             # Step 2: Generate video with optimization
-            video_path = await self._generate_video_optimized(
-                scene_name, script_path, previous_video_path
-            )
+            video_path = await self._generate_video_optimized(scene_name, script_path, previous_video_path)
 
             return video_path, memory
 
@@ -390,9 +360,7 @@ class OptimizedOrchestrator(BaseOrchestrator):
 
         # Check cache for similar scripts
         if self.enable_caching:
-            cached_script = await self._try_get_cached_script(
-                scene_name, story_ctx, episode_ctx, scene_prompt_content
-            )
+            cached_script = await self._try_get_cached_script(scene_name, story_ctx, episode_ctx, scene_prompt_content)
             if cached_script:
                 return cached_script, cached_script.read_text(encoding="utf-8")
 
@@ -416,9 +384,7 @@ class OptimizedOrchestrator(BaseOrchestrator):
                 generated_script_path,
             )
 
-            return Path(generated_script_path), Path(generated_script_path).read_text(
-                encoding="utf-8"
-            )
+            return Path(generated_script_path), Path(generated_script_path).read_text(encoding="utf-8")
 
         return None, ""
 
@@ -435,12 +401,8 @@ class OptimizedOrchestrator(BaseOrchestrator):
             metadata = {
                 "scene_name": scene_name,
                 "story_context_hash": hashlib.md5(story_ctx.encode()).hexdigest()[:16],
-                "episode_context_hash": hashlib.md5(episode_ctx.encode()).hexdigest()[
-                    :16
-                ],
-                "prompt_hash": hashlib.md5(scene_prompt_content.encode()).hexdigest()[
-                    :16
-                ],
+                "episode_context_hash": hashlib.md5(episode_ctx.encode()).hexdigest()[:16],
+                "prompt_hash": hashlib.md5(scene_prompt_content.encode()).hexdigest()[:16],
                 "resource_type": "script",
             }
 
@@ -479,20 +441,18 @@ class OptimizedOrchestrator(BaseOrchestrator):
                 storage_path=script_path,
                 metadata={
                     "scene_name": scene_name,
-                    "story_context_hash": hashlib.md5(story_ctx.encode()).hexdigest()[
-                        :16
-                    ],
-                    "episode_context_hash": hashlib.md5(
-                        episode_ctx.encode()
-                    ).hexdigest()[:16],
-                    "prompt_hash": hashlib.md5(
-                        scene_prompt_content.encode()
-                    ).hexdigest()[:16],
+                    "story_context_hash": hashlib.md5(story_ctx.encode()).hexdigest()[:16],
+                    "episode_context_hash": hashlib.md5(episode_ctx.encode()).hexdigest()[:16],
+                    "prompt_hash": hashlib.md5(scene_prompt_content.encode()).hexdigest()[:16],
                 },
                 quality_score=80.0,  # Assume good quality for scripts
                 generation_cost=0.05,  # Estimated LLM cost
                 state=ResourceState.VALIDATED,
-                tags=[f"scene:{scene_name}", f"story:{self.story_name}", "script"],
+                tags=[
+                    f"scene:{scene_name}",
+                    f"story:{self.story_name}",
+                    "script",
+                ],
             )
 
         except Exception as e:
@@ -517,9 +477,7 @@ class OptimizedOrchestrator(BaseOrchestrator):
             visual_prompt_text = self.script_gen.generate_visual_prompt(script_path)
 
             # Get reference image
-            ref_img_path = await self._get_reference_image_for_video(
-                scene_name, script_path, previous_video_path
-            )
+            ref_img_path = await self._get_reference_image_for_video(scene_name, script_path, previous_video_path)
 
             # Get optimal duration from script analysis
             from ..analyzer.script_analyzer import ScriptAnalyzer
@@ -529,9 +487,7 @@ class OptimizedOrchestrator(BaseOrchestrator):
             duration = analysis_result.estimated_duration if analysis_result else 8
 
             # Use workflow engine for video generation
-            self.logger.info(
-                f"Generating video for {scene_name} with workflow engine..."
-            )
+            self.logger.info(f"Generating video for {scene_name} with workflow engine...")
 
             # Here we would integrate with workflow engine
             # For now, use the base method with optimization flags
@@ -571,14 +527,14 @@ class OptimizedOrchestrator(BaseOrchestrator):
             # Load character images for consistency
             character_images = {}
             try:
-                from ..consistency.story_consistency import StoryConsistencyManager
+                from ..consistency.story_consistency import (
+                    StoryConsistencyManager,
+                )
 
                 consistency_manager = StoryConsistencyManager(self.story_name)
                 if story_ctx:
                     consistency_manager.load_from_story_bible(story_ctx)
-                    character_images = (
-                        consistency_manager.get_all_character_images() or {}
-                    )
+                    character_images = consistency_manager.get_all_character_images() or {}
             except Exception as e:
                 self.logger.warning(f"Failed to load character images: {e}")
 
@@ -587,9 +543,7 @@ class OptimizedOrchestrator(BaseOrchestrator):
                 scene_name=scene_name,
                 scene_script=script_content,
                 use_previous_scene=previous_video_path is not None,
-                previous_scene_image=(
-                    str(previous_video_path) if previous_video_path else None
-                ),
+                previous_scene_image=(str(previous_video_path) if previous_video_path else None),
                 story_context=story_ctx,
                 character_images=character_images,
                 optimize_quality=True,  # New optimization flag
@@ -599,14 +553,10 @@ class OptimizedOrchestrator(BaseOrchestrator):
                 # Evaluate concept image quality
                 quality_result = self.image_evaluator.evaluate(scene_concept_image)
                 if quality_result.is_acceptable:
-                    self.logger.info(
-                        f"Using scene concept image as reference: {scene_concept_image}"
-                    )
+                    self.logger.info(f"Using scene concept image as reference: {scene_concept_image}")
                     return Path(scene_concept_image)
                 else:
-                    self.logger.warning(
-                        f"Scene concept image quality too low: {quality_result.score:.1f}"
-                    )
+                    self.logger.warning(f"Scene concept image quality too low: {quality_result.score:.1f}")
 
         except Exception as e:
             self.logger.warning(f"Failed to get scene concept image: {e}")
@@ -615,11 +565,9 @@ class OptimizedOrchestrator(BaseOrchestrator):
         if previous_video_path and Path(previous_video_path).exists():
             from ..utils.media import MediaUtils
 
-            last_frame_path = (
-                self.videos_dir / f"last_frame_{Path(previous_video_path).stem}.jpg"
-            )
+            last_frame_path = self.videos_dir / f"last_frame_{Path(previous_video_path).stem}.jpg"
             if MediaUtils.extract_last_frame(previous_video_path, last_frame_path):
-                self.logger.info(f"Using previous video's last frame as reference")
+                self.logger.info("Using previous video's last frame as reference")
                 return last_frame_path
 
         return None
@@ -655,7 +603,11 @@ class OptimizedOrchestrator(BaseOrchestrator):
                 quality_score=70.0,  # Assume medium quality (would need video evaluator)
                 generation_cost=0.5,  # Estimated video generation cost
                 state=ResourceState.GENERATED,
-                tags=[f"scene:{scene_name}", f"story:{self.story_name}", "video"],
+                tags=[
+                    f"scene:{scene_name}",
+                    f"story:{self.story_name}",
+                    "video",
+                ],
             )
 
         except Exception as e:
@@ -670,9 +622,7 @@ class OptimizedOrchestrator(BaseOrchestrator):
         except Exception:
             return 0.0
 
-    async def run_optimized(
-        self, initial_memory: str = ""
-    ) -> Tuple[Optional[Path], str]:
+    async def run_optimized(self, initial_memory: str = "") -> Tuple[Optional[Path], str]:
         """
         Run the optimized generation pipeline.
 
@@ -688,9 +638,7 @@ class OptimizedOrchestrator(BaseOrchestrator):
         video_files = []
         memory = initial_memory
 
-        self.logger.info(
-            f"Starting optimized generation for {self.story_name}/{self.episode_name}"
-        )
+        self.logger.info(f"Starting optimized generation for {self.story_name}/{self.episode_name}")
 
         # Phase 1: Generate character images with optimization
         self.logger.info("Phase 1: Generating character images with quality control...")
@@ -700,9 +648,7 @@ class OptimizedOrchestrator(BaseOrchestrator):
         # Determine scenes to process
         from ..utils.paths import DataManager
 
-        scene_prompts = DataManager.get_scenes_prompts(
-            self.story_name, self.episode_name
-        )
+        scene_prompts = DataManager.get_scenes_prompts(self.story_name, self.episode_name)
 
         if scene_prompts:
             self.logger.info(f"Found {len(scene_prompts)} scene definitions")
@@ -712,9 +658,7 @@ class OptimizedOrchestrator(BaseOrchestrator):
                 scenes_to_process.append((scene_name, prompt_file))
         else:
             self.logger.info(f"Generating {self.max_scenes} sequential scenes")
-            scenes_to_process = [
-                (f"scene_{i}", None) for i in range(1, self.max_scenes + 1)
-            ]
+            scenes_to_process = [(f"scene_{i}", None) for i in range(1, self.max_scenes + 1)]
 
         # Track previous video for continuity
         previous_video_path = None
@@ -770,33 +714,27 @@ class OptimizedOrchestrator(BaseOrchestrator):
         if not self.generation_stats["quality_scores"]:
             avg_quality = 0.0
         else:
-            avg_quality = sum(self.generation_stats["quality_scores"]) / len(
-                self.generation_stats["quality_scores"]
-            )
+            avg_quality = sum(self.generation_stats["quality_scores"]) / len(self.generation_stats["quality_scores"])
 
         cache_hit_rate = 0.0
-        total_cache_attempts = (
-            self.generation_stats["cache_hits"] + self.generation_stats["cache_misses"]
-        )
+        total_cache_attempts = self.generation_stats["cache_hits"] + self.generation_stats["cache_misses"]
         if total_cache_attempts > 0:
             cache_hit_rate = self.generation_stats["cache_hits"] / total_cache_attempts
 
         self.logger.info(f"""
         Generation Statistics:
         ---------------------
-        Total Cost: ${self.generation_stats['total_cost']:.3f}
-        Cache Hits: {self.generation_stats['cache_hits']}
-        Cache Misses: {self.generation_stats['cache_misses']}
+        Total Cost: ${self.generation_stats["total_cost"]:.3f}
+        Cache Hits: {self.generation_stats["cache_hits"]}
+        Cache Misses: {self.generation_stats["cache_misses"]}
         Cache Hit Rate: {cache_hit_rate:.1%}
-        Failed Generations: {self.generation_stats['failed_generations']}
+        Failed Generations: {self.generation_stats["failed_generations"]}
         Average Quality Score: {avg_quality:.1f}
         """)
 
     def get_statistics(self) -> Dict[str, Any]:
         """Get comprehensive statistics."""
-        registry_stats = (
-            self.resource_registry.get_statistics() if self.enable_caching else {}
-        )
+        registry_stats = self.resource_registry.get_statistics() if self.enable_caching else {}
         workflow_stats = self.workflow_engine.get_statistics()
 
         return {
@@ -829,9 +767,7 @@ def create_optimized_orchestrator(
         "cache_only": GenerationStrategy.CACHE_ONLY,
     }
 
-    generation_strategy = strategy_map.get(
-        strategy.lower(), GenerationStrategy.BALANCED
-    )
+    generation_strategy = strategy_map.get(strategy.lower(), GenerationStrategy.BALANCED)
 
     return OptimizedOrchestrator(
         story_name=story_name,

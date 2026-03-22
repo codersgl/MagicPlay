@@ -5,7 +5,6 @@ Abstract base classes and shared functionality for all generators.
 """
 
 from abc import ABC, abstractmethod
-from pathlib import Path
 from typing import Any, Dict, Generic, List, Optional, TypeVar
 
 from loguru import logger
@@ -64,7 +63,6 @@ class BaseGenerator(IGenerator[T], ABC, Generic[T]):
         Returns:
             GenerationResult containing generated content or error
         """
-        pass
 
     def validate(self, result: GenerationResult[T]) -> ValidationResult:
         """
@@ -80,9 +78,7 @@ class BaseGenerator(IGenerator[T], ABC, Generic[T]):
             ValidationResult with validation details
         """
         if not result.success:
-            return ValidationResult(
-                is_valid=False, issues=[f"Generation failed: {result.error}"]
-            )
+            return ValidationResult(is_valid=False, issues=[f"Generation failed: {result.error}"])
 
         if result.data is None:
             return ValidationResult(is_valid=False, issues=["Generated data is None"])
@@ -137,9 +133,7 @@ class BaseGenerator(IGenerator[T], ABC, Generic[T]):
             warnings=warnings or [],
         )
 
-    def _wrap_partial(
-        self, data: T, warnings: List[str], context: GenerationContext
-    ) -> GenerationResult[T]:
+    def _wrap_partial(self, data: T, warnings: List[str], context: GenerationContext) -> GenerationResult[T]:
         """
         Wrap partial generation result (success with warnings).
 
@@ -169,13 +163,10 @@ class BaseGenerator(IGenerator[T], ABC, Generic[T]):
             context: Generation context
         """
         self.logger.info(
-            f"{self.name}: Starting generation for "
-            f"{context.story_name}/{context.episode_name}/{context.scene_name}"
+            f"{self.name}: Starting generation for {context.story_name}/{context.episode_name}/{context.scene_name}"
         )
 
-    def post_generate_hook(
-        self, context: GenerationContext, result: GenerationResult[T]
-    ) -> None:
+    def post_generate_hook(self, context: GenerationContext, result: GenerationResult[T]) -> None:
         """
         Hook called after generation.
 
@@ -210,7 +201,11 @@ class BaseGenerator(IGenerator[T], ABC, Generic[T]):
         return None
 
     def generate_with_context(
-        self, story_name: str, episode_name: str, scene_name: str = "", **kwargs
+        self,
+        story_name: str,
+        episode_name: str,
+        scene_name: str = "",
+        **kwargs,
     ) -> GenerationResult[T]:
         """
         Convenience method to generate with simple parameters.

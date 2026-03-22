@@ -2,17 +2,12 @@
 Pytest tests for StoryConsistencyManager.
 """
 
-import json
-from pathlib import Path
-from unittest.mock import Mock, patch
-
 import pytest
 
 from magicplay.consistency.story_consistency import (
     CharacterAnchor,
     StoryConsistencyManager,
     StoryState,
-    VisualStyle,
 )
 
 
@@ -176,7 +171,7 @@ This is section three content.
 **[Lyra]**
 - AI演员锚点: 黑长直，蓝眼
 - 性格特征: 冷静
-        
+
 **[Kai]**
 - AI演员锚点: 短发，绿眼
 - 性格特征: 热血
@@ -253,7 +248,6 @@ We need to leave. Now.
 
         # 检查是否包含基本的section headers（可能不会全部出现）
         # 我们只检查prompt生成了
-        pass
 
     def test_get_character_visual_anchor(self, consistency_manager):
         """Test getting visual anchor for specific character."""
@@ -272,9 +266,7 @@ We need to leave. Now.
         assert "must have" in anchor
 
         # Test with non-existent character
-        non_existent_anchor = consistency_manager.get_character_visual_anchor(
-            "NonExistent"
-        )
+        non_existent_anchor = consistency_manager.get_character_visual_anchor("NonExistent")
         assert non_existent_anchor is None
 
     def test_save_and_load_state(self, consistency_manager, tmp_path):

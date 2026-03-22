@@ -11,7 +11,11 @@ from typing import Dict, List, Optional, Tuple
 from loguru import logger
 
 from ..evaluator.base import EvaluationResult, QualityLevel
-from ..experiment.tracker import ExperimentConfig, ExperimentResult, ExperimentTracker
+from ..experiment.tracker import (
+    ExperimentConfig,
+    ExperimentResult,
+    ExperimentTracker,
+)
 from ..resource_registry.registry import (
     ResourceRecord,
     ResourceRegistry,
@@ -131,9 +135,7 @@ class OptimizationWorkflow:
                     break
 
         if best_config:
-            self.logger.info(
-                f"Selected configuration: {best_config.name} with score {best_score:.2f}"
-            )
+            self.logger.info(f"Selected configuration: {best_config.name} with score {best_score:.2f}")
         else:
             self.logger.warning("No suitable configuration found")
 
@@ -300,8 +302,6 @@ class OptimizationWorkflow:
             "strategy": self.strategy,
             "experiments_analyzed": analysis["total_experiments"],
             "configurations_tested": len(analysis["configurations"]),
-            "best_configuration": analysis.get("best_by_quality", {}).get(
-                "config_name"
-            ),
+            "best_configuration": analysis.get("best_by_quality", {}).get("config_name"),
             "most_cost_effective": analysis.get("best_by_cost", {}).get("config_name"),
         }

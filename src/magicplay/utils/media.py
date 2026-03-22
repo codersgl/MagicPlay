@@ -10,9 +10,7 @@ try:
     MOVIEPY_AVAILABLE = True
 except ImportError:
     MOVIEPY_AVAILABLE = False
-    print(
-        "Warning: moviepy not installed or import error. Video stitching will be skipped."
-    )
+    print("Warning: moviepy not installed or import error. Video stitching will be skipped.")
 
 
 class MediaUtils:
@@ -50,9 +48,7 @@ class MediaUtils:
             raise
 
     @staticmethod
-    def extract_last_frame(
-        video_path: str | Path, output_image_path: str | Path
-    ) -> bool:
+    def extract_last_frame(video_path: str | Path, output_image_path: str | Path) -> bool:
         """
         Extract the last frame from a video file and save it as an image.
         """
@@ -99,15 +95,11 @@ class MediaUtils:
             # Normalize all clips to the target resolution to avoid stitching errors
             for clip in clips:
                 if clip.size != (target_w, target_h):
-                    print(
-                        f"Resizing clip {clip.filename} from {clip.size} to {(target_w, target_h)}"
-                    )
+                    print(f"Resizing clip {clip.filename} from {clip.size} to {(target_w, target_h)}")
                     # Use method='compose' for high quality resizing
                     # Check for resized method (MoviePy v2) vs resize (MoviePy v1)
                     if hasattr(clip, "resized"):
-                        resized_clips.append(
-                            clip.resized(new_size=(target_w, target_h))
-                        )
+                        resized_clips.append(clip.resized(new_size=(target_w, target_h)))
                     else:
                         resized_clips.append(clip.resize(newsize=(target_w, target_h)))
                 else:

@@ -4,7 +4,7 @@ Tests for SceneConceptGenerator module.
 
 import tempfile
 from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -38,7 +38,9 @@ class TestSceneConceptGenerator:
                 return_value=mock_image_service,
             ):
                 gen = SceneConceptGenerator(
-                    story_name="TestStory", episode_name="Episode1", size=(1280, 720)
+                    story_name="TestStory",
+                    episode_name="Episode1",
+                    size=(1280, 720),
                 )
                 yield gen
 
@@ -69,9 +71,7 @@ class TestSceneConceptGenerator:
 
         # Mock returns a path that DOES exist to satisfy the existence check
         result_path.touch()
-        scene_concept_generator.image_service.generate_image_and_download.return_value = str(
-            result_path
-        )
+        scene_concept_generator.image_service.generate_image_and_download.return_value = str(result_path)
 
         result = scene_concept_generator.get_or_create_scene_concept_image(
             scene_name="scene_2", visual_prompt="A visual description"
@@ -83,9 +83,7 @@ class TestSceneConceptGenerator:
 
     def test_generate_scene_concept_image_failure(self, scene_concept_generator):
         """Test handling of failed image generation."""
-        scene_concept_generator.image_service.generate_image_and_download.return_value = (
-            None
-        )
+        scene_concept_generator.image_service.generate_image_and_download.return_value = None
 
         result = scene_concept_generator.generate_scene_concept_image(
             scene_name="failed_scene", visual_prompt="A visual description"
@@ -93,9 +91,7 @@ class TestSceneConceptGenerator:
 
         assert result is None
 
-    def test_ensure_scene_concept_image_existing(
-        self, scene_concept_generator, temp_dir
-    ):
+    def test_ensure_scene_concept_image_existing(self, scene_concept_generator, temp_dir):
         """Test ensure_scene_concept_image with existing image."""
         existing_image = temp_dir / "scene_existing.jpg"
         existing_image.touch()
@@ -106,18 +102,15 @@ class TestSceneConceptGenerator:
 
         assert result == existing_image
 
-    def test_ensure_scene_concept_image_generation(
-        self, scene_concept_generator, temp_dir
-    ):
+    def test_ensure_scene_concept_image_generation(self, scene_concept_generator, temp_dir):
         """Test ensure_scene_concept_image generates new image."""
         result_path = temp_dir / "new_scene.jpg"
         result_path.touch()  # Create actual file
-        scene_concept_generator.image_service.generate_image_and_download.return_value = str(
-            result_path
-        )
+        scene_concept_generator.image_service.generate_image_and_download.return_value = str(result_path)
 
         result = scene_concept_generator.ensure_scene_concept_image(
-            scene_name="new_scene", scene_script="A scene script with some content"
+            scene_name="new_scene",
+            scene_script="A scene script with some content",
         )
 
         assert result is not None
@@ -191,9 +184,7 @@ class TestSceneConceptGeneratorEdgeCases:
                 "magicplay.generators.scene_concept_gen.ImageService",
                 return_value=mock_image_service,
             ):
-                yield SceneConceptGenerator(
-                    story_name="TestStory", episode_name="Episode1"
-                )
+                yield SceneConceptGenerator(story_name="TestStory", episode_name="Episode1")
 
     def test_very_long_script(self, generator):
         """Test handling of very long scene script."""
@@ -206,25 +197,17 @@ class TestSceneConceptGeneratorEdgeCases:
         """Test handling of special characters in scene name."""
         result_path = temp_dir / "scene_special.jpg"
         result_path.touch()  # Create actual file
-        generator.image_service.generate_image_and_download.return_value = str(
-            result_path
-        )
+        generator.image_service.generate_image_and_download.return_value = str(result_path)
 
         # Scene name with special characters
-        result = generator.get_or_create_scene_concept_image(
-            scene_name="scene_01-02-03", visual_prompt="Test"
-        )
+        generator.get_or_create_scene_concept_image(scene_name="scene_01-02-03", visual_prompt="Test")
 
         assert generator.image_service.generate_image_and_download.called
 
     def test_ensure_scene_concept_with_exception(self, generator, temp_dir):
         """Test handling of exception during generation."""
-        generator.image_service.generate_image_and_download.side_effect = Exception(
-            "API Error"
-        )
+        generator.image_service.generate_image_and_download.side_effect = Exception("API Error")
 
-        result = generator.ensure_scene_concept_image(
-            scene_name="error_scene", scene_script="Some content"
-        )
+        result = generator.ensure_scene_concept_image(scene_name="error_scene", scene_script="Some content")
 
         assert result is None

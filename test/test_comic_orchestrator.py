@@ -1,5 +1,3 @@
-import pytest
-
 from magicplay.core.comic_orchestrator import ComicOrchestrator
 
 

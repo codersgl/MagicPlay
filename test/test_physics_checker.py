@@ -2,8 +2,6 @@
 Tests for Physics Checker Module
 """
 
-from pathlib import Path
-
 import pytest
 
 from magicplay.analyzer.physics_checker import (
@@ -81,10 +79,7 @@ The 磁力 generators hum as they lift the vehicle.
 
         violations = checker.analyze_content(script_with_exception)
         # Should not detect gravity violation due to scientific explanation
-        assert (
-            len([v for v in violations if v.violation_type == ViolationType.GRAVITY])
-            == 0
-        )
+        assert len([v for v in violations if v.violation_type == ViolationType.GRAVITY]) == 0
 
     def test_detect_motion_violation(self):
         """Test detection of motion/inertia violations."""
@@ -155,7 +150,7 @@ INT. LAB - LATER
 The 能量武器 is broken and cannot function.
 """
 
-        violations = checker.analyze_content(script_inconsistent)
+        checker.analyze_content(script_inconsistent)
         # May detect consistency issue
         # Note: This is a simplified check, may or may not trigger
 
@@ -214,9 +209,7 @@ The 能量武器 is broken and cannot function.
         # Gravity violation - severity 3
         gravity_script = "The object began to 漂浮 without support."
         violations = checker.analyze_content(gravity_script)
-        gravity_violations = [
-            v for v in violations if v.violation_type == ViolationType.GRAVITY
-        ]
+        gravity_violations = [v for v in violations if v.violation_type == ViolationType.GRAVITY]
         if gravity_violations:
             assert all(1 <= v.severity <= 5 for v in gravity_violations)
 
@@ -238,10 +231,7 @@ A book 漂浮 above the table.
 
         violation_types = set(v.violation_type for v in violations)
         # Should detect at least motion and anatomy violations
-        assert (
-            ViolationType.MOTION in violation_types
-            or ViolationType.ANATOMY in violation_types
-        )
+        assert ViolationType.MOTION in violation_types or ViolationType.ANATOMY in violation_types
 
     def test_line_content_truncation(self):
         """Test that line content is truncated in violations."""
@@ -250,8 +240,6 @@ A book 漂浮 above the table.
         long_line = "A" * 200 + " 漂浮 " + "B" * 200
         violations = checker.analyze_content(long_line)
 
-        gravity_violations = [
-            v for v in violations if v.violation_type == ViolationType.GRAVITY
-        ]
+        gravity_violations = [v for v in violations if v.violation_type == ViolationType.GRAVITY]
         if gravity_violations:
             assert len(gravity_violations[0].line_content) <= 100

@@ -10,9 +10,11 @@ from typing import Dict, List, Optional
 
 from loguru import logger
 
-from magicplay.config import get_settings
 from magicplay.consistency.story_consistency import StoryConsistencyManager
-from magicplay.schema.professional_workflow import CharacterInfo, CharacterReference
+from magicplay.schema.professional_workflow import (
+    CharacterInfo,
+    CharacterReference,
+)
 from magicplay.services.image_api import ImageService
 from magicplay.utils.paths import DataManager
 
@@ -74,22 +76,14 @@ class CharacterImageGenerator:
         for char_name, char_anchor in consistency_manager.characters.items():
             if char_anchor.image_path and Path(char_anchor.image_path).exists():
                 generated_images[char_name] = Path(char_anchor.image_path)
-                logger.info(
-                    f"Character {char_name} already has anchor image: {char_anchor.image_path}"
-                )
+                logger.info(f"Character {char_name} already has anchor image: {char_anchor.image_path}")
             else:
                 # Generate missing image
                 logger.info(f"Generating anchor image for character: {char_name}")
                 # Build description from visual_tags
-                visual_tags_str = (
-                    ", ".join(char_anchor.visual_tags)
-                    if char_anchor.visual_tags
-                    else ""
-                )
+                visual_tags_str = ", ".join(char_anchor.visual_tags) if char_anchor.visual_tags else ""
                 character_description = (
-                    f"{char_anchor.name}: {visual_tags_str}"
-                    if visual_tags_str
-                    else char_anchor.name
+                    f"{char_anchor.name}: {visual_tags_str}" if visual_tags_str else char_anchor.name
                 )
                 image_path = self.generate_character_image(
                     character_name=char_name,
@@ -98,9 +92,7 @@ class CharacterImageGenerator:
                 if image_path:
                     generated_images[char_name] = image_path
                     # Update consistency manager
-                    consistency_manager.set_character_image_path(
-                        char_name, str(image_path)
-                    )
+                    consistency_manager.set_character_image_path(char_name, str(image_path))
 
         logger.info(f"Ensured {len(generated_images)} character anchor images")
         return generated_images
@@ -140,9 +132,7 @@ class CharacterImageGenerator:
                 logger.info(f"Character anchor image saved: {result_path}")
                 return Path(result_path)
             else:
-                logger.error(
-                    f"Failed to generate image for character: {character_name}"
-                )
+                logger.error(f"Failed to generate image for character: {character_name}")
                 return None
 
         except Exception as e:
@@ -240,9 +230,7 @@ class CharacterImageGenerator:
 
             # Update consistency manager if provided
             if consistency_manager and output_path.exists():
-                consistency_manager.set_character_image_path(
-                    char_info.name, str(output_path)
-                )
+                consistency_manager.set_character_image_path(char_info.name, str(output_path))
 
         logger.info(f"Generated {len(references)} character anchor images")
         return references

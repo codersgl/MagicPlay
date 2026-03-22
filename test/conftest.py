@@ -10,7 +10,6 @@ Provides:
 
 import sys
 from pathlib import Path
-from typing import List
 
 import pytest
 
@@ -111,9 +110,7 @@ def mock_video_service(test_settings: Settings) -> MockVideoService:
 
 
 @pytest.fixture
-def mock_script_generator(
-    test_settings: Settings, mock_llm_service: MockLLMService
-) -> MockScriptGenerator:
+def mock_script_generator(test_settings: Settings, mock_llm_service: MockLLMService) -> MockScriptGenerator:
     """
     Create mock script generator for testing.
 
@@ -124,9 +121,7 @@ def mock_script_generator(
 
 
 @pytest.fixture
-def mock_character_generator(
-    test_settings: Settings, mock_image_service: MockImageService
-) -> MockCharacterGenerator:
+def mock_character_generator(test_settings: Settings, mock_image_service: MockImageService) -> MockCharacterGenerator:
     """
     Create mock character generator for testing.
 
@@ -137,9 +132,7 @@ def mock_character_generator(
 
 
 @pytest.fixture
-def mock_video_generator(
-    test_settings: Settings, mock_video_service: MockVideoService
-) -> MockVideoGenerator:
+def mock_video_generator(test_settings: Settings, mock_video_service: MockVideoService) -> MockVideoGenerator:
     """
     Create mock video generator for testing.
 
@@ -182,7 +175,10 @@ def mock_comic_panel_generator(tmp_path):
     """Mock ComicPanelGenerator for testing without API calls."""
     from unittest.mock import MagicMock
 
-    from magicplay.generators.comic_panel_gen import ComicPanelGenerator, PanelOutput
+    from magicplay.generators.comic_panel_gen import (
+        ComicPanelGenerator,
+        PanelOutput,
+    )
 
     mock = MagicMock(spec=ComicPanelGenerator)
     mock.generate_panel.return_value = PanelOutput(

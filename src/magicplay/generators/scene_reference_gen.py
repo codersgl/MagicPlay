@@ -193,8 +193,7 @@ class SceneReferenceGenerator:
 
         # Add style requirements
         prompt_parts.append(
-            "anime style background, cinematic composition, "
-            "wide establishing shot, atmospheric lighting"
+            "anime style background, cinematic composition, wide establishing shot, atmospheric lighting"
         )
 
         return " | ".join(prompt_parts)

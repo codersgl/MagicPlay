@@ -6,7 +6,7 @@ Abstract interfaces for external services (LLM, Image, Video APIs).
 
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Optional, Union
 
 from ..config import Settings
 
@@ -45,7 +45,6 @@ class ILLMService(ABC):
         Returns:
             Generated text content
         """
-        pass
 
     @abstractmethod
     def health_check(self) -> bool:
@@ -55,7 +54,6 @@ class ILLMService(ABC):
         Returns:
             True if service is healthy, False otherwise
         """
-        pass
 
 
 class IImageService(ABC):
@@ -98,12 +96,10 @@ class IImageService(ABC):
         Returns:
             Path to generated image, or None on failure
         """
-        pass
 
     @abstractmethod
     def health_check(self) -> bool:
         """Check if service is operational."""
-        pass
 
 
 class IVideoService(ABC):
@@ -142,12 +138,9 @@ class IVideoService(ABC):
         Returns:
             Path to generated video, or None on failure
         """
-        pass
 
     @abstractmethod
-    def extract_last_frame(
-        self, video_path: Union[str, Path], output_path: Union[str, Path]
-    ) -> Optional[Path]:
+    def extract_last_frame(self, video_path: Union[str, Path], output_path: Union[str, Path]) -> Optional[Path]:
         """
         Extract the last frame from a video.
 
@@ -158,9 +151,7 @@ class IVideoService(ABC):
         Returns:
             Path to extracted frame, or None on failure
         """
-        pass
 
     @abstractmethod
     def health_check(self) -> bool:
         """Check if service is operational."""
-        pass

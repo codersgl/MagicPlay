@@ -11,10 +11,12 @@ from typing import Dict, List, Optional
 
 from loguru import logger
 
-from magicplay.analyzer.timeline_analyzer import TimelineAnalyzer, TimelineSegment
+from magicplay.analyzer.timeline_analyzer import (
+    TimelineAnalyzer,
+    TimelineSegment,
+)
 from magicplay.schema.professional_workflow import (
     CharacterReference,
-    SceneReference,
     Storyboard,
     StoryboardFrame,
 )
@@ -85,19 +87,14 @@ class StoryboardGenerator:
         frames = []
         for i, segment in enumerate(segments):
             # Generate first frame prompt if not provided
-            first_frame_prompt = (
-                segment.first_frame_prompt
-                or self._generate_first_frame_prompt(
-                    segment=segment,
-                    scene_reference_path=scene_reference_path,
-                    character_images=character_images,
-                )
+            first_frame_prompt = segment.first_frame_prompt or self._generate_first_frame_prompt(
+                segment=segment,
+                scene_reference_path=scene_reference_path,
+                character_images=character_images,
             )
 
             # Generate motion prompt if not provided
-            motion_prompt = segment.motion_prompt or self._generate_motion_prompt(
-                segment
-            )
+            motion_prompt = segment.motion_prompt or self._generate_motion_prompt(segment)
 
             frame = StoryboardFrame(
                 frame_index=i,
@@ -150,10 +147,7 @@ class StoryboardGenerator:
             prompt_parts.append(f"Characters: {', '.join(char_names)}")
 
         # Add composition guidance
-        prompt_parts.append(
-            "medium shot, cinematic composition, anime style, "
-            "high quality, detailed, sharp focus"
-        )
+        prompt_parts.append("medium shot, cinematic composition, anime style, high quality, detailed, sharp focus")
 
         return " | ".join(prompt_parts)
 
@@ -214,16 +208,20 @@ class StoryboardGenerator:
             if match and len(match.group(1)) > 1:
                 char_name = match.group(1).strip()
                 # Skip if it's a heading
-                if char_name.upper() in {"SCENE", "INT", "EXT", "ACTION", "DIALOGUE"}:
+                if char_name.upper() in {
+                    "SCENE",
+                    "INT",
+                    "EXT",
+                    "ACTION",
+                    "DIALOGUE",
+                }:
                     continue
 
                 # Check next line for dialogue
                 if i + 1 < len(lines):
                     next_line = lines[i + 1].strip()
                     if next_line and not next_line.startswith("#"):
-                        dialogue_lines.append(
-                            {"character": char_name, "text": next_line[:200]}
-                        )
+                        dialogue_lines.append({"character": char_name, "text": next_line[:200]})
 
         return dialogue_lines
 
@@ -260,12 +258,8 @@ class StoryboardGenerator:
                     "end_second": f.end_second,
                     "first_frame_prompt": f.first_frame_prompt,
                     "motion_prompt": f.motion_prompt,
-                    "first_frame_path": (
-                        str(f.first_frame_path) if f.first_frame_path else None
-                    ),
-                    "video_segment_path": (
-                        str(f.video_segment_path) if f.video_segment_path else None
-                    ),
+                    "first_frame_path": (str(f.first_frame_path) if f.first_frame_path else None),
+                    "video_segment_path": (str(f.video_segment_path) if f.video_segment_path else None),
                     "characters": f.characters,
                 }
                 for f in storyboard.frames
@@ -312,15 +306,9 @@ class StoryboardGenerator:
                     end_second=f_data["end_second"],
                     first_frame_prompt=f_data.get("first_frame_prompt", ""),
                     motion_prompt=f_data.get("motion_prompt", ""),
-                    first_frame_path=(
-                        Path(f_data["first_frame_path"])
-                        if f_data.get("first_frame_path")
-                        else None
-                    ),
+                    first_frame_path=(Path(f_data["first_frame_path"]) if f_data.get("first_frame_path") else None),
                     video_segment_path=(
-                        Path(f_data["video_segment_path"])
-                        if f_data.get("video_segment_path")
-                        else None
+                        Path(f_data["video_segment_path"]) if f_data.get("video_segment_path") else None
                     ),
                     characters=f_data.get("characters", []),
                 )

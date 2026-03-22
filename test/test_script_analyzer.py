@@ -4,7 +4,11 @@ Pytest tests for ScriptAnalyzer.
 
 import pytest
 
-from magicplay.analyzer.script_analyzer import AnalysisResult, SceneType, ScriptAnalyzer
+from magicplay.analyzer.script_analyzer import (
+    AnalysisResult,
+    SceneType,
+    ScriptAnalyzer,
+)
 
 
 class TestScriptAnalyzer:
@@ -65,7 +69,8 @@ Rain-slicked streets, neon signs reflecting in puddles, fast-paced chase sequenc
 The car screeches around the corner, tires smoking. Rain pelts the windshield as the wipers struggle to keep up.
 
 **ACTION**
-A motorcycle emerges from an alley, cutting off the car's path. The rider wears black leather, face obscured by a helmet.
+A motorcycle emerges from an alley, cutting off the car's path.
+The rider wears black leather, face obscured by a helmet.
 
 **ACTION**
 The car swerves, narrowly avoiding a collision. It mounts the sidewalk, scattering trash cans and cardboard boxes.
@@ -169,9 +174,7 @@ The first light of dawn breaks over the horizon. A single bird chirps in the dis
         assert result.dialogue_lines > 0
         assert result.action_density < 0.5
         # Duration should be within configured range
-        assert (
-            analyzer.min_duration <= result.estimated_duration <= analyzer.max_duration
-        )
+        assert analyzer.min_duration <= result.estimated_duration <= analyzer.max_duration
         assert 0.0 <= result.complexity_score <= 1.0
 
     def test_analyze_action_script(self, analyzer, action_script):
@@ -185,9 +188,7 @@ The first light of dawn breaks over the horizon. A single bird chirps in the dis
         assert result.action_density > 0.1  # Should have some action density
         # The dialogue counting algorithm may count some lines as dialogue
         # This is acceptable for the test
-        assert (
-            analyzer.min_duration <= result.estimated_duration <= analyzer.max_duration
-        )
+        assert analyzer.min_duration <= result.estimated_duration <= analyzer.max_duration
 
     def test_analyze_mixed_script(self, analyzer, mixed_script):
         """Test analyzing mixed script."""
@@ -197,9 +198,7 @@ The first light of dawn breaks over the horizon. A single bird chirps in the dis
         assert result.total_words > 0
         assert result.dialogue_lines > 0
         assert result.action_density > 0.1
-        assert (
-            analyzer.min_duration <= result.estimated_duration <= analyzer.max_duration
-        )
+        assert analyzer.min_duration <= result.estimated_duration <= analyzer.max_duration
 
     def test_analyze_transition_script(self, analyzer, transition_script):
         """Test analyzing transition script."""
@@ -224,18 +223,24 @@ The first light of dawn breaks over the horizon. A single bird chirps in the dis
         # Test each scene type classification
         test_cases = [
             (5, 0.1, 100, SceneType.TRANSITION),  # Few words, low action
-            (20, 0.2, 500, SceneType.DIALOGUE),  # High dialogue ratio, low action
+            (
+                20,
+                0.2,
+                500,
+                SceneType.DIALOGUE,
+            ),  # High dialogue ratio, low action
             (5, 0.5, 500, SceneType.ACTION),  # High action density
             (15, 0.3, 500, SceneType.MIXED),  # Balanced
         ]
 
-        for dialogue_lines, action_density, total_words, expected_type in test_cases:
-            scene_type = analyzer._classify_scene_type(
-                dialogue_lines, action_density, total_words
-            )
-            assert (
-                scene_type == expected_type
-            ), f"Failed for {dialogue_lines}, {action_density}, {total_words}"
+        for (
+            dialogue_lines,
+            action_density,
+            total_words,
+            expected_type,
+        ) in test_cases:
+            scene_type = analyzer._classify_scene_type(dialogue_lines, action_density, total_words)
+            assert scene_type == expected_type, f"Failed for {dialogue_lines}, {action_density}, {total_words}"
 
     def test_duration_estimation_within_range(self, analyzer):
         """Test that estimated duration stays within configured range."""
@@ -250,11 +255,9 @@ The first light of dawn breaks over the horizon. A single bird chirps in the dis
 
         for script_content, expected_type in test_scripts:
             result = analyzer.analyze(script_content)
-            assert (
-                analyzer.min_duration
-                <= result.estimated_duration
-                <= analyzer.max_duration
-            ), f"Duration {result.estimated_duration} out of range for {expected_type.value}"
+            assert analyzer.min_duration <= result.estimated_duration <= analyzer.max_duration, (
+                f"Duration {result.estimated_duration} out of range for {expected_type.value}"
+            )
 
     def test_complexity_score_range(self, analyzer, dialogue_script):
         """Test complexity score is always between 0 and 1."""

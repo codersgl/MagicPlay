@@ -96,10 +96,7 @@ class JimengVideoService:
         self.default_aspect_ratio = config.jimeng_default_aspect_ratio or "16:9"
 
         if not self.access_key or not self.secret_key:
-            raise ValueError(
-                "JIMENG_ACCESS_KEY and JIMENG_SECRET_KEY are required. "
-                "Please set them in your .env file."
-            )
+            raise ValueError("JIMENG_ACCESS_KEY and JIMENG_SECRET_KEY are required. Please set them in your .env file.")
 
         # Initialize VisualService using SDK
         self._init_service()
@@ -156,9 +153,7 @@ class JimengVideoService:
         if binary_data_base64:
             form["binary_data_base64"] = binary_data_base64
 
-        logger.info(
-            f"Submitting Jimeng task: req_key={req_key}, frames={frames}, aspect_ratio={aspect_ratio}"
-        )
+        logger.info(f"Submitting Jimeng task: req_key={req_key}, frames={frames}, aspect_ratio={aspect_ratio}")
 
         # Use SDK's cv_sync2async_submit_task method
         resp = self.service.cv_sync2async_submit_task(form)
@@ -228,9 +223,7 @@ class JimengVideoService:
         while True:
             elapsed = time.time() - start_time
             if elapsed > self.timeout:
-                raise RuntimeError(
-                    f"Task {task_id} timed out after {self.timeout}s (last status: {last_status})"
-                )
+                raise RuntimeError(f"Task {task_id} timed out after {self.timeout}s (last status: {last_status})")
 
             result = self._query_task(req_key, task_id)
             data = result.get("data", {})
@@ -252,7 +245,10 @@ class JimengVideoService:
             elif status == self.TASK_STATUS_EXPIRED:
                 raise RuntimeError(f"Task {task_id} has expired")
 
-            elif status in (self.TASK_STATUS_IN_QUEUE, self.TASK_STATUS_GENERATING):
+            elif status in (
+                self.TASK_STATUS_IN_QUEUE,
+                self.TASK_STATUS_GENERATING,
+            ):
                 # Wait before next poll
                 time.sleep(self.poll_interval)
 
@@ -381,9 +377,7 @@ class JimengVideoService:
         logger.info(f"Jimeng T2I task submitted: {task_id}")
         return task_id
 
-    def _query_image_task(
-        self, task_id: str, return_url: bool = True
-    ) -> Dict[str, Any]:
+    def _query_image_task(self, task_id: str, return_url: bool = True) -> Dict[str, Any]:
         """
         Query T2I task status and result.
 
@@ -429,9 +423,7 @@ class JimengVideoService:
         while True:
             elapsed = time.time() - start_time
             if elapsed > self.timeout:
-                raise RuntimeError(
-                    f"T2I Task {task_id} timed out after {self.timeout}s (last status: {last_status})"
-                )
+                raise RuntimeError(f"T2I Task {task_id} timed out after {self.timeout}s (last status: {last_status})")
 
             result = self._query_image_task(task_id)
             data = result.get("data", {})
@@ -459,7 +451,10 @@ class JimengVideoService:
             elif status == self.TASK_STATUS_EXPIRED:
                 raise RuntimeError(f"T2I Task {task_id} has expired")
 
-            elif status in (self.TASK_STATUS_IN_QUEUE, self.TASK_STATUS_GENERATING):
+            elif status in (
+                self.TASK_STATUS_IN_QUEUE,
+                self.TASK_STATUS_GENERATING,
+            ):
                 time.sleep(self.poll_interval)
 
             else:
@@ -660,9 +655,7 @@ class JimengVideoService:
             logger.error(f"Video generation failed: {e}")
             return None
 
-    def extract_last_frame(
-        self, video_path: Union[str, Path], output_path: Union[str, Path]
-    ) -> Optional[Path]:
+    def extract_last_frame(self, video_path: Union[str, Path], output_path: Union[str, Path]) -> Optional[Path]:
         """
         Extract the last frame from a video.
 
@@ -730,7 +723,7 @@ class JimengVideoService:
         try:
             # Try to submit a minimal query to check connectivity
             # We'll use a simple query without actual task
-            response = requests.get(
+            requests.get(
                 f"{self.base_url}/",
                 headers={"Content-Type": "application/json"},
                 timeout=10,

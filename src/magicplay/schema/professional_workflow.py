@@ -137,9 +137,7 @@ class Storyboard:
     scene_reference_path: Path  # 16:9 scene reference
     frames: List[StoryboardFrame] = field(default_factory=list)
     total_duration: int = 0
-    dialogue_lines: List[Dict[str, str]] = field(
-        default_factory=list
-    )  # [{"character": "...", "text": "..."}]
+    dialogue_lines: List[Dict[str, str]] = field(default_factory=list)  # [{"character": "...", "text": "..."}]
 
     def __post_init__(self):
         if self.frames and self.total_duration == 0:
@@ -156,12 +154,8 @@ class Storyboard:
                 "end_second": frame.end_second,
                 "first_frame_prompt": frame.first_frame_prompt,
                 "motion_prompt": frame.motion_prompt,
-                "first_frame_image": (
-                    str(frame.first_frame_path) if frame.first_frame_path else None
-                ),
-                "video_segment": (
-                    str(frame.video_segment_path) if frame.video_segment_path else None
-                ),
+                "first_frame_image": (str(frame.first_frame_path) if frame.first_frame_path else None),
+                "video_segment": (str(frame.video_segment_path) if frame.video_segment_path else None),
             }
             clips.append(clip)
         return {
@@ -230,7 +224,7 @@ class EpisodeProductionData:
     def to_clip_list_json(self) -> dict:
         """Convert entire episode to clip_list.json format."""
         all_clips = []
-        for scene_name, storyboard in self.storyboards.items():
+        for _scene_name, storyboard in self.storyboards.items():
             all_clips.extend(storyboard.clip_list_json["clips"])
         return {
             "episode_name": self.episode_name,
@@ -257,9 +251,7 @@ class EpisodeProductionData:
             srt_path.write_text(srt_content, encoding="utf-8")
 
     @classmethod
-    def from_clip_list_json(
-        cls, episode_name: str, clip_list_path: Path
-    ) -> "EpisodeProductionData":
+    def from_clip_list_json(cls, episode_name: str, clip_list_path: Path) -> "EpisodeProductionData":
         """Load episode production data from clip_list.json."""
         import json
 
@@ -267,11 +259,7 @@ class EpisodeProductionData:
         instance = cls(episode_name=episode_name)
         for clip_data in data.get("clips", []):
             clip = VideoClip(
-                video_path=(
-                    Path(clip_data["video_segment"])
-                    if clip_data.get("video_segment")
-                    else Path("")
-                ),
+                video_path=(Path(clip_data["video_segment"]) if clip_data.get("video_segment") else Path("")),
                 start_time=clip_data["start_second"],
                 end_time=clip_data["end_second"],
                 clip_id=clip_data["id"],

@@ -3,9 +3,8 @@ Integration tests for MagicPlay components.
 """
 
 import os
-import tempfile
 from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -54,16 +53,10 @@ The quantum field is stabilizing.
             patch("magicplay.core.orchestrator.ScriptAnalyzer") as mock_analyzer,
         ):
             # Setup mock returns
-            mock_image_service.return_value.generate_image_url.return_value = (
-                "https://example.com/test.png"
-            )
-            mock_image_service.return_value.generate_image_and_download.return_value = (
-                str(episode_dir / "test.png")
-            )
+            mock_image_service.return_value.generate_image_url.return_value = "https://example.com/test.png"
+            mock_image_service.return_value.generate_image_and_download.return_value = str(episode_dir / "test.png")
 
-            mock_video_service.return_value.generate_video_url.return_value = (
-                "https://example.com/test.mp4"
-            )
+            mock_video_service.return_value.generate_video_url.return_value = "https://example.com/test.mp4"
 
             mock_analyzer.return_value.analyze.return_value = Mock(
                 total_words=50,
@@ -77,9 +70,7 @@ The quantum field is stabilizing.
                 metadata={},
             )
 
-            orchestrator = Orchestrator(
-                story_name="test_story", episode_name="episode1"
-            )
+            orchestrator = Orchestrator(story_name="test_story", episode_name="episode1")
 
             # Should not raise exceptions with mocked services
             # We can't actually run the full process without real APIs,
@@ -104,9 +95,7 @@ The quantum field is stabilizing.
             # Configure mocks
             mock_image_instance = Mock()
             mock_image_instance.generate_image_url.return_value = "https://image.url"
-            mock_image_instance.generate_image_and_download.return_value = str(
-                output_dir / "image.png"
-            )
+            mock_image_instance.generate_image_and_download.return_value = str(output_dir / "image.png")
             mock_image_service.return_value = mock_image_instance
 
             mock_video_instance = Mock()
@@ -224,9 +213,7 @@ It's quiet... too quiet.
         assert orchestrator.reference_story == "reference"
 
         # Test with default parameters
-        default_orchestrator = Orchestrator(
-            story_name="default_story", episode_name="episode1"
-        )
+        default_orchestrator = Orchestrator(story_name="default_story", episode_name="episode1")
 
         assert default_orchestrator.story_name == "default_story"
         assert default_orchestrator.episode_name == "episode1"
@@ -369,9 +356,7 @@ They embrace. The tension in the room dissipates.
                 assert result.complexity_score < 0.3
             # Long script should have higher complexity (has dialogue, action, characters)
             elif name == "Long":
-                assert (
-                    result.complexity_score > 0.05
-                )  # Should have some complexity due to dialogue/action
+                assert result.complexity_score > 0.05  # Should have some complexity due to dialogue/action
             # Medium script should be in between
             else:
                 assert result.complexity_score < 0.5

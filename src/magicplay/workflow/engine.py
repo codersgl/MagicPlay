@@ -23,7 +23,6 @@ from ..evaluator.base import BaseEvaluator, EvaluationResult, QualityLevel
 from ..resource_registry.registry import (
     ResourceRecord,
     ResourceRegistry,
-    ResourceState,
     ResourceType,
 )
 
@@ -132,15 +131,12 @@ class WorkflowNode(ABC):
         registry: ResourceRegistry,
     ) -> GenerationResult:
         """Execute the workflow step."""
-        pass
 
     def set_evaluator(self, evaluator: BaseEvaluator):
         """Set quality evaluator for this node."""
         self.evaluator = evaluator
 
-    def _evaluate_quality(
-        self, input_data: Union[str, Path, Any], **kwargs
-    ) -> Optional[EvaluationResult]:
+    def _evaluate_quality(self, input_data: Union[str, Path, Any], **kwargs) -> Optional[EvaluationResult]:
         """Evaluate quality using configured evaluator."""
         if not self.evaluator:
             return None
@@ -148,7 +144,7 @@ class WorkflowNode(ABC):
         try:
             return self.evaluator.evaluate(input_data, **kwargs)
         except Exception as e:
-            logging.warning(f"Quality evaluation failed: {e}")
+            logger.warning(f"Quality evaluation failed: {e}")
             return None
 
 
@@ -284,9 +280,7 @@ class WorkflowEngine:
 
         # Execute the step
         start_time = time.time()
-        result = await self._execute_with_strategy(
-            workflow_id, node, request, parameters
-        )
+        result = await self._execute_with_strategy(workflow_id, node, request, parameters)
         end_time = time.time()
 
         # Update result timing
@@ -330,9 +324,7 @@ class WorkflowEngine:
 
         while attempts < request.max_attempts:
             attempts += 1
-            self.logger.info(
-                f"Attempt {attempts}/{request.max_attempts} for {request.step.value}"
-            )
+            self.logger.info(f"Attempt {attempts}/{request.max_attempts} for {request.step.value}")
 
             # Execute generation
             result = await node.execute(context, request, self.registry)
@@ -346,20 +338,13 @@ class WorkflowEngine:
             if self.enable_quality_check and result.resource_record:
                 evaluator = self.evaluators.get(request.resource_type)
                 if evaluator and result.resource_record.storage_path:
-                    eval_result = evaluator.evaluate(
-                        result.resource_record.storage_path
-                    )
+                    eval_result = evaluator.evaluate(result.resource_record.storage_path)
                     result.evaluation_result = eval_result
 
             # Check if result meets requirements
-            meets_quality = (
-                result.evaluation_result
-                and result.evaluation_result.score >= request.min_quality_threshold
-            )
+            meets_quality = result.evaluation_result and result.evaluation_result.score >= request.min_quality_threshold
 
-            meets_cost = (
-                request.max_cost_limit is None or total_cost <= request.max_cost_limit
-            )
+            meets_cost = request.max_cost_limit is None or total_cost <= request.max_cost_limit
 
             # Strategy-specific success conditions
             success = False
@@ -367,8 +352,7 @@ class WorkflowEngine:
                 success = meets_quality
             elif strategy == GenerationStrategy.COST_OPTIMIZED:
                 success = meets_cost and (
-                    result.evaluation_result is None
-                    or result.evaluation_result.quality_level != QualityLevel.UNUSABLE
+                    result.evaluation_result is None or result.evaluation_result.quality_level != QualityLevel.UNUSABLE
                 )
             elif strategy == GenerationStrategy.CACHE_ONLY:
                 success = cached_result is not None
@@ -379,11 +363,7 @@ class WorkflowEngine:
             if not best_result or (
                 result.evaluation_result
                 and result.evaluation_result.score
-                > (
-                    best_result.evaluation_result.score
-                    if best_result.evaluation_result
-                    else 0
-                )
+                > (best_result.evaluation_result.score if best_result.evaluation_result else 0)
             ):
                 best_result = result
 
@@ -406,9 +386,7 @@ class WorkflowEngine:
         if best_result:
             best_result.success = False
             best_result.total_cost = total_cost
-            best_result.error_message = (
-                f"Failed to meet requirements after {attempts} attempts"
-            )
+            best_result.error_message = f"Failed to meet requirements after {attempts} attempts"
             return best_result
 
         # Complete failure
@@ -423,9 +401,7 @@ class WorkflowEngine:
             error_message="All generation attempts failed",
         )
 
-    async def _try_cache_lookup(
-        self, request: GenerationRequest
-    ) -> Optional[GenerationResult]:
+    async def _try_cache_lookup(self, request: GenerationRequest) -> Optional[GenerationResult]:
         """Try to find suitable cached resource."""
         try:
             # Search for similar resources
@@ -469,9 +445,7 @@ class WorkflowEngine:
 
         return None
 
-    async def _register_in_cache(
-        self, request: GenerationRequest, resource_record: ResourceRecord
-    ):
+    async def _register_in_cache(self, request: GenerationRequest, resource_record: ResourceRecord):
         """Register generated resource in cache."""
         try:
             # Read content if available
@@ -560,9 +534,7 @@ class WorkflowEngine:
 
                 # Stop if step failed and workflow should stop
                 if not result.success:
-                    self.fail_workflow(
-                        workflow_id, result.error_message or "Step failed"
-                    )
+                    self.fail_workflow(workflow_id, result.error_message or "Step failed")
                     break
 
         # Check if all steps succeeded
@@ -585,15 +557,9 @@ class WorkflowEngine:
                 if (self.cache_hits + self.cache_misses) > 0
                 else 0.0
             ),
-            "active_workflows": sum(
-                1
-                for state in self.workflow_states.values()
-                if state == WorkflowState.RUNNING
-            ),
+            "active_workflows": sum(1 for state in self.workflow_states.values() if state == WorkflowState.RUNNING),
             "completed_workflows": sum(
-                1
-                for state in self.workflow_states.values()
-                if state == WorkflowState.COMPLETED
+                1 for state in self.workflow_states.values() if state == WorkflowState.COMPLETED
             ),
             "registered_nodes": len(self.nodes),
             "registered_evaluators": len(self.evaluators),

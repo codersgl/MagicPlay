@@ -37,9 +37,7 @@ class Orchestrator:
         DataManager.ensure_structure(story_name, episode_name)
 
         self.scenes_dir = DataManager.get_scenes_path(story_name, episode_name)
-        self.scripts_dir = DataManager.get_generated_scripts_path(
-            story_name, episode_name
-        )
+        self.scripts_dir = DataManager.get_generated_scripts_path(story_name, episode_name)
         self.videos_dir = DataManager.get_video_output_path(story_name, episode_name)
 
         # Initialize Generators
@@ -60,14 +58,24 @@ class Orchestrator:
     def _init_professional_generators(self):
         """Initialize generators for professional workflow."""
         try:
-            from magicplay.generators.first_frame_generator import FirstFrameGenerator
-            from magicplay.generators.scene_reference_gen import SceneReferenceGenerator
+            from magicplay.generators.first_frame_generator import (
+                FirstFrameGenerator,
+            )
+            from magicplay.generators.scene_reference_gen import (
+                SceneReferenceGenerator,
+            )
             from magicplay.generators.script_analysis_generator import (
                 ScriptAnalysisGenerator,
             )
-            from magicplay.generators.storyboard_generator import StoryboardGenerator
-            from magicplay.generators.subtitle_generator import SubtitleGenerator
-            from magicplay.generators.synthesis_generator import VideoSynthesisGenerator
+            from magicplay.generators.storyboard_generator import (
+                StoryboardGenerator,
+            )
+            from magicplay.generators.subtitle_generator import (
+                SubtitleGenerator,
+            )
+            from magicplay.generators.synthesis_generator import (
+                VideoSynthesisGenerator,
+            )
 
             self._professional_generators = {
                 "script_analysis": ScriptAnalysisGenerator(),
@@ -96,9 +104,7 @@ class Orchestrator:
 
         # If no story bible found, auto-generate one
         if not story_ctx or not story_ctx.strip():
-            print(
-                f"No story bible found for '{self.story_name}'. Auto-generating story bible..."
-            )
+            print(f"No story bible found for '{self.story_name}'. Auto-generating story bible...")
             try:
                 # Generate story idea from parameters
                 story_idea = f"Story Title: {self.story_name}"
@@ -132,14 +138,10 @@ class Orchestrator:
             elif story_ctx:
                 # [Auto-Generate Feature]
                 # If no episode outline exists but we have a story bible, generate the outline automatically.
-                print(
-                    f"No episode outline found for {self.episode_name}. Generating one from Story Bible..."
-                )
+                print(f"No episode outline found for {self.episode_name}. Generating one from Story Bible...")
                 try:
                     episode_idea = f"Episode Name: {self.episode_name}"
-                    episode_ctx = self.script_gen.generate_episode_outline(
-                        story_ctx, episode_idea
-                    )
+                    episode_ctx = self.script_gen.generate_episode_outline(story_ctx, episode_idea)
 
                     # Save the generated outline
                     outline_path = episode_path / f"{self.episode_name}_outline.md"
@@ -164,22 +166,14 @@ class Orchestrator:
             # If story context exists, load from it
             if story_context and story_context.strip():
                 try:
-                    print(
-                        f"Loading story bible content (length: {len(story_context)} chars)..."
-                    )
+                    print(f"Loading story bible content (length: {len(story_context)} chars)...")
                     consistency_manager.load_from_story_bible(story_context)
-                    print(
-                        f"Successfully loaded {len(consistency_manager.characters)} characters from story bible"
-                    )
+                    print(f"Successfully loaded {len(consistency_manager.characters)} characters from story bible")
                     if consistency_manager.characters:
-                        print(
-                            f"Characters found: {list(consistency_manager.characters.keys())}"
-                        )
+                        print(f"Characters found: {list(consistency_manager.characters.keys())}")
                         has_characters = True
                     else:
-                        print(
-                            "Warning: Story bible loaded but no characters were parsed"
-                        )
+                        print("Warning: Story bible loaded but no characters were parsed")
                 except Exception as e:
                     print(f"Warning: Failed to load story bible: {e}")
                     import traceback
@@ -190,9 +184,7 @@ class Orchestrator:
 
             # Check if we have any characters loaded
             if not has_characters:
-                print(
-                    "Note: No character information found in story context. Continuing without character images."
-                )
+                print("Note: No character information found in story context. Continuing without character images.")
                 # Still check for existing character images
                 from magicplay.utils.paths import DataManager
 
@@ -204,9 +196,7 @@ class Orchestrator:
                         + list(anchors_dir.glob("*.jpeg"))
                     )
                     if existing_files:
-                        print(
-                            f"Found {len(existing_files)} existing image files in character anchors directory"
-                        )
+                        print(f"Found {len(existing_files)} existing image files in character anchors directory")
                 else:
                     print(f"Character anchors directory does not exist: {anchors_dir}")
                 return
@@ -214,9 +204,7 @@ class Orchestrator:
             # Check if any characters already have images associated
             character_images = consistency_manager.get_all_character_images()
             if character_images:
-                print(
-                    f"Found {len(character_images)} characters with existing image paths"
-                )
+                print(f"Found {len(character_images)} characters with existing image paths")
 
             # Check character anchors directory for existing image files
             from magicplay.utils.paths import DataManager
@@ -224,42 +212,27 @@ class Orchestrator:
             anchors_dir = DataManager.get_character_anchors_path(self.story_name)
             if anchors_dir.exists():
                 existing_files = (
-                    list(anchors_dir.glob("*.png"))
-                    + list(anchors_dir.glob("*.jpg"))
-                    + list(anchors_dir.glob("*.jpeg"))
+                    list(anchors_dir.glob("*.png")) + list(anchors_dir.glob("*.jpg")) + list(anchors_dir.glob("*.jpeg"))
                 )
                 if existing_files:
-                    print(
-                        f"Found {len(existing_files)} image files in character anchors directory"
-                    )
+                    print(f"Found {len(existing_files)} image files in character anchors directory")
 
                     # Try to load existing images and associate them with characters
-                    loaded_images = consistency_manager.load_character_images_from_dir(
-                        anchors_dir
-                    )
+                    loaded_images = consistency_manager.load_character_images_from_dir(anchors_dir)
                     if loaded_images:
-                        print(
-                            f"Associated {len(loaded_images)} existing images with characters: {list(loaded_images.keys())}"
-                        )
+                        loaded_keys = list(loaded_images.keys())
+                        print(f"Associated {len(loaded_images)} existing images with characters: {loaded_keys}")
 
             # Generate missing character images (ensure_character_images already handles missing ones)
             if consistency_manager.characters:
-                print(
-                    f"Ensuring images for {len(consistency_manager.characters)} characters..."
-                )
+                print(f"Ensuring images for {len(consistency_manager.characters)} characters...")
                 character_gen = CharacterImageGenerator(self.story_name)
-                generated_images = character_gen.ensure_character_images(
-                    consistency_manager
-                )
+                generated_images = character_gen.ensure_character_images(consistency_manager)
 
                 if generated_images:
-                    print(
-                        f"Successfully ensured character images: {list(generated_images.keys())}"
-                    )
+                    print(f"Successfully ensured character images: {list(generated_images.keys())}")
                 else:
-                    print(
-                        "No character images were generated (may already exist or generation failed)."
-                    )
+                    print("No character images were generated (may already exist or generation failed).")
             else:
                 print("No characters found to generate images for.")
 
@@ -281,7 +254,7 @@ class Orchestrator:
         Generate a single video using the unified mode.
         This is the fallback method when multi-frame generation is not used or fails.
         """
-        print(f"Generating video with unified mode...")
+        print("Generating video with unified mode...")
         # Force unified mode to ensure consistent image-to-video generation
         generated_video = self.video_gen.generate_video(
             visual_prompt_text,
@@ -307,9 +280,7 @@ class Orchestrator:
         video_files = []
         memory = initial_memory
 
-        print(
-            f"Starting generation for episode: {self.episode_name} of Story: {self.story_name}"
-        )
+        print(f"Starting generation for episode: {self.episode_name} of Story: {self.story_name}")
 
         # Generate character images if needed (Phase 1: Character Consistency Enhancement)
         self._ensure_character_images(story_ctx)
@@ -321,9 +292,7 @@ class Orchestrator:
         try:
             consistency_manager = StoryConsistencyManager(self.story_name)
             consistency_manager.load_from_story_bible(story_ctx)
-            character_profiles = (
-                consistency_manager.get_all_formatted_visual_tags() or {}
-            )
+            character_profiles = consistency_manager.get_all_formatted_visual_tags() or {}
             character_images = consistency_manager.get_all_character_images() or {}
 
             # Extract visual style from consistency manager to enforce uniform style across scenes
@@ -338,31 +307,21 @@ class Orchestrator:
                 print("Loaded global visual style for consistency.")
 
             if character_profiles:
-                print(
-                    f"Loaded {len(character_profiles)} character profiles for Visual Tags anchoring"
-                )
+                print(f"Loaded {len(character_profiles)} character profiles for Visual Tags anchoring")
         except Exception as e:
             print(f"Warning: Failed to load character profiles/style: {e}")
 
         # Determine scenes to process
         # Check if there are pre-defined scene prompts in data directory
-        scene_prompts = DataManager.get_scenes_prompts(
-            self.story_name, self.episode_name
-        )
+        scene_prompts = DataManager.get_scenes_prompts(self.story_name, self.episode_name)
 
         # [NEW]: Pre-process outline into scenes if no physical scene files exist
         if not scene_prompts and episode_ctx:
-            print(
-                "No scene definitions found, but episode outline exists. Splitting outline into scenes..."
-            )
+            print("No scene definitions found, but episode outline exists. Splitting outline into scenes...")
             try:
-                extracted_scenes = self.script_gen.split_outline_into_scenes(
-                    episode_ctx
-                )
+                extracted_scenes = self.script_gen.split_outline_into_scenes(episode_ctx)
                 if extracted_scenes:
-                    scenes_dir = DataManager.get_scenes_path(
-                        self.story_name, self.episode_name
-                    )
+                    scenes_dir = DataManager.get_scenes_path(self.story_name, self.episode_name)
                     scenes_dir.mkdir(parents=True, exist_ok=True)
 
                     for i, scene_content in enumerate(extracted_scenes):
@@ -371,12 +330,8 @@ class Orchestrator:
                         scene_file_path.write_text(scene_content, encoding="utf-8")
 
                     # Refresh scene_prompts after generating them
-                    scene_prompts = DataManager.get_scenes_prompts(
-                        self.story_name, self.episode_name
-                    )
-                    print(
-                        f"Successfully generated {len(scene_prompts)} scene files from outline."
-                    )
+                    scene_prompts = DataManager.get_scenes_prompts(self.story_name, self.episode_name)
+                    print(f"Successfully generated {len(scene_prompts)} scene files from outline.")
             except Exception as e:
                 print(f"Warning: Failed to split outline into scenes: {e}")
 
@@ -388,12 +343,8 @@ class Orchestrator:
                 scene_name = prompt_file.stem
                 scenes_to_process.append((scene_name, prompt_file))
         else:
-            print(
-                f"No scene definitions found. Generating {self.max_scenes} sequential scenes."
-            )
-            scenes_to_process = [
-                (f"scene_{i}", None) for i in range(1, self.max_scenes + 1)
-            ]
+            print(f"No scene definitions found. Generating {self.max_scenes} sequential scenes.")
+            scenes_to_process = [(f"scene_{i}", None) for i in range(1, self.max_scenes + 1)]
 
         # Track previous video, previous concept image, and previous visual key for continuity
         previous_video_path = None
@@ -451,14 +402,14 @@ class Orchestrator:
                 # B4: Physics check only for scripts generated in this run
                 if script_was_generated:
                     try:
-                        from magicplay.analyzer.physics_checker import PhysicsChecker
+                        from magicplay.analyzer.physics_checker import (
+                            PhysicsChecker,
+                        )
 
                         physics_checker = PhysicsChecker()
                         violations = physics_checker.analyze(script_path)
                         if violations:
-                            print(
-                                f"⚠️ Physics checker found {len(violations)} potential issue(s) in {scene_name}"
-                            )
+                            print(f"⚠️ Physics checker found {len(violations)} potential issue(s) in {scene_name}")
                             for v in violations[:3]:  # Show first 3
                                 print(f"  - Line {v.line_number}: {v.description}")
                             if len(violations) > 3:
@@ -471,14 +422,12 @@ class Orchestrator:
             # 1.2 Video Generation with Unified Mode (Phase 2 Optimization)
             video_path = self.videos_dir / f"{scene_name}.mp4"
             if not video_path.exists():
-                print(f"Generating visual prompt for video...")
+                print("Generating visual prompt for video...")
                 try:
                     # R1: Extract/generate visual prompt using character profiles
                     visual_prompt_text = self.script_gen.generate_visual_prompt(
                         script_path,
-                        character_profiles=(
-                            character_profiles if character_profiles else None
-                        ),
+                        character_profiles=(character_profiles if character_profiles else None),
                         visual_style=visual_style_prompt,
                         previous_visual_key=previous_visual_key,
                     )
@@ -487,34 +436,23 @@ class Orchestrator:
                     scene_concept_image = None
                     try:
                         # Generate or get concept image for this scene
-                        scene_concept_image = (
-                            self.scene_concept_gen.ensure_scene_concept_image(
-                                scene_name=scene_name,
-                                scene_script=script_path.read_text(encoding="utf-8"),
-                                use_previous_scene=previous_concept_image_path
-                                is not None,
-                                previous_scene_image=(
-                                    str(previous_concept_image_path)
-                                    if previous_concept_image_path
-                                    else None
-                                ),
-                                story_context=story_ctx,
-                                character_images=character_images,
-                                character_profiles=(
-                                    character_profiles if character_profiles else None
-                                ),
-                                visual_style=visual_style_prompt,
-                            )
+                        scene_concept_image = self.scene_concept_gen.ensure_scene_concept_image(
+                            scene_name=scene_name,
+                            scene_script=script_path.read_text(encoding="utf-8"),
+                            use_previous_scene=previous_concept_image_path is not None,
+                            previous_scene_image=(
+                                str(previous_concept_image_path) if previous_concept_image_path else None
+                            ),
+                            story_context=story_ctx,
+                            character_images=character_images,
+                            character_profiles=(character_profiles if character_profiles else None),
+                            visual_style=visual_style_prompt,
                         )
 
                         if scene_concept_image:
-                            print(
-                                f"Scene concept image generated: {scene_concept_image}"
-                            )
+                            print(f"Scene concept image generated: {scene_concept_image}")
                         else:
-                            print(
-                                f"Warning: Failed to generate scene concept image for {scene_name}"
-                            )
+                            print(f"Warning: Failed to generate scene concept image for {scene_name}")
                     except Exception as e:
                         print(f"Warning: Scene concept generation failed: {e}")
                         # Continue without concept image
@@ -528,20 +466,13 @@ class Orchestrator:
                         print(f"Using scene concept image as reference: {ref_img_path}")
                     elif previous_video_path and Path(previous_video_path).exists():
                         # Fallback to previous video's last frame (legacy behavior)
-                        last_frame_path = (
-                            self.videos_dir
-                            / f"last_frame_{Path(previous_video_path).stem}.jpg"
-                        )
-                        if MediaUtils.extract_last_frame(
-                            previous_video_path, last_frame_path
-                        ):
+                        last_frame_path = self.videos_dir / f"last_frame_{Path(previous_video_path).stem}.jpg"
+                        if MediaUtils.extract_last_frame(previous_video_path, last_frame_path):
                             ref_img_path = str(last_frame_path)
-                            print(
-                                f"Using previous video's last frame as reference: {ref_img_path}"
-                            )
+                            print(f"Using previous video's last frame as reference: {ref_img_path}")
 
                     # Analyze script to determine optimal video duration
-                    print(f"Analyzing script for optimal duration...")
+                    print("Analyzing script for optimal duration...")
                     script_analyzer = ScriptAnalyzer()
                     analysis_result = script_analyzer.analyze_file(str(script_path))
 
@@ -565,19 +496,16 @@ class Orchestrator:
                     # Phase 3: Multi-frame generation for scenes estimated over 10s
                     use_multi_frame = True  # Enable multi-frame generation
 
-                    if (
-                        use_multi_frame
-                        and estimated_duration
-                        and estimated_duration > 10
-                    ):
+                    if use_multi_frame and estimated_duration and estimated_duration > 10:
                         # For longer scenes, try multi-frame generation
+                        num_segments = math.ceil(estimated_duration / 10)
                         print(
-                            f"Using multi-frame generation for {scene_name} (total duration: {estimated_duration}s, split into {math.ceil(estimated_duration / 10)} segments)..."
+                            f"Using multi-frame generation for {scene_name} "
+                            f"(total duration: {estimated_duration}s, "
+                            f"split into {num_segments} segments)..."
                         )
                         try:
-                            scene_segment_gen = SceneSegmentGenerator(
-                                self.story_name, self.episode_name
-                            )
+                            scene_segment_gen = SceneSegmentGenerator(self.story_name, self.episode_name)
 
                             # Generate scene segments using multi-frame approach
                             segments = scene_segment_gen.generate_scene_segments(
@@ -590,21 +518,12 @@ class Orchestrator:
 
                             if segments and len(segments) > 1:
                                 # Stitch segments together
-                                stitched_video_path = scene_segment_gen.stitch_segments(
-                                    scene_name, segments
-                                )
-                                if (
-                                    stitched_video_path
-                                    and Path(stitched_video_path).exists()
-                                ):
+                                stitched_video_path = scene_segment_gen.stitch_segments(scene_name, segments)
+                                if stitched_video_path and Path(stitched_video_path).exists():
                                     video_path = Path(stitched_video_path)
-                                    print(
-                                        f"Multi-frame generation successful: {video_path}"
-                                    )
+                                    print(f"Multi-frame generation successful: {video_path}")
                                 else:
-                                    print(
-                                        f"Multi-frame stitching failed, falling back to single segment"
-                                    )
+                                    print("Multi-frame stitching failed, falling back to single segment")
                                     # Fallback to single video generation
                                     video_path = self._generate_single_video(
                                         visual_prompt_text,
@@ -613,8 +532,10 @@ class Orchestrator:
                                         duration,
                                     )
                             else:
+                                seg_count = len(segments) if segments else 0
                                 print(
-                                    f"Multi-frame generation returned {len(segments) if segments else 0} segments, falling back to single segment"
+                                    f"Multi-frame generation returned {seg_count} "
+                                    f"segments, falling back to single segment"
                                 )
                                 # Fallback to single video generation
                                 video_path = self._generate_single_video(
@@ -624,19 +545,23 @@ class Orchestrator:
                                     duration,
                                 )
                         except Exception as e:
-                            print(
-                                f"Multi-frame generation failed for {scene_name}: {e}"
-                            )
+                            print(f"Multi-frame generation failed for {scene_name}: {e}")
                             print("Falling back to single segment generation")
                             # Fallback to single video generation
                             video_path = self._generate_single_video(
-                                visual_prompt_text, video_path, ref_img_path, duration
+                                visual_prompt_text,
+                                video_path,
+                                ref_img_path,
+                                duration,
                             )
                     else:
                         # Use single-frame generation
                         print(f"Using single-frame generation for {scene_name}...")
                         video_path = self._generate_single_video(
-                            visual_prompt_text, video_path, ref_img_path, duration
+                            visual_prompt_text,
+                            video_path,
+                            ref_img_path,
+                            duration,
                         )
 
                     if video_path and video_path.exists():
@@ -661,9 +586,7 @@ class Orchestrator:
                     print(f"Episode complete: {output_file}")
                     return output_file, memory
                 else:
-                    print(
-                        f"Episode scripts/video generated, but full video missing (stitching skipped/failed)."
-                    )
+                    print("Episode scripts/video generated, but full video missing (stitching skipped/failed).")
                     return None, memory
 
             except Exception as e:
@@ -720,9 +643,7 @@ class Orchestrator:
             print(f"  Found {len(analysis_result.scenes)} scenes")
         else:
             print("  No episode context to analyze")
-            analysis_result = ScriptAnalysisResult(
-                characters=[], scenes=[], total_duration=0
-            )
+            analysis_result = ScriptAnalysisResult(characters=[], scenes=[], total_duration=0)
 
         # Stage 2: Reference Images (character + scene)
         print("\n[Stage 2/6] Reference Image Generation...")
@@ -734,9 +655,7 @@ class Orchestrator:
 
         # Generate scene references
         scene_ref_gen = generators["scene_reference"]
-        scene_refs = scene_ref_gen.generate_scene_references_batch(
-            analysis_result.scenes
-        )
+        scene_refs = scene_ref_gen.generate_scene_references_batch(analysis_result.scenes)
         print(f"  Generated {len(scene_refs)} scene references")
 
         # Stage 3: Storyboard Design
@@ -790,9 +709,7 @@ class Orchestrator:
         This allows partial use of professional workflow while
         falling back to proven video generation.
         """
-        print(
-            "\n[Professional Fallback] Using original workflow for video generation..."
-        )
+        print("\n[Professional Fallback] Using original workflow for video generation...")
         # TODO: Full integration would use storyboard data for video generation
         # For now, return None to indicate professional workflow not fully implemented
         print("  Note: Professional video generation stage requires integration work")
@@ -838,13 +755,9 @@ class StoryOrchestrator:
 
         # Stitch all episodes into a movie
         if len(episode_videos) > 0:
-            final_story_video = (
-                DataManager.VIDEOS_DIR
-                / self.story_name
-                / f"{self.story_name}_full_movie.mp4"
-            )
+            final_story_video = DataManager.VIDEOS_DIR / self.story_name / f"{self.story_name}_full_movie.mp4"
             try:
-                print(f"Stitching full story movie...")
+                print("Stitching full story movie...")
                 MediaUtils.stitch_videos(episode_videos, final_story_video)
                 print(f"Story complete! Movie saved to: {final_story_video}")
             except Exception as e:

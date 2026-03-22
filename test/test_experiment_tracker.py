@@ -3,10 +3,7 @@ Tests for Experiment Tracker module.
 """
 
 import json
-import tempfile
-from datetime import datetime, timedelta
-from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch
+from datetime import datetime
 
 import pytest
 
@@ -24,9 +21,7 @@ from magicplay.resource_registry.registry import (
 )
 
 
-def create_test_evaluation_result(
-    score: float, quality_level: QualityLevel = None
-) -> EvaluationResult:
+def create_test_evaluation_result(score: float, quality_level: QualityLevel = None) -> EvaluationResult:
     """Helper to create test EvaluationResult with required fields."""
     if quality_level is None:
         # Determine quality level based on score
@@ -248,9 +243,7 @@ class TestExperimentResult:
             recommendations=["Increase contrast"],
         )
 
-    def test_result_creation(
-        self, sample_config, sample_resource_record, sample_evaluation_result
-    ):
+    def test_result_creation(self, sample_config, sample_resource_record, sample_evaluation_result):
         """Test basic result creation."""
         result = ExperimentResult(
             experiment_id="exp-123",
@@ -336,9 +329,7 @@ class TestExperimentResult:
         # cost_per_quality with 0 quality should be infinite
         assert failed_result.cost_per_quality == float("inf")
 
-    def test_result_to_from_dict(
-        self, sample_config, sample_resource_record, sample_evaluation_result
-    ):
+    def test_result_to_from_dict(self, sample_config, sample_resource_record, sample_evaluation_result):
         """Test serialization and deserialization."""
         original = ExperimentResult(
             experiment_id="exp-serialization",
@@ -375,9 +366,7 @@ class TestExperimentResult:
         # Check equality of important fields
         assert restored.experiment_id == original.experiment_id
         assert restored.config.name == original.config.name
-        assert (
-            restored.resource_record.resource_id == original.resource_record.resource_id
-        )
+        assert restored.resource_record.resource_id == original.resource_record.resource_id
         assert restored.evaluation_result.score == original.evaluation_result.score
         assert restored.total_cost == original.total_cost
         assert restored.total_time == original.total_time
@@ -592,7 +581,7 @@ class TestExperimentTracker:
             tags=["planned", "test"],
         )
 
-        running_exp = temp_tracker.create_experiment(
+        temp_tracker.create_experiment(
             config=ExperimentConfig(name="Running Experiment"),
             status=ExperimentStatus.RUNNING,
             tags=["running", "test"],
@@ -650,9 +639,7 @@ class TestExperimentTracker:
                 attempts=1,
                 success=True,
             )
-            result.evaluation_result = create_test_evaluation_result(
-                score=90.0 - i * 5.0
-            )
+            result.evaluation_result = create_test_evaluation_result(score=90.0 - i * 5.0)
             temp_tracker.record_result(exp1, result, i + 1)
 
         # Record mixed results for config2
@@ -703,9 +690,7 @@ class TestExperimentTracker:
         # Check best configurations
         assert analysis["best_by_quality"] is not None
         assert analysis["best_by_quality"]["config_name"] == "High Quality"
-        assert (
-            analysis["best_by_quality"]["quality_score"] > 80.0
-        )  # Should be around 90
+        assert analysis["best_by_quality"]["quality_score"] > 80.0  # Should be around 90
 
         assert analysis["best_by_cost"] is not None
         # config2 has lower cost (1.5 vs 5.0 average)
@@ -804,9 +789,7 @@ class TestExperimentTracker:
                 attempts=1,
                 success=True,
             )
-            result.evaluation_result = create_test_evaluation_result(
-                score=80.0 + i * 5.0
-            )
+            result.evaluation_result = create_test_evaluation_result(score=80.0 + i * 5.0)
             temp_tracker.record_result(experiment_id, result, i + 1)
 
         # Export to JSON
@@ -922,14 +905,10 @@ class TestExperimentTrackerIntegration:
                 )
                 # Determine quality level based on score
                 score = quality - run_num * 2.0
-                quality_level = (
-                    QualityLevel.GOOD if quality >= 70.0 else QualityLevel.ACCEPTABLE
-                )
+                quality_level = QualityLevel.GOOD if quality >= 70.0 else QualityLevel.ACCEPTABLE
 
                 # Use the helper function to create evaluation result
-                result.evaluation_result = create_test_evaluation_result(
-                    score=score, quality_level=quality_level
-                )
+                result.evaluation_result = create_test_evaluation_result(score=score, quality_level=quality_level)
                 tracker.record_result(exp_id, result, run_num + 1)
 
         return tracker, experiment_ids
@@ -945,7 +924,7 @@ class TestExperimentTrackerIntegration:
         assert len(analysis["configurations"]) == 3
 
         # Check each configuration has proper statistics
-        for exp_id, config, quality, cost in experiment_ids:
+        for _exp_id, config, quality, _cost in experiment_ids:
             config_data = analysis["configurations"][config.config_id]
             assert config_data["total_runs"] == 3
             assert config_data["successful_runs"] == 3
@@ -957,9 +936,7 @@ class TestExperimentTrackerIntegration:
         # Verify best_by_quality
         assert analysis["best_by_quality"] is not None
         # Should be "Image Quality Optimization" (85.0 base quality)
-        assert (
-            "Image Quality Optimization" in analysis["best_by_quality"]["config_name"]
-        )
+        assert "Image Quality Optimization" in analysis["best_by_quality"]["config_name"]
         assert analysis["best_by_quality"]["quality_score"] >= 83.0  # 85 - 2*1
 
         # Verify best_by_cost

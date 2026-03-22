@@ -8,7 +8,7 @@ Provides wired dependencies for all application components.
 from dependency_injector import containers, providers
 
 from magicplay.analyzer.timeline_analyzer import TimelineAnalyzer
-from magicplay.config import Settings, get_settings
+from magicplay.config import get_settings
 from magicplay.generators.character_gen import CharacterImageGenerator
 from magicplay.generators.comic_panel_gen import ComicPanelGenerator
 from magicplay.generators.dynamic_panel_selector import DynamicPanelSelector

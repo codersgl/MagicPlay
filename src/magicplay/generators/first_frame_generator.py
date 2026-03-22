@@ -74,13 +74,9 @@ class FirstFrameGenerator:
         """
         # Build output path if not provided
         if output_path is None:
-            scene_dir = self.output_dir / self._sanitize_filename(
-                storyboard_frame.frame_index
-            )
+            scene_dir = self.output_dir / self._sanitize_filename(storyboard_frame.frame_index)
             scene_dir.mkdir(parents=True, exist_ok=True)
-            output_path = (
-                scene_dir / f"first_frame_{storyboard_frame.frame_index:02d}.jpg"
-            )
+            output_path = scene_dir / f"first_frame_{storyboard_frame.frame_index:02d}.jpg"
 
         # Collect reference images
         ref_images = []
@@ -167,9 +163,7 @@ class FirstFrameGenerator:
                 frame.first_frame_path = result
                 generated_frames.append(result)
 
-        logger.info(
-            f"Generated {len(generated_frames)}/{len(storyboard.frames)} first frames"
-        )
+        logger.info(f"Generated {len(generated_frames)}/{len(storyboard.frames)} first frames")
         return generated_frames
 
     def _build_i2i_prompt(
@@ -196,20 +190,13 @@ class FirstFrameGenerator:
         # Add character context
         frame_chars = storyboard_frame.characters
         if frame_chars:
-            char_refs = [
-                character_images.get(name)
-                for name in frame_chars
-                if name in character_images
-            ]
+            char_refs = [character_images.get(name) for name in frame_chars if name in character_images]
             if char_refs:
                 char_names = [ref.name for ref in char_refs if ref]
                 prompt_parts.append(f"Characters: {', '.join(char_names)}")
 
         # Add quality/style requirements
-        prompt_parts.append(
-            "anime style, high quality, detailed, sharp focus, "
-            "cinematic lighting, masterpiece"
-        )
+        prompt_parts.append("anime style, high quality, detailed, sharp focus, cinematic lighting, masterpiece")
 
         return " | ".join(prompt_parts)
 

@@ -1,8 +1,9 @@
 from pathlib import Path
 
-import pytest
-
-from magicplay.generators.comic_panel_gen import ComicPanelGenerator, PanelOutput
+from magicplay.generators.comic_panel_gen import (
+    ComicPanelGenerator,
+    PanelOutput,
+)
 
 
 def test_comic_panel_generator_init():
@@ -13,9 +14,7 @@ def test_comic_panel_generator_init():
 
 
 def test_comic_panel_generator_custom_style():
-    generator = ComicPanelGenerator(
-        story_name="TestStory", episode_name="01", style="comic"
-    )
+    generator = ComicPanelGenerator(story_name="TestStory", episode_name="01", style="comic")
     assert generator.style == "comic"
 
 

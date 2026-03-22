@@ -2,16 +2,18 @@
 Tests for quality evaluation module.
 """
 
-import tempfile
 from pathlib import Path
 from typing import Any, Union
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import patch
 
-import numpy as np
 import pytest
 from PIL import Image
 
-from magicplay.evaluator.base import BaseEvaluator, EvaluationResult, QualityLevel
+from magicplay.evaluator.base import (
+    BaseEvaluator,
+    EvaluationResult,
+    QualityLevel,
+)
 from magicplay.evaluator.image_evaluator import ImageQualityEvaluator
 
 
@@ -121,32 +123,16 @@ class TestBaseEvaluator:
         # Test different score ranges based on thresholds defined in BaseEvaluator:
         # EXCELLENT >= 85.0, GOOD >= 70.0, ACCEPTABLE >= 55.0, POOR >= 40.0, UNUSABLE < 40.0
         assert evaluator._determine_quality_level(95.0) == QualityLevel.EXCELLENT
-        assert (
-            evaluator._determine_quality_level(85.0) == QualityLevel.EXCELLENT
-        )  # 85 is threshold for EXCELLENT
-        assert (
-            evaluator._determine_quality_level(80.0) == QualityLevel.GOOD
-        )  # 70-85 is GOOD
+        assert evaluator._determine_quality_level(85.0) == QualityLevel.EXCELLENT  # 85 is threshold for EXCELLENT
+        assert evaluator._determine_quality_level(80.0) == QualityLevel.GOOD  # 70-85 is GOOD
         assert evaluator._determine_quality_level(75.0) == QualityLevel.GOOD
-        assert (
-            evaluator._determine_quality_level(65.0) == QualityLevel.ACCEPTABLE
-        )  # 55-70 is ACCEPTABLE
+        assert evaluator._determine_quality_level(65.0) == QualityLevel.ACCEPTABLE  # 55-70 is ACCEPTABLE
         assert evaluator._determine_quality_level(60.0) == QualityLevel.ACCEPTABLE
-        assert (
-            evaluator._determine_quality_level(55.0) == QualityLevel.ACCEPTABLE
-        )  # threshold for ACCEPTABLE
-        assert (
-            evaluator._determine_quality_level(50.0) == QualityLevel.POOR
-        )  # 40-55 is POOR
-        assert (
-            evaluator._determine_quality_level(45.0) == QualityLevel.POOR
-        )  # 40-55 is POOR
-        assert (
-            evaluator._determine_quality_level(40.0) == QualityLevel.POOR
-        )  # threshold for POOR
-        assert (
-            evaluator._determine_quality_level(35.0) == QualityLevel.UNUSABLE
-        )  # < 40 is UNUSABLE
+        assert evaluator._determine_quality_level(55.0) == QualityLevel.ACCEPTABLE  # threshold for ACCEPTABLE
+        assert evaluator._determine_quality_level(50.0) == QualityLevel.POOR  # 40-55 is POOR
+        assert evaluator._determine_quality_level(45.0) == QualityLevel.POOR  # 40-55 is POOR
+        assert evaluator._determine_quality_level(40.0) == QualityLevel.POOR  # threshold for POOR
+        assert evaluator._determine_quality_level(35.0) == QualityLevel.UNUSABLE  # < 40 is UNUSABLE
         assert evaluator._determine_quality_level(10.0) == QualityLevel.UNUSABLE
         assert evaluator._determine_quality_level(0.0) == QualityLevel.UNUSABLE
 
@@ -361,9 +347,7 @@ class TestImageQualityEvaluator:
             "图像分辨率过低，建议使用更高分辨率",
         ]
 
-        recommendations = evaluator._generate_recommendations(
-            low_quality_metrics, issues
-        )
+        recommendations = evaluator._generate_recommendations(low_quality_metrics, issues)
 
         assert len(recommendations) > 0
         assert any("清晰度" in rec for rec in recommendations)
@@ -409,9 +393,7 @@ class TestImageQualityEvaluator:
             (0, 100, 0.0),  # Edge case
         ],
     )
-    def test_image_evaluator_calculate_metrics_dimensions(
-        self, width, height, expected_ratio
-    ):
+    def test_image_evaluator_calculate_metrics_dimensions(self, width, height, expected_ratio):
         """Test dimension metrics calculation."""
         evaluator = ImageQualityEvaluator()
 
@@ -427,7 +409,6 @@ class TestImageQualityEvaluator:
             patch.object(evaluator, "_calculate_noise_level", return_value=50.0),
             patch.object(evaluator, "_calculate_blur_detection", return_value=50.0),
         ):
-
             metrics = evaluator._calculate_image_metrics(test_image)
 
             assert metrics["width"] == float(width)
@@ -440,7 +421,7 @@ class TestImageQualityEvaluator:
     def test_image_evaluator_with_scipy_available(self):
         """Test evaluator when scipy is available."""
         try:
-            import scipy
+            pass
 
             scipy_available = True
         except ImportError:

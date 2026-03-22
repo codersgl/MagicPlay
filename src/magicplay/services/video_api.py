@@ -1,7 +1,7 @@
 import os
 import time
 from http import HTTPStatus
-from typing import Any, Dict, Optional, Tuple
+from typing import Optional, Tuple
 
 import dashscope
 from dashscope import VideoSynthesis
@@ -191,9 +191,7 @@ class VideoService:
                 )
 
                 if attempt < self.max_retries and is_network_error:
-                    print(
-                        f"Attempt {attempt}/{self.max_retries} failed with network error: {error_msg}"
-                    )
+                    print(f"Attempt {attempt}/{self.max_retries} failed with network error: {error_msg}")
                     print(f"Retrying in {self.retry_delay} seconds...")
                     time.sleep(self.retry_delay)
                     self.retry_delay *= 1.5  # 指数退避
@@ -201,16 +199,13 @@ class VideoService:
                     # 不是网络错误或者已经达到最大重试次数
                     if is_network_error and attempt == self.max_retries:
                         raise RuntimeError(
-                            f"Video generation failed after {self.max_retries} retries due to network error: {error_msg}\n"
+                            f"Video generation failed after {self.max_retries} retries "
+                            f"due to network error: {error_msg}\n"
                             f"Please check your internet connection and DNS settings."
                         ) from e
                     else:
                         # 其他错误或非网络错误
-                        raise RuntimeError(
-                            f"Video generation failed: {error_msg}"
-                        ) from e
+                        raise RuntimeError(f"Video generation failed: {error_msg}") from e
 
         # 理论上不会到达这里，但为了完整性
-        raise RuntimeError(
-            f"Video generation failed after {self.max_retries} attempts"
-        ) from last_exception
+        raise RuntimeError(f"Video generation failed after {self.max_retries} attempts") from last_exception

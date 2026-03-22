@@ -70,9 +70,7 @@ class ScriptAnalyzer:
         location_changes = self._count_location_changes(script_content)
 
         # Determine scene type
-        scene_type = self._classify_scene_type(
-            dialogue_lines, action_density, total_words
-        )
+        scene_type = self._classify_scene_type(dialogue_lines, action_density, total_words)
 
         # Calculate complexity score (0-1)
         complexity_score = self._calculate_complexity_score(
@@ -84,14 +82,10 @@ class ScriptAnalyzer:
         )
 
         # Estimate duration based on complexity and scene type
-        estimated_duration = self._estimate_duration(
-            scene_type, complexity_score, total_words
-        )
+        estimated_duration = self._estimate_duration(scene_type, complexity_score, total_words)
 
         # Ensure duration within limits
-        estimated_duration = max(
-            self.min_duration, min(self.max_duration, estimated_duration)
-        )
+        estimated_duration = max(self.min_duration, min(self.max_duration, estimated_duration))
 
         return AnalysisResult(
             total_words=total_words,
@@ -104,8 +98,7 @@ class ScriptAnalyzer:
             location_changes=location_changes,
             metadata={
                 "word_count": total_words,
-                "dialogue_ratio": dialogue_lines
-                / max(1, total_words / 10),  # rough ratio
+                "dialogue_ratio": dialogue_lines / max(1, total_words / 10),  # rough ratio
                 "has_action": action_density > 0.3,
             },
         )
@@ -155,9 +148,7 @@ class ScriptAnalyzer:
                 # Next line might be dialogue or parenthetical
                 if i + 1 < len(lines):
                     next_line = lines[i + 1].strip()
-                    if next_line.startswith("(") or (
-                        len(next_line) > 0 and not next_line.startswith("#")
-                    ):
+                    if next_line.startswith("(") or (len(next_line) > 0 and not next_line.startswith("#")):
                         dialogue_count += 1
                         i += 1  # Skip dialogue line
             i += 1
@@ -204,11 +195,7 @@ class ScriptAnalyzer:
             matches = re.findall(pattern, text, re.MULTILINE)
             for match in matches:
                 name = match.strip()
-                if (
-                    len(name) > 2
-                    and not name.startswith("SCENE")
-                    and not name.startswith("ACTION")
-                ):
+                if len(name) > 2 and not name.startswith("SCENE") and not name.startswith("ACTION"):
                     characters.add(name)
 
         return len(characters)
@@ -221,9 +208,7 @@ class ScriptAnalyzer:
         matches = re.findall(scene_pattern, text, re.MULTILINE | re.IGNORECASE)
         return len(matches)
 
-    def _classify_scene_type(
-        self, dialogue_lines: int, action_density: float, total_words: int
-    ) -> SceneType:
+    def _classify_scene_type(self, dialogue_lines: int, action_density: float, total_words: int) -> SceneType:
         """Classify scene based on dialogue vs action balance."""
         if total_words < 500:  # Increased threshold for Chinese content
             return SceneType.TRANSITION
@@ -275,9 +260,7 @@ class ScriptAnalyzer:
 
         return min(1.0, score)
 
-    def _estimate_duration(
-        self, scene_type: SceneType, complexity_score: float, total_words: int
-    ) -> int:
+    def _estimate_duration(self, scene_type: SceneType, complexity_score: float, total_words: int) -> int:
         """
         Estimate optimal video duration based on scene type and complexity.
 
@@ -348,7 +331,14 @@ class ScriptAnalyzer:
             if bold_match and len(bold_match.group(1)) > 1:
                 name = bold_match.group(1).strip()
                 # Skip if it's a scene heading or generic term
-                skip_words = {"SCENE", "INT", "EXT", "ACTION", "DIALOGUE", "SUMMARY"}
+                skip_words = {
+                    "SCENE",
+                    "INT",
+                    "EXT",
+                    "ACTION",
+                    "DIALOGUE",
+                    "SUMMARY",
+                }
                 if name.upper() not in skip_words and len(name) > 1:
                     # Look for description in surrounding context
                     description = self._extract_character_description(lines, i, name)
@@ -356,18 +346,14 @@ class ScriptAnalyzer:
                         name=name,
                         visual_tags=self._generate_visual_tags(name, description),
                         first_appearance=self._find_first_scene(lines, i),
-                        role=self._infer_character_role(
-                            name, description, len(characters)
-                        ),
+                        role=self._infer_character_role(name, description, len(characters)),
                         appearance_description=description,
                         ai_prompt=self._generate_character_ai_prompt(name, description),
                     )
 
         return list(characters.values())
 
-    def _extract_character_description(
-        self, lines: List[str], name_index: int, name: str
-    ) -> str:
+    def _extract_character_description(self, lines: List[str], name_index: int, name: str) -> str:
         """Extract character description from context around the name."""
         # Look for description after the character name
         description_parts = []
@@ -396,15 +382,20 @@ class ScriptAnalyzer:
                 return clean[:100]
         return "Unknown Scene"
 
-    def _infer_character_role(
-        self, name: str, description: str, existing_count: int
-    ) -> CharacterRole:
+    def _infer_character_role(self, name: str, description: str, existing_count: int) -> CharacterRole:
         """Infer character role from name and description."""
         desc_lower = description.lower()
-        name_upper = name.upper()
+        name.upper()
 
         # Check for protagonist indicators
-        protagonist_words = ["hero", "protagonist", "main", "leader", "主角", "英雄"]
+        protagonist_words = [
+            "hero",
+            "protagonist",
+            "main",
+            "leader",
+            "主角",
+            "英雄",
+        ]
         if any(word in desc_lower for word in protagonist_words):
             return CharacterRole.PROTAGONIST
 
@@ -448,9 +439,7 @@ class ScriptAnalyzer:
         if age_match:
             tags.append(age_match.group(1))
 
-        gender_match = re.search(
-            r"\b(woman|man|girl|boy|male|female)\b", description, re.IGNORECASE
-        )
+        gender_match = re.search(r"\b(woman|man|girl|boy|male|female)\b", description, re.IGNORECASE)
         if gender_match:
             tags.append(gender_match.group(1))
 
@@ -472,12 +461,8 @@ class ScriptAnalyzer:
         prompt_parts = []
 
         # Gender/age
-        age_match = re.search(
-            r"\b(young|middle-aged|old|teen)\b", description, re.IGNORECASE
-        )
-        gender_match = re.search(
-            r"\b(woman|man|girl|boy)\b", description, re.IGNORECASE
-        )
+        age_match = re.search(r"\b(young|middle-aged|old|teen)\b", description, re.IGNORECASE)
+        gender_match = re.search(r"\b(woman|man|girl|boy)\b", description, re.IGNORECASE)
 
         if age_match and gender_match:
             prompt_parts.append(f"A {age_match.group(1)} {gender_match.group(1)}")
@@ -528,7 +513,7 @@ class ScriptAnalyzer:
         current_scene_lines = []
         scene_characters: List[str] = []
 
-        for i, line in enumerate(lines):
+        for _i, line in enumerate(lines):
             stripped = line.strip()
 
             # Detect scene header
@@ -563,27 +548,17 @@ class ScriptAnalyzer:
 
         # Don't forget last scene
         if current_scene_name:
-            scenes.append(
-                self._create_scene_info(
-                    current_scene_name, current_scene_lines, scene_characters
-                )
-            )
+            scenes.append(self._create_scene_info(current_scene_name, current_scene_lines, scene_characters))
 
         return scenes
 
-    def _create_scene_info(
-        self, scene_name: str, lines: List[str], characters: List[str]
-    ) -> SceneInfo:
+    def _create_scene_info(self, scene_name: str, lines: List[str], characters: List[str]) -> SceneInfo:
         """Create a SceneInfo object from collected lines."""
         full_text = "\n".join(lines)
 
         # Determine scene type
         is_interior = scene_name.upper().startswith("INT")
-        scene_type = (
-            ProfessionalSceneType.INTERIOR
-            if is_interior
-            else ProfessionalSceneType.EXTERIOR
-        )
+        scene_type = ProfessionalSceneType.INTERIOR if is_interior else ProfessionalSceneType.EXTERIOR
 
         # Extract mood/requirements
         mood_keywords = self._extract_scene_mood(full_text)

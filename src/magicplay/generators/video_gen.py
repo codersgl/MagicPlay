@@ -54,10 +54,7 @@ class VideoGenerator:
             logger.info(f"No provider specified, using default: {api_provider}")
 
         if api_provider not in self.SUPPORTED_PROVIDERS:
-            raise ValueError(
-                f"Unsupported provider: {api_provider}. "
-                f"Supported: {self.SUPPORTED_PROVIDERS}"
-            )
+            raise ValueError(f"Unsupported provider: {api_provider}. Supported: {self.SUPPORTED_PROVIDERS}")
 
         self.api_provider = api_provider
         self.size = size
@@ -137,15 +134,10 @@ class VideoGenerator:
 
         # Validate provider if overridden
         if api_provider and api_provider not in self.SUPPORTED_PROVIDERS:
-            raise ValueError(
-                f"Unsupported provider: {api_provider}. "
-                f"Supported: {self.SUPPORTED_PROVIDERS}"
-            )
+            raise ValueError(f"Unsupported provider: {api_provider}. Supported: {self.SUPPORTED_PROVIDERS}")
 
         # Determine if we should use unified mode
-        use_unified = (
-            force_unified_mode if force_unified_mode is not None else self.unified_mode
-        )
+        use_unified = force_unified_mode if force_unified_mode is not None else self.unified_mode
 
         # Ensure output directory exists
         output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -156,13 +148,11 @@ class VideoGenerator:
         # Unified mode logic
         if use_unified:
             if ref_path_obj:
-                print(
-                    f"Unified mode: Using reference image for image-to-video generation: {ref_path_obj}"
-                )
+                print(f"Unified mode: Using reference image for image-to-video generation: {ref_path_obj}")
             else:
                 print(
-                    f"Unified mode: No reference image provided. "
-                    f"This is expected for the first scene - concept image should be generated separately."
+                    "Unified mode: No reference image provided. "
+                    "This is expected for the first scene - concept image should be generated separately."
                 )
         else:
             if ref_path_obj:
@@ -216,7 +206,7 @@ class VideoGenerator:
                     raise RuntimeError("Failed to download generated video")
 
         except Exception as e:
-            raise RuntimeError(f"Video generation failed: {e}")
+            raise RuntimeError(f"Video generation failed: {e}") from e
 
     def generate_video_unified(
         self,
@@ -242,9 +232,7 @@ class VideoGenerator:
         if not concept_path.exists():
             raise FileNotFoundError(f"Concept image not found: {concept_image_path}")
 
-        print(
-            f"Unified video generation: Using concept image as reference: {concept_path}"
-        )
+        print(f"Unified video generation: Using concept image as reference: {concept_path}")
 
         return self.generate_video(
             visual_prompt=visual_prompt,

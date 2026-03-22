@@ -73,9 +73,7 @@ class ScriptAnalysisGenerator:
 
         # Phase 2: LLM-enhanced analysis for visual prompts
         logger.info("Enhancing analysis with LLM...")
-        enhanced_result = self._llm_enhanced_analysis(
-            script_content, characters, scenes
-        )
+        enhanced_result = self._llm_enhanced_analysis(script_content, characters, scenes)
 
         # Merge results
         if enhanced_result:
@@ -83,9 +81,7 @@ class ScriptAnalysisGenerator:
             scenes = enhanced_result.get("scenes", scenes)
 
         # Generate visual prompts
-        visual_prompts = self._script_analyzer.generate_visual_prompts(
-            characters, scenes
-        )
+        self._script_analyzer.generate_visual_prompts(characters, scenes)
 
         # Calculate total duration
         total_duration = sum(s.duration for s in scenes)
@@ -116,9 +112,7 @@ class ScriptAnalysisGenerator:
             Enhanced dictionaries for characters and scenes, or None on failure
         """
         try:
-            prompt = self._build_llm_analysis_prompt(
-                script_content, rule_based_characters, rule_based_scenes
-            )
+            prompt = self._build_llm_analysis_prompt(script_content, rule_based_characters, rule_based_scenes)
 
             system_prompt = (
                 "You are a professional AI short drama script analyst. "
@@ -132,9 +126,7 @@ class ScriptAnalysisGenerator:
                 max_tokens=4000,
             )
 
-            return self._parse_llm_response(
-                response, rule_based_characters, rule_based_scenes
-            )
+            return self._parse_llm_response(response, rule_based_characters, rule_based_scenes)
 
         except Exception as e:
             logger.warning(f"LLM-enhanced analysis failed: {e}")
@@ -153,10 +145,10 @@ class ScriptAnalysisGenerator:
         prompt = f"""Analyze this script and provide detailed character and scene information.
 
 ## Characters Found:
-{', '.join(char_names) if char_names else 'None detected'}
+{", ".join(char_names) if char_names else "None detected"}
 
 ## Scenes Found:
-{', '.join(scene_names) if scene_names else 'None detected'}
+{", ".join(scene_names) if scene_names else "None detected"}
 
 ## Script Content:
 {script_content[:3000]}...
@@ -213,9 +205,7 @@ class ScriptAnalysisGenerator:
             characters = []
             for char_data in data.get("characters", []):
                 # Match with fallback by name similarity
-                matched = self._match_character_by_name(
-                    char_data.get("name", ""), fallback_characters
-                )
+                matched = self._match_character_by_name(char_data.get("name", ""), fallback_characters)
                 if matched:
                     # Update with LLM-enhanced data
                     matched.appearance_description = char_data.get("appearance", "")
@@ -239,9 +229,7 @@ class ScriptAnalysisGenerator:
             # Parse scenes
             scenes = []
             for scene_data in data.get("scenes", []):
-                matched = self._match_scene_by_name(
-                    scene_data.get("name", ""), fallback_scenes
-                )
+                matched = self._match_scene_by_name(scene_data.get("name", ""), fallback_scenes)
                 if matched:
                     # Update with LLM-enhanced data
                     matched.visual_requirements = ", ".join(scene_data.get("mood", []))
@@ -266,9 +254,7 @@ class ScriptAnalysisGenerator:
             logger.warning(f"Failed to parse LLM response: {e}")
             return None
 
-    def _match_character_by_name(
-        self, name: str, fallback_characters: List[CharacterInfo]
-    ) -> Optional[CharacterInfo]:
+    def _match_character_by_name(self, name: str, fallback_characters: List[CharacterInfo]) -> Optional[CharacterInfo]:
         """Match LLM character name to fallback character by similarity."""
         name_lower = name.lower()
         for char in fallback_characters:
@@ -276,9 +262,7 @@ class ScriptAnalysisGenerator:
                 return char
         return None
 
-    def _match_scene_by_name(
-        self, name: str, fallback_scenes: List[SceneInfo]
-    ) -> Optional[SceneInfo]:
+    def _match_scene_by_name(self, name: str, fallback_scenes: List[SceneInfo]) -> Optional[SceneInfo]:
         """Match LLM scene name to fallback scene by similarity."""
         name_lower = name.lower()
         for scene in fallback_scenes:
@@ -333,9 +317,7 @@ class ScriptAnalysisGenerator:
             logger.error(f"Failed to analyze script file: {e}")
             return None
 
-    def save_analysis_report(
-        self, result: ScriptAnalysisResult, output_path: Path
-    ) -> Path:
+    def save_analysis_report(self, result: ScriptAnalysisResult, output_path: Path) -> Path:
         """
         Save analysis result as a markdown report.
 
@@ -369,8 +351,8 @@ class ScriptAnalysisGenerator:
                     f"- **角色**: {char.role.value}",
                     f"- **外貌描述**: {char.appearance_description}",
                     f"- **性格特点**: {', '.join(char.personality_traits)}",
-                    f"- **AI生图提示词**:",
-                    f"```",
+                    "- **AI生图提示词**:",
+                    "```",
                     char.ai_prompt,
                     "```",
                     "",
@@ -394,8 +376,8 @@ class ScriptAnalysisGenerator:
                     f"- **时长**: {scene.duration}秒",
                     f"- **出场人物**: {', '.join(scene.characters)}",
                     f"- **视觉要求**: {scene.visual_requirements}",
-                    f"- **AI生图提示词**:",
-                    f"```",
+                    "- **AI生图提示词**:",
+                    "```",
                     scene.ai_prompt,
                     "```",
                     "",
