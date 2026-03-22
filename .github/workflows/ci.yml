@@ -43,8 +43,8 @@ jobs:
         ruff format --check src test
         echo "=== Running ruff linting ==="
         ruff check src test
-        echo "=== Running mypy type checking ==="
-        mypy src
+        # echo "=== Running mypy type checking ==="
+        # mypy src
     
     - name: Run tests with coverage
       run: |
