@@ -8,8 +8,8 @@ Uses the official volcengine Python SDK for authentication.
 
 import base64
 import json
-import logging
 import time
+from loguru import logger
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 
@@ -19,8 +19,6 @@ from volcengine.visual.VisualService import VisualService
 
 from ..config import Settings
 from ..utils.media import MediaUtils
-
-logger = logging.getLogger(__name__)
 
 
 class JimengVideoService:

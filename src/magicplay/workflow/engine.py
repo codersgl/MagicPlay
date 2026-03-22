@@ -9,9 +9,9 @@ Key features:
 5. Progress tracking and failure recovery
 """
 import asyncio
-import logging
 import time
 from abc import ABC, abstractmethod
+from loguru import logger
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
@@ -179,7 +179,7 @@ class WorkflowEngine:
         self.cache_misses = 0
         
         # Setup logging
-        self.logger = logging.getLogger(__name__)
+        self.logger = logger
     
     def register_node(self, node: WorkflowNode):
         """Register a workflow node."""
@@ -605,8 +605,5 @@ def create_workflow_engine(
         enable_caching=enable_cache,
         enable_quality_check=enable_quality,
     )
-    
-    # Setup basic logging
-    logging.basicConfig(level=logging.INFO)
     
     return engine

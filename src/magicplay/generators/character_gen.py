@@ -5,7 +5,7 @@ Generates character anchor images for story consistency.
 Phase 1 of the three-phase optimization architecture.
 """
 
-import logging
+from loguru import logger
 from pathlib import Path
 from typing import Dict, Optional
 
@@ -13,8 +13,6 @@ from magicplay.config import get_settings
 from magicplay.consistency.story_consistency import StoryConsistencyManager
 from magicplay.services.image_api import ImageService
 from magicplay.utils.paths import DataManager
-
-logger = logging.getLogger(__name__)
 
 
 class CharacterImageGenerator:

@@ -4,9 +4,8 @@ LLM Service - DeepSeek Integration
 Large Language Model service using DeepSeek API.
 """
 
-import logging
 from typing import Any, Dict, Optional
-
+from loguru import logger
 from openai import OpenAI
 
 from magicplay.config import Settings
@@ -61,7 +60,7 @@ class LLMService(BaseService, ILLMService):
         self.default_temperature = config.default_temperature
         self.max_retries = config.max_retry_attempts
 
-        self._logger = logging.getLogger(self.__class__.__name__)
+        self.logger = logger
 
     def _get_api_key(self) -> str:
         """Get API key from configuration."""
@@ -142,7 +141,7 @@ class LLMService(BaseService, ILLMService):
             # Re-raise our own errors
             raise
         except Exception as e:
-            self._logger.error(f"DeepSeek API call failed: {e}")
+            self.logger.error(f"DeepSeek API call failed: {e}")
             self._raise_api_error(
                 message=f"DeepSeek API call failed: {e}",
                 response_body=str(e)
@@ -164,11 +163,11 @@ class LLMService(BaseService, ILLMService):
                 max_tokens=5
             )
             self._healthy = True
-            self._logger.info("DeepSeek health check passed")
+            self.logger.info("DeepSeek health check passed")
             return True
 
         except Exception as e:
-            self._logger.error(f"DeepSeek health check failed: {e}")
+            self.logger.error(f"DeepSeek health check failed: {e}")
             self._healthy = False
             return False
 

@@ -6,8 +6,8 @@ Provides simple caching mechanisms for generated resources.
 
 import hashlib
 import json
-import logging
 from datetime import datetime, timedelta
+from loguru import logger
 from functools import lru_cache, wraps
 from pathlib import Path
 from typing import Any, Callable, Dict, Optional, TypeVar, Union
@@ -15,8 +15,6 @@ from typing import Any, Callable, Dict, Optional, TypeVar, Union
 from magicplay.config import Settings
 
 T = TypeVar('T')
-
-logger = logging.getLogger(__name__)
 
 
 class SimpleCache:

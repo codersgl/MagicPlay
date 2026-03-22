@@ -5,7 +5,7 @@ Generates videos using various video generation APIs.
 Supports multiple providers: DashScope (qwen) and Jimeng (即梦).
 """
 
-import logging
+from loguru import logger
 from pathlib import Path
 from typing import Optional, Tuple, Union
 
@@ -13,8 +13,6 @@ from magicplay.config import get_settings
 from magicplay.services.jimeng_video_api import JimengVideoService
 from magicplay.services.video_api import VideoService
 from magicplay.utils.media import MediaUtils
-
-logger = logging.getLogger(__name__)
 
 
 class VideoGenerator:

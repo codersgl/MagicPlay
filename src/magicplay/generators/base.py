@@ -4,10 +4,10 @@ MagicPlay Generator Base Classes
 Abstract base classes and shared functionality for all generators.
 """
 
-import logging
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any, Dict, Generic, List, Optional, TypeVar
+from loguru import logger
 
 from magicplay.config import Settings
 from magicplay.ports.generators import (
@@ -48,7 +48,7 @@ class BaseGenerator(IGenerator[T], ABC, Generic[T]):
             config: Application settings
         """
         self.config = config
-        self.logger = logging.getLogger(f"{self.__class__.__module__}.{self.__class__.__name__}")
+        self.logger = logger
 
     @abstractmethod
     def generate(self, context: GenerationContext) -> GenerationResult[T]:

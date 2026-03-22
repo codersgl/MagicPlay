@@ -4,6 +4,7 @@ Retry utilities for API calls.
 Provides decorators for automatic retry with exponential backoff.
 """
 
+import logging
 from functools import wraps
 from typing import Callable, Optional, Tuple, Type
 
@@ -15,8 +16,7 @@ from tenacity import (
     before_log,
     after_log,
 )
-
-import logging
+from loguru import logger
 
 
 def api_retry(
@@ -48,7 +48,7 @@ def api_retry(
         def call_api():
             ...
     """
-    logger = logging.getLogger(logger_name) if logger_name else None
+    retry_logger = logging.getLogger(logger_name) if logger_name else None
 
     decorator_args = {
         "stop": stop_after_attempt(max_attempts),
@@ -57,9 +57,9 @@ def api_retry(
         "reraise": True,
     }
 
-    if logger:
-        decorator_args["before"] = before_log(logger, logging.DEBUG)
-        decorator_args["after"] = after_log(logger, logging.DEBUG)
+    if retry_logger:
+        decorator_args["before"] = before_log(retry_logger, logging.DEBUG)
+        decorator_args["after"] = after_log(retry_logger, logging.DEBUG)
 
     def decorator(func: Callable) -> Callable:
         @wraps(func)
@@ -101,7 +101,6 @@ def with_fallback(
                 return func(*args, **kwargs)
             except fallback_exceptions as e:
                 if log_fallback:
-                    logger = logging.getLogger(func.__module__)
                     logger.warning(
                         f"{func.__name__} failed, using fallback: {e}"
                     )

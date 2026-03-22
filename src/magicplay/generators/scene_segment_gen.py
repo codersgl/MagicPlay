@@ -5,7 +5,7 @@ Generates multi-frame video segments for Phase 3 of the optimization pipeline.
 Handles longer scenes by splitting them into segments and stitching them together.
 """
 
-import logging
+from loguru import logger
 from pathlib import Path
 from typing import List, Optional
 
@@ -14,8 +14,6 @@ from magicplay.config import get_settings
 from magicplay.generators.video_gen import VideoGenerator
 from magicplay.utils.media import MediaUtils
 from magicplay.utils.paths import DataManager
-
-logger = logging.getLogger(__name__)
 
 
 class SceneSegmentGenerator:

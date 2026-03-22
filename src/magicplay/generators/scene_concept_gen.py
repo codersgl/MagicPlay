@@ -5,15 +5,13 @@ Generates scene concept images for Phase 2 of the optimization pipeline.
 Ensures consistent visual quality across all video generation.
 """
 
-import logging
 import re
+from loguru import logger
 from pathlib import Path
 from typing import Dict, Optional
 
 from magicplay.services.image_api import ImageService
 from magicplay.utils.paths import DataManager
-
-logger = logging.getLogger(__name__)
 
 
 class SceneConceptGenerator:

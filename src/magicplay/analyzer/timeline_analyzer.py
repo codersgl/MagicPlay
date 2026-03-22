@@ -6,15 +6,13 @@ individual visual prompts for each segment.
 """
 
 import json
-import logging
 import re
+from loguru import logger
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Optional
 
 from magicplay.services.llm import LLMService
-
-logger = logging.getLogger(__name__)
 
 
 @dataclass

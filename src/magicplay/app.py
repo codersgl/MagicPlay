@@ -10,7 +10,15 @@ from pathlib import Path
 
 from magicplay.core.orchestrator import Orchestrator
 from magicplay.config import get_settings
+from magicplay.logging_config import setup_logging
 from magicplay.utils.paths import DataManager
+
+# Initialize logging
+settings = get_settings()
+setup_logging(
+    level=settings.log_level,
+    log_file=settings.log_file,
+)
 
 
 # Custom CSS for enhanced aesthetics
