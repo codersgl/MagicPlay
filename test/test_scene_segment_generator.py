@@ -256,7 +256,12 @@ class TestGenerateWithTimeline:
         return mock
 
     @pytest.fixture
-    def generator(self, temp_dir, mock_video_generator):
+    def mock_timeline_analyzer(self):
+        """Create mock timeline analyzer."""
+        return MagicMock()
+
+    @pytest.fixture
+    def generator(self, temp_dir, mock_video_generator, mock_timeline_analyzer):
         """Create generator with mocked dependencies."""
         with patch('magicplay.generators.scene_segment_gen.DataManager') as mock_dm:
             mock_dm.get_scene_segments_path.return_value = temp_dir
@@ -267,10 +272,11 @@ class TestGenerateWithTimeline:
                 with patch('magicplay.generators.scene_segment_gen.VideoGenerator', return_value=mock_video_generator):
                     yield SceneSegmentGenerator(
                         story_name="TestStory",
-                        episode_name="Episode1"
+                        episode_name="Episode1",
+                        timeline_analyzer=mock_timeline_analyzer
                     )
 
-    def test_generate_with_timeline_calls_analyzer(self, generator, temp_dir):
+    def test_generate_with_timeline_calls_analyzer(self, generator, temp_dir, mock_timeline_analyzer):
         """Test that generate_with_timeline uses TimelineAnalyzer."""
         from magicplay.analyzer.timeline_analyzer import TimelineSegment, TimelineResult
 
@@ -281,7 +287,7 @@ class TestGenerateWithTimeline:
 
         generator.video_gen.generate_video.side_effect = [video_path, video_path2]
 
-        # Mock TimelineAnalyzer
+        # Mock TimelineAnalyzer result
         mock_timeline_result = TimelineResult(
             segments=[
                 TimelineSegment(
@@ -301,38 +307,35 @@ class TestGenerateWithTimeline:
             reasoning="Test reasoning"
         )
 
-        with patch('magicplay.generators.scene_segment_gen.TimelineAnalyzer') as mock_analyzer_class:
-            mock_analyzer = MagicMock()
-            mock_analyzer.analyze.return_value = mock_timeline_result
-            mock_analyzer_class.return_value = mock_analyzer
+        mock_timeline_analyzer.analyze.return_value = mock_timeline_result
 
-            result = generator.generate_with_timeline(
-                scene_name="scene_timeline",
-                scene_script="A hero enters a castle and battles a dragon",
-                segment_duration=10,
-                use_multi_frame=True
-            )
+        result = generator.generate_with_timeline(
+            scene_name="scene_timeline",
+            scene_script="A hero enters a castle and battles a dragon",
+            segment_duration=10,
+            use_multi_frame=True
+        )
 
-            # Verify TimelineAnalyzer was called
-            mock_analyzer.analyze.assert_called_once_with(
-                scene_script="A hero enters a castle and battles a dragon",
-                duration=10
-            )
+        # Verify TimelineAnalyzer was called
+        mock_timeline_analyzer.analyze.assert_called_once_with(
+            scene_script="A hero enters a castle and battles a dragon",
+            duration=10
+        )
 
-            # Verify video generation was called with timeline-based prompts
-            assert generator.video_gen.generate_video.call_count == 2
+        # Verify video generation was called with timeline-based prompts
+        assert generator.video_gen.generate_video.call_count == 2
 
-            # First segment should use its own visual_prompt from timeline
-            first_call = generator.video_gen.generate_video.call_args_list[0]
-            assert "Segment 1 visual prompt" in first_call.kwargs['visual_prompt']
+        # First segment should use its own visual_prompt from timeline
+        first_call = generator.video_gen.generate_video.call_args_list[0]
+        assert "Segment 1 visual prompt" in first_call.kwargs['visual_prompt']
 
-            # Second segment should use its own visual_prompt from timeline
-            second_call = generator.video_gen.generate_video.call_args_list[1]
-            assert "Segment 2 visual prompt" in second_call.kwargs['visual_prompt']
+        # Second segment should use its own visual_prompt from timeline
+        second_call = generator.video_gen.generate_video.call_args_list[1]
+        assert "Segment 2 visual prompt" in second_call.kwargs['visual_prompt']
 
-            assert len(result) == 2
+        assert len(result) == 2
 
-    def test_generate_with_timeline_fallback(self, generator, temp_dir):
+    def test_generate_with_timeline_fallback(self, generator, temp_dir, mock_timeline_analyzer):
         """Test fallback when timeline analysis returns empty segments."""
         from magicplay.analyzer.timeline_analyzer import TimelineResult
 
@@ -349,28 +352,25 @@ class TestGenerateWithTimeline:
             reasoning="Empty segments"
         )
 
-        with patch('magicplay.generators.scene_segment_gen.TimelineAnalyzer') as mock_analyzer_class:
-            mock_analyzer = MagicMock()
-            mock_analyzer.analyze.return_value = mock_timeline_result
-            mock_analyzer_class.return_value = mock_analyzer
+        mock_timeline_analyzer.analyze.return_value = mock_timeline_result
 
-            result = generator.generate_with_timeline(
-                scene_name="fallback_scene",
-                scene_script="A hero walks",
-                segment_duration=15,  # Over MAX_SEGMENT_DURATION to trigger multi-frame
-                use_multi_frame=True
-            )
+        result = generator.generate_with_timeline(
+            scene_name="fallback_scene",
+            scene_script="A hero walks",
+            segment_duration=15,  # Over MAX_SEGMENT_DURATION to trigger multi-frame
+            use_multi_frame=True
+        )
 
-            # Should still generate something (fallback behavior) - 2 segments
-            assert generator.video_gen.generate_video.call_count == 2
+        # Should still generate something (fallback behavior) - 2 segments
+        assert generator.video_gen.generate_video.call_count == 2
 
-            # The fallback should use scene_script with "Part N of M"
-            first_call = generator.video_gen.generate_video.call_args_list[0]
-            visual_prompt = first_call.kwargs['visual_prompt']
-            assert "A hero walks" in visual_prompt
-            assert "Part 1 of 2" in visual_prompt
+        # The fallback should use scene_script with "Part N of M"
+        first_call = generator.video_gen.generate_video.call_args_list[0]
+        visual_prompt = first_call.kwargs['visual_prompt']
+        assert "A hero walks" in visual_prompt
+        assert "Part 1 of 2" in visual_prompt
 
-    def test_generate_with_timeline_logs_segment_info(self, generator, temp_dir, caplog):
+    def test_generate_with_timeline_logs_segment_info(self, generator, temp_dir, mock_timeline_analyzer, caplog):
         """Test that generate_with_timeline logs segment info."""
         from magicplay.analyzer.timeline_analyzer import TimelineSegment, TimelineResult
 
@@ -391,22 +391,43 @@ class TestGenerateWithTimeline:
             reasoning="Test"
         )
 
-        with patch('magicplay.generators.scene_segment_gen.TimelineAnalyzer') as mock_analyzer_class:
-            mock_analyzer = MagicMock()
-            mock_analyzer.analyze.return_value = mock_timeline_result
-            mock_analyzer_class.return_value = mock_analyzer
+        mock_timeline_analyzer.analyze.return_value = mock_timeline_result
 
-            with caplog.at_level(logging.INFO):
-                generator.generate_with_timeline(
-                    scene_name="log_scene",
-                    scene_script="Hero enters castle",
-                    segment_duration=5,
-                    use_multi_frame=True
-                )
+        with caplog.at_level(logging.INFO):
+            generator.generate_with_timeline(
+                scene_name="log_scene",
+                scene_script="Hero enters castle",
+                segment_duration=5,
+                use_multi_frame=True
+            )
 
-            # Verify segment info is logged: "{start}-{end}s: {description}"
-            assert "0-5s:" in caplog.text
-            assert "Hero walking through castle gates" in caplog.text
+        # Verify segment info is logged: "{start}-{end}s: {description}"
+        assert "0-5s:" in caplog.text
+        assert "Hero walking through castle gates" in caplog.text
+
+    def test_timeline_analyzer_injection(self, temp_dir, mock_video_generator):
+        """Test that timeline_analyzer is properly injected via constructor."""
+        from magicplay.analyzer.timeline_analyzer import TimelineAnalyzer
+
+        # Create a mock timeline analyzer
+        mock_analyzer = MagicMock(spec=TimelineAnalyzer)
+
+        with patch('magicplay.generators.scene_segment_gen.DataManager') as mock_dm:
+            mock_dm.get_scene_segments_path.return_value = temp_dir
+
+            with patch('magicplay.generators.scene_segment_gen.get_settings') as mock_settings:
+                mock_settings.return_value = MagicMock()
+
+                with patch('magicplay.generators.scene_segment_gen.VideoGenerator', return_value=mock_video_generator):
+                    # Pass the mock analyzer to the constructor
+                    gen = SceneSegmentGenerator(
+                        story_name="TestStory",
+                        episode_name="Episode1",
+                        timeline_analyzer=mock_analyzer
+                    )
+
+                    # Verify the analyzer was stored
+                    assert gen._timeline_analyzer is mock_analyzer
 
 
 class TestSceneSegmentGeneratorEdgeCases:

@@ -34,6 +34,7 @@ class SceneSegmentGenerator:
         story_name: str,
         episode_name: str,
         size: tuple = (1280, 720),
+        timeline_analyzer: Optional[TimelineAnalyzer] = None,
     ) -> None:
         """
         Initialize scene segment generator.
@@ -42,6 +43,8 @@ class SceneSegmentGenerator:
             story_name: Name of the story
             episode_name: Name of the episode
             size: Output video resolution (width, height)
+            timeline_analyzer: Optional TimelineAnalyzer for testing.
+                               If not provided, a new instance will be created.
         """
         self.story_name = story_name
         self.episode_name = episode_name
@@ -54,6 +57,9 @@ class SceneSegmentGenerator:
 
         # Initialize video generator
         self.video_gen = VideoGenerator()
+
+        # Initialize timeline analyzer (injectable for testing)
+        self._timeline_analyzer = timeline_analyzer or TimelineAnalyzer()
 
         logger.info(
             f"SceneSegmentGenerator initialized for "
@@ -154,8 +160,7 @@ class SceneSegmentGenerator:
         segments: List[Path] = []
 
         # Use TimelineAnalyzer to get precise segment prompts
-        timeline_analyzer = TimelineAnalyzer()
-        timeline_result = timeline_analyzer.analyze(
+        timeline_result = self._timeline_analyzer.analyze(
             scene_script=scene_script,
             duration=segment_duration
         )
